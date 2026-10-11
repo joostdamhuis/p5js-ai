@@ -56,6 +56,12 @@ const dial = dials({
 - Dashboard thumbnails: 2.5s after a sketch (re)starts the iframe sends a 480px JPEG, saved as `sketches/<slug>/thumbnail.jpg` via `/api/sketches/[id]/thumbnail` (gitignored); cards fall back to code
 - Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 
+## Fonts and loops
+- Fonts: upload .ttf/.otf/.woff/.woff2 in the Files panel; stored in the sketch folder (committed), listed in project.json `fonts`, served by `/api/sketches/[id]/fonts/[name]`. Preview embeds them as data: URLs in @font-face (the sandboxed frame can't fetch them). Use `textFont('<file name without extension>')`; get_sketch lists them
+- Perfect loops: animated sketches should define `function loopLength()` returning one cycle in seconds (e.g. `2 / speed` when the phase is `millis()/1000 * speed * PI`). Record → One perfect loop records exactly that long; also Until I stop, 3/5/10 seconds
+- Only the editor tab used last obeys Claude's commands and answers get_sketch (`p5_active_editor_tab` in localStorage)
+- Saving keeps controls/canvasSize/fonts already on disk when a client doesn't send them
+
 ## Fixing errors (get_sketch)
 - MCP tool `get_sketch` returns every file, the last 50 console lines, control values and canvas size. Flow: MCP emits `requestSketchState` → hub → editors answer `sketchState` (visible tab preferred)
 - Console "Fix with Claude" (shown when there's an error) copies `Fix the error in my p5.js sketch "<name>": <error>` for Joost to paste. When asked to fix: call get_sketch first, then update_code with the whole file

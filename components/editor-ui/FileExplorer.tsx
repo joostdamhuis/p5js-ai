@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Project, ProjectFile, getFileTypeFromName, FileType } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { uploadFont, removeFont, fontFamily } from '@/lib/projects';
 import {
   FileText,
   FileCode,
@@ -188,9 +189,22 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Fonts are stored as files next to the sketch, not opened in the editor
+    if (/\.(ttf|otf|woff2?)$/i.test(file.name)) {
+      e.target.value = '';
+      try {
+        await uploadFont(project.id, file);
+        const fonts = Array.from(new Set([...(project.fonts ?? []), file.name]));
+        onProjectChange({ ...project, fonts, lastModified: Date.now() });
+      } catch (error) {
+        alert(`Couldn't add the font: ${(error as Error).message}`);
+      }
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -261,13 +275,13 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
             size="icon"
             onClick={() => document.getElementById('file-upload')?.click()}
             className="h-7 w-7"
-            title="Upload file"
+            title="Upload a file or a font (.ttf, .otf, .woff)"
           >
             <Upload className="h-3.5 w-3.5" />
             <input
               id="file-upload"
               type="file"
-              accept=".js,.html,.css,.txt,.json"
+              accept=".js,.html,.css,.txt,.json,.ttf,.otf,.woff,.woff2"
               onChange={handleFileUpload}
               className="hidden"
             />
@@ -378,6 +392,36 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
             )}
           </div>
         ))}
+
+        {(project.fonts?.length ?? 0) > 0 && (
+          <>
+            <h3 className="pt-4 pb-1.5 text-[13px] font-semibold text-foreground">Fonts</h3>
+            {project.fonts!.map((font) => (
+              <div
+                key={font}
+                className="group flex items-center justify-between h-8 pl-2.5 pr-1 rounded-lg text-[13px] font-medium text-muted-foreground hover:bg-white/[0.05] hover:text-foreground transition-colors"
+                title={`Use in your sketch: textFont('${fontFamily(font)}')`}
+              >
+                <div className="flex items-center overflow-hidden">
+                  <span className="w-3.5 mr-2 shrink-0 text-[11px] font-semibold opacity-60">Aa</span>
+                  <span className="truncate">{fontFamily(font)}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-70 hover:!opacity-100"
+                  title="Remove font"
+                  onClick={async () => {
+                    await removeFont(project.id, font);
+                    onProjectChange({ ...project, fonts: (project.fonts ?? []).filter(f => f !== font), lastModified: Date.now() });
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );

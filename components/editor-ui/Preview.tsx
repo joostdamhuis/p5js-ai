@@ -3,6 +3,14 @@ import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
 import { Download, ChevronDown, Square } from 'lucide-react';
 import { CANVAS_SIZES, getCanvasSize } from '@/lib/canvas-sizes';
+import { fontFamily, fontUrl } from '@/lib/projects';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Project } from '@/lib/types';
 import { LogMessage } from './Console';
 import SketchControls from './SketchControls';
@@ -143,6 +151,17 @@ const dialsBridge = `
             window.parent.postMessage({ source: 'p5js-dials', type: 'recordError', reason: canvas ? 'This browser can’t record video' : 'No canvas to record' }, '*');
             return;
           }
+          // Length: 'loop' asks the sketch for one cycle via loopLength(), a number is seconds
+          let seconds = null;
+          if (data.length === 'loop') {
+            seconds = typeof window.loopLength === 'function' ? Number(window.loopLength()) : NaN;
+            if (!(seconds > 0)) {
+              window.parent.postMessage({ source: 'p5js-dials', type: 'recordError', reason: 'This sketch has no loopLength(), so it can’t record one loop' }, '*');
+              return;
+            }
+          } else if (typeof data.length === 'number') {
+            seconds = data.length;
+          }
           const chunks = [];
           const recorder = new MediaRecorder(canvas.captureStream(60), { mimeType: mime, videoBitsPerSecond: 16000000 });
           recorder.ondataavailable = function(e) { if (e.data && e.data.size) chunks.push(e.data); };
@@ -152,7 +171,8 @@ const dialsBridge = `
           };
           window.__recorder = recorder;
           recorder.start(250);
-          window.parent.postMessage({ source: 'p5js-dials', type: 'recordStarted' }, '*');
+          if (seconds) setTimeout(function() { if (window.__recorder === recorder) recorder.stop(); }, seconds * 1000);
+          window.parent.postMessage({ source: 'p5js-dials', type: 'recordStarted', seconds: seconds }, '*');
         }
         if (data.type === 'recordStop' && window.__recorder) window.__recorder.stop();
         if (data.type === 'action') {
@@ -190,7 +210,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   const size = getCanvasSize(project.canvasSize);
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
-  const [recording, setRecording] = useState<{ since: number } | null>(null);
+  const [recording, setRecording] = useState<{ since: number; seconds?: number } | null>(null);
   const [now, setNow] = useState(Date.now());
   const [recordNote, setRecordNote] = useState('');
 
@@ -255,7 +275,30 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
 
   // Only the files' names and contents matter for the running sketch, so
   // switching tabs or renaming the project doesn't restart the animation
-  const filesKey = JSON.stringify(project.files.map(f => [f.name, f.content]));
+  // Font files, loaded once as data: URLs to embed in the sketch frame
+  const [fontData, setFontData] = useState<Record<string, string>>({});
+  const fontsKey = JSON.stringify(project.fonts ?? []);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const loaded: Record<string, string> = {};
+      for (const f of project.fonts ?? []) {
+        try {
+          const blob = await (await fetch(fontUrl(project.id, f))).blob();
+          loaded[f] = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.readAsDataURL(blob);
+          });
+        } catch {}
+      }
+      if (!cancelled) setFontData(loaded);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fontsKey, project.id]);
+
+  const filesKey = JSON.stringify([project.files.map(f => [f.name, f.content]), Object.keys(fontData)]);
 
   useEffect(() => {
     if (iframeRef.current && isRunning) {
@@ -316,7 +359,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       }
       if (data.type === 'recordStarted') {
         setRecordNote('');
-        setRecording({ since: Date.now() });
+        setRecording({ since: Date.now(), seconds: data.seconds || undefined });
       }
       if (data.type === 'recordError') {
         setRecording(null);
@@ -497,7 +540,15 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     const headCloseIndex = htmlContent.indexOf('</head>');
     if (headCloseIndex !== -1) {
       const sizeFlag = size.w ? '<script>window.__fixedSize = true;</script>' : '';
-      htmlContent = htmlContent.slice(0, headCloseIndex) + sizeFlag + frameFit + htmlContent.slice(headCloseIndex);
+      // Uploaded fonts: usable as textFont('<file name without extension>')
+      // Embedded as data: URLs, because the sealed-off sketch frame may not be allowed to fetch them
+      const loadedFonts = (project.fonts ?? []).filter(f => fontData[f]);
+      const fontFaces = loadedFonts.length
+        ? `<style>${loadedFonts.map(f =>
+          `@font-face { font-family: "${fontFamily(f)}"; src: url("${fontData[f]}"); font-display: block; }`
+        ).join('\n')}</style>`
+        : '';
+      htmlContent = htmlContent.slice(0, headCloseIndex) + sizeFlag + fontFaces + frameFit + htmlContent.slice(headCloseIndex);
     }
 
     // Use data URI to avoid cross-origin issues
@@ -550,7 +601,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       {/* Canvas toolbar: visible on hover, and always while recording */}
       <div className={cn(
         "absolute top-2 right-2 z-10 flex items-center gap-1 transition-opacity",
-        recording ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+        recording ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 has-[[data-state=open]]:opacity-100"
       )}>
         <div className="relative">
           <select
@@ -564,26 +615,44 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           </select>
           <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         </div>
-        <button
-          onClick={() => postToSketch({ type: recording ? 'recordStop' : 'recordStart' })}
-          title={recording ? 'Stop and download the video' : 'Record a video of the canvas'}
-          className={cn(
-            "flex items-center gap-1.5 h-8 px-2.5 rounded-lg backdrop-blur text-[13px] font-medium tabular-nums transition-colors",
-            recording ? "bg-red-500/90 text-white hover:bg-red-500" : "bg-[#212121]/80 text-foreground hover:bg-[#2a2a2a]"
-          )}
-        >
-          {recording ? (
-            <>
-              <Square className="h-3 w-3 fill-current" />
-              {formatElapsed(now - recording.since)}
-            </>
-          ) : (
-            <>
-              <span className="h-2 w-2 rounded-full bg-red-500" />
-              Record
-            </>
-          )}
-        </button>
+        {recording ? (
+          <button
+            onClick={() => postToSketch({ type: 'recordStop' })}
+            title="Stop and download the video"
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg backdrop-blur text-[13px] font-medium tabular-nums bg-red-500/90 text-white hover:bg-red-500 transition-colors"
+          >
+            <Square className="h-3 w-3 fill-current" />
+            {formatElapsed(now - recording.since)}
+            {recording.seconds ? ` / ${formatElapsed(recording.seconds * 1000)}` : ''}
+          </button>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                title="Record a video of the canvas"
+                className="flex items-center gap-1.5 h-8 pl-2.5 pr-2 rounded-lg backdrop-blur text-[13px] font-medium bg-[#212121]/80 text-foreground hover:bg-[#2a2a2a] data-[state=open]:bg-[#2a2a2a] transition-colors"
+              >
+                <span className="h-2 w-2 rounded-full bg-red-500" />
+                Record
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart', length: 'loop' })}>
+                One perfect loop
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart' })}>
+                Until I stop
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {[3, 5, 10].map(sec => (
+                <DropdownMenuItem key={sec} onClick={() => postToSketch({ type: 'recordStart', length: sec })}>
+                  {sec} seconds
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <button
           onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}
           title="Download this frame as a PNG"

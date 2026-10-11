@@ -19,6 +19,8 @@ export interface Project {
   controls?: Record<string, unknown>;
   // Canvas size preset id from lib/canvas-sizes.ts ('fit' when missing)
   canvasSize?: string;
+  // Font files stored next to the sketch; usable as textFont('<name without extension>')
+  fonts?: string[];
 }
 
 export const getFileTypeFromName = (filename: string): FileType => {

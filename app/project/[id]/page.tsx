@@ -124,6 +124,8 @@ export default function ProjectPage() {
     console: consoleMessages.slice(-50).map(m => ({ type: m.type, content: m.content })),
     controls: project.controls,
     canvasSize: project.canvasSize,
+    // Use as textFont('<name without extension>')
+    fonts: project.fonts ?? [],
   } : {};
 
   // Handle file selection

@@ -127,3 +127,21 @@ export const publishSketches = async (name: string): Promise<PublishResult> => {
     return { status: 'saved-locally', reason: 'Could not reach the editor server' };
   }
 };
+
+// Fonts: stored as files in the sketch folder, served back for the sketch frame
+export const fontFamily = (fileName: string) => fileName.replace(/\.(ttf|otf|woff2?)$/i, '');
+
+export const fontUrl = (projectId: string, fileName: string) =>
+  `${window.location.origin}/api/sketches/${encodeURIComponent(projectId)}/fonts/${encodeURIComponent(fileName)}`;
+
+export const uploadFont = async (projectId: string, file: File) => {
+  const res = await fetch(`/api/sketches/${encodeURIComponent(projectId)}/fonts/${encodeURIComponent(file.name)}`, {
+    method: 'PUT',
+    body: await file.arrayBuffer(),
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Upload failed (${res.status})`);
+};
+
+export const removeFont = async (projectId: string, fileName: string) => {
+  await fetch(`/api/sketches/${encodeURIComponent(projectId)}/fonts/${encodeURIComponent(fileName)}`, { method: 'DELETE' });
+};
