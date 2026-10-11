@@ -212,3 +212,9 @@ html, body {
 .dialkit-root[data-mode="inline"] .dialkit-folder-header {
   background: transparent;
 }
+
+/* DialKit's pinned header paints --dial-glass-bg; make it the same tinted
+   colour as our panel so it doesn't show as a darker band */
+.dialkit-root[data-mode="inline"][data-theme] {
+  --dial-glass-bg: color-mix(in srgb, var(--card) 82%, var(--ambient) 18%);
+}
