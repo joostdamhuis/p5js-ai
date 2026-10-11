@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "gradient",
-  "lastModified": 1791730933031,
+  "lastModified": 1791731157317,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -51,6 +51,12 @@
       "drag": 3.17,
       "shift": 0.81,
       "ease": 0.89
+    },
+    "greens": {
+      "from": "#3dff7a",
+      "via": "#00703a",
+      "to": "#b8ff5c",
+      "background": "#02120a"
     }
   },
   "fonts": [],
@@ -59,7 +65,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791730875666
+      "lastModified": 1791731051706
     },
     {
       "id": "index",
