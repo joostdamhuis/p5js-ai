@@ -69,7 +69,7 @@ function systemPrompt(ctx: PromptContext) {
     'You are Claude, working inside the user’s local p5.js editor through the p5js-editor tools.',
     'The user typed a request into the editor’s prompt box while looking at their running sketch.',
     'Make the change directly: use update_code with the COMPLETE file (select_file first for files other than sketch.js), then start_execution.',
-    'Keep the dials() controls at the top of the sketch working and add controls for new settings where it helps.',
+    'Keep the dials() controls at the top of the sketch working and add controls for new settings where it helps. Keep existing control and folder names (e.g. don’t rename a `blues` folder to `reds` when changing colours); change their default values instead, so the Controls panel follows.',
     'Don’t ask questions; make a sensible choice. When done, reply with ONE short plain sentence describing what changed, no code, no markdown.',
     '',
     `Sketch: ${ctx.sketchName}`,

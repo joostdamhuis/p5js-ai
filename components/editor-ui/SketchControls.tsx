@@ -37,11 +37,19 @@ const SketchControls = ({ dialConfig, autoDials, postToSketch, latestDialValues,
   // and DialKit can re-register the panel right after mounting.
   const initialSaved = useRef(savedValues ?? {});
   const attempts = useRef(new Map<string, number>());
+  // Only controls that were in the sketch when it opened get their saved value
+  // back. A control that appears later (new or renamed in the code) starts at
+  // its default, even if an old save happens to use the same name.
+  const openingKeys = useRef<Set<string> | null>(null);
+  if (openingKeys.current === null && dialConfig) {
+    openingKeys.current = new Set([...Object.keys(dialConfig), ...autoDials.map(d => d.label)]);
+  }
   useEffect(() => {
     const current = values as Record<string, unknown>;
     const toRestore: Record<string, unknown> = {};
     for (const key of Object.keys(config)) {
       if (!(key in initialSaved.current)) continue;
+      if (openingKeys.current && !openingKeys.current.has(key)) continue;
       const tries = attempts.current.get(key) ?? 0;
       if (tries >= 5) continue;
       if (JSON.stringify(current[key]) === JSON.stringify(initialSaved.current[key])) {

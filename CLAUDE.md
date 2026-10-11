@@ -100,4 +100,4 @@ Always visible at the bottom centre (PromptBox.tsx, 620px wide), styled like a s
 
 `findClaude()` looks for an installed `claude` (~/.local/bin, ~/.claude/local, /usr/local/bin) and falls back to the copy bundled in the Claude app (~/Library/Application Support/Claude/claude-code/<ver>/…/MacOS/claude). It must be signed in once: `claude auth login` (Joost does this himself). It uses his Claude plan, no API key.
 
-When the code changes a control's default in dials() (e.g. a prompt picks new colours), SketchControls moves that control to the new default (`applyChangedDefaults`), so saved/tweaked values don't override the edit. Controls whose default didn't change keep their current value.
+When the code changes a control's default in dials() (e.g. a prompt picks new colours), SketchControls moves that control to the new default (`applyChangedDefaults`), so saved/tweaked values don't override the edit. Controls whose default didn’t change keep their current value. Saved values are only restored for controls present when the sketch opened (a new or renamed control starts at its default). The prompt box tells Claude to keep control names and change defaults.
