@@ -316,3 +316,11 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .thinking-cell { animation: none; opacity: 0.6; }
 }
+
+/* Controls panel: never wider than the panel (no sideways scroll) */
+.dialkit-root[data-mode="inline"],
+.dialkit-root[data-mode="inline"] .dialkit-panel,
+.dialkit-root[data-mode="inline"] .dialkit-panel-inner {
+  max-width: 100%;
+  overflow-x: hidden;
+}
