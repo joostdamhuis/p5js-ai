@@ -6,7 +6,7 @@ interface ConnectionStatusProps {
   enabled: boolean;
   onEnabledChange: (enabled: boolean) => void;
   status: McpStatus;
-  // Inside the name pill: just the status dot as a 40px button; the popup opens
+  // Inside the name pill: just the status dot as a 36px button; the popup opens
   // under the pill (whose box it positions against)
   pill?: boolean;
   // Popup width, so it can match the panel below it (default 320px)
@@ -76,7 +76,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill, popupWidth =
         className={cn(
           'flex items-center gap-2 text-[13px] font-medium transition-colors',
           pill
-            ? 'h-10 w-10 justify-center rounded-[10px] ' + (open ? 'bg-[rgb(var(--ink)/0.11)]' : 'hover:bg-[rgb(var(--ink)/0.1)]')
+            ? 'h-9 w-9 justify-center rounded-[10px] ' + (open ? 'bg-[rgb(var(--ink)/0.11)]' : 'hover:bg-[rgb(var(--ink)/0.1)]')
             : 'h-8 px-3 rounded-lg ' + (open ? 'bg-[rgb(var(--ink)/0.11)]' : 'bg-[rgb(var(--ink)/0.05)] hover:bg-[rgb(var(--ink)/0.1)]'),
           'text-foreground'
         )}

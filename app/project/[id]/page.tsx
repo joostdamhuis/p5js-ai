@@ -593,18 +593,18 @@ export default function ProjectPage() {
       <div className="absolute inset-0">{preview}</div>
 
       {/* Top left: back, name and Claude's connection */}
-      <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-12 px-1">
+      <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-11 px-1">
         <button
           onClick={handleBackToDashboard}
           title="All projects"
-          className="h-10 w-10 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
+          className="h-9 w-9 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
         </button>
         <input
           value={project.name}
           onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-          className="h-10 px-2.5 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+          className="h-9 px-2.5 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
           title="Rename project"
           spellCheck={false}
         />
