@@ -138,9 +138,11 @@ interface PreviewProps {
   isRunning?: boolean;
   // Tells the page whether the running sketch declares any dials
   onDialsChange?: (hasDials: boolean) => void;
+  // Control positions are stored with the project
+  onControlsChange?: (values: Record<string, unknown>) => void;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange }: PreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [dialConfig, setDialConfig] = useState<DialConfig | null>(null);
   // Current name for download file names (read inside the message listener)
@@ -451,6 +453,8 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           postToSketch={postToSketch}
           latestDialValues={latestDialValues}
           latestAutoValues={latestAutoValues}
+          savedValues={project.controls}
+          onValuesChange={onControlsChange}
         />
       )}
     </div>

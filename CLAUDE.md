@@ -50,6 +50,7 @@ const dial = dials({
 ```
 - Slider positions survive code edits (values are re-sent after each reload); defaults in code only apply to new controls
 - Bridge: `dialsBridge` script in Preview.tsx (inside the iframe) ↔ SketchControls.tsx, via postMessage. dials() controls and smart toggles share ONE DialKit panel named "Sketch" (one header, one preset row); values are split back by key. Preview reports `onDialsChange` so the page can show an empty state
+- Control positions are saved with the project (`controls` in project.json, keyed like DialKit values) and restored on open; SketchControls retries the restore until each control shows its saved value (DialKit re-registers panels in dev StrictMode)
 - Download button (top right of the canvas on hover): iframe sends canvas.toDataURL back, editor saves `<sketch-name>-<local time>.png`
 - Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 

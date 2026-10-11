@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Editor from '@/components/editor-ui/Editor';
 import Preview from '@/components/editor-ui/Preview';
@@ -104,6 +104,17 @@ export default function ProjectPage() {
     }, 700);
     return () => clearTimeout(timer);
   }, [project]);
+
+  // Control positions are saved with the project (autosave picks them up)
+  const handleControlsChange = useCallback((controls: Record<string, unknown>) => {
+    setProject(prev => {
+      if (!prev) return prev;
+      // Merge, so controls that haven't appeared yet keep their saved values
+      const merged = { ...(prev.controls ?? {}), ...controls };
+      if (JSON.stringify(prev.controls ?? {}) === JSON.stringify(merged)) return prev;
+      return { ...prev, controls: merged };
+    });
+  }, []);
 
   // Handle file selection
   const handleFileSelect = (fileId: string) => {
@@ -485,6 +496,7 @@ export default function ProjectPage() {
               onConsoleMessage={handleConsoleMessage}
               isRunning={isRunning}
               onDialsChange={setHasDials}
+              onControlsChange={handleControlsChange}
             />
           </div>
 

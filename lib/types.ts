@@ -15,6 +15,8 @@ export interface Project {
   lastModified: number;
   activeFile?: string; // ID of the active file
   openTabs: string[]; // IDs of files that are open in tabs
+  // Positions of the sketch's controls (DialKit values by key), so they survive a reload
+  controls?: Record<string, unknown>;
 }
 
 export const getFileTypeFromName = (filename: string): FileType => {

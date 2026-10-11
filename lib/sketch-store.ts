@@ -107,6 +107,7 @@ export async function saveProject(project: Project): Promise<void> {
     lastModified: project.lastModified,
     activeFile: project.activeFile,
     openTabs: project.openTabs,
+    controls: project.controls,
     files: files.map(({ content: _content, ...rest }) => rest),
   };
   await fs.writeFile(path.join(dir, META), JSON.stringify(meta, null, 2) + '\n', 'utf8');
