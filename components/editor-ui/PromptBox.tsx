@@ -190,63 +190,8 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
         const to = e.relatedTarget as Node | null;
         if (!to || !(to === inputRef.current || cardRef.current?.contains(to))) setFocused(false);
       }}
-      className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-[min(620px,calc(100vw-1.5rem))] flex flex-col gap-2"
+      className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-[min(620px,calc(100vw-1.5rem))]"
     >
-      {(showLatest || showRecent) && (
-        <div ref={cardRef} className="dial-surface p-1.5 flex flex-col">
-          {showLatest && (
-            <div className="px-3 py-2 text-[13px] leading-5">
-              {pending ? (
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  <Typing />
-                  <span className="truncate">{pending.status}</span>
-                </span>
-              ) : latest && (
-                <div className="flex items-start gap-3">
-                  <span className={cn('flex-1 min-w-0', latest.error ? 'text-red-400' : 'text-foreground')}>{latest.reply}</span>
-                  {undo && (
-                    <button
-                      onClick={() => { onRestore(undo); setUndo(null); }}
-                      className="shrink-0 -my-0.5 -mr-1.5 h-6 px-1.5 flex items-center gap-1 rounded-[7px] text-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
-                    >
-                      <Undo2 className="h-3 w-3" /> Undo
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          {showLatest && showRecent && <div className="mx-3 my-1 h-px bg-[rgb(var(--ink)/0.08)]" />}
-          {showRecent && (
-            <>
-              <div className="flex items-center justify-between px-3 pt-1.5 pb-1 text-[12px] text-muted-foreground">
-                <span>Recent</span>
-                <button onClick={clearHistory} className="hover:text-foreground transition-colors">Clear</button>
-              </div>
-              {recent.map(prompt => (
-                <div
-                  key={prompt}
-                  className="group flex items-center h-9 rounded-[8px] hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
-                >
-                  <button
-                    onClick={() => { setText(prompt); inputRef.current?.focus(); }}
-                    className="flex-1 min-w-0 h-full px-3 text-left text-[13px] text-foreground truncate"
-                  >
-                    {prompt}
-                  </button>
-                  <button
-                    title="Remove"
-                    onClick={() => removePrompt(prompt)}
-                    className="mr-1.5 h-6 w-6 shrink-0 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      )}
 
       <div className="dial-surface flex items-end gap-0.5 p-[3px]">
         {tools && (
@@ -255,6 +200,63 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
             <div className="self-center mx-1.5 h-5 w-px shrink-0 bg-[rgb(var(--ink)/0.12)]" />
           </>
         )}
+        {/* The prompt side; the card above lines up with it */}
+        <div className="relative flex-1 min-w-0 flex items-end gap-0.5">
+          {(showLatest || showRecent) && (
+            <div ref={cardRef} className="dial-surface absolute bottom-[calc(100%+12px)] -left-1 -right-1 p-1.5 flex flex-col">
+              {showLatest && (
+                <div className="px-3 py-2 text-[13px] leading-5">
+                  {pending ? (
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Typing />
+                      <span className="truncate">{pending.status}</span>
+                    </span>
+                  ) : latest && (
+                    <div className="flex items-start gap-3">
+                      <span className={cn('flex-1 min-w-0', latest.error ? 'text-red-400' : 'text-foreground')}>{latest.reply}</span>
+                      {undo && (
+                        <button
+                          onClick={() => { onRestore(undo); setUndo(null); }}
+                          className="shrink-0 -my-0.5 -mr-1.5 h-6 px-1.5 flex items-center gap-1 rounded-[7px] text-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
+                        >
+                          <Undo2 className="h-3 w-3" /> Undo
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {showLatest && showRecent && <div className="mx-3 my-1 h-px bg-[rgb(var(--ink)/0.08)]" />}
+              {showRecent && (
+                <>
+                  <div className="flex items-center justify-between px-3 pt-1.5 pb-1 text-[12px] text-muted-foreground">
+                    <span>Recent</span>
+                    <button onClick={clearHistory} className="hover:text-foreground transition-colors">Clear</button>
+                  </div>
+                  {recent.map(prompt => (
+                    <div
+                      key={prompt}
+                      className="group flex items-center h-9 rounded-[8px] hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
+                    >
+                      <button
+                        onClick={() => { setText(prompt); inputRef.current?.focus(); }}
+                        className="flex-1 min-w-0 h-full px-3 text-left text-[13px] text-foreground truncate"
+                      >
+                        {prompt}
+                      </button>
+                      <button
+                        title="Remove"
+                        onClick={() => removePrompt(prompt)}
+                        className="mr-1.5 h-6 w-6 shrink-0 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
         <input
           ref={fileRef}
           type="file"
@@ -326,6 +328,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
         >
           {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
         </button>
+        </div>
       </div>
     </div>
   );
