@@ -13,7 +13,8 @@ interface WebSocketListenerProps {
   serverUrl?: string;
 }
 
-export type McpStatus = 'connecting' | 'connected' | 'offline';
+// connecting: first try · offline: hub not reachable · waiting: hub up, Claude's MCP server not connected · connected: all good
+export type McpStatus = 'connecting' | 'offline' | 'waiting' | 'connected';
 
 const WebSocketListener = ({
   onCodeUpdate,
@@ -28,7 +29,8 @@ const WebSocketListener = ({
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [connectionAttempts, setConnectionAttempts] = useState(0);
+  const [, setConnectionAttempts] = useState(0);
+  const [claudeCount, setClaudeCount] = useState(0);
 
   // Use refs to store the latest callback references
   const callbacksRef = useRef({
@@ -61,7 +63,8 @@ const WebSocketListener = ({
     setConnectionAttempts(0);
 
     const newSocket = io(serverUrl, {
-      reconnectionAttempts: 10,
+      // Never give up: the hub may be started (or restarted) at any time
+      reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       autoConnect: true,
@@ -82,6 +85,8 @@ const WebSocketListener = ({
       setConnected(true);
       setError(null);
       setConnectionAttempts(0);
+      // Tell the hub this is an editor, so it can report who is connected
+      newSocket.emit('identify', 'editor');
       console.log(`🔌 [WebSocket] Successfully connected to MCP server at ${serverUrl}`);
       console.log(`🔌 [WebSocket] Socket ID: ${newSocket.id}`);
       console.log(`🔌 [WebSocket] Transport: ${newSocket.io.engine.transport.name}`);
@@ -119,7 +124,7 @@ const WebSocketListener = ({
       setConnectionAttempts(prev => prev + 1);
       const errorMsg = `Connection error: ${err.message}`;
       setError(errorMsg);
-      console.error(`🔌 [WebSocket] Connection error (attempt ${connectionAttempts + 1}):`, err);
+      console.warn(`🔌 [WebSocket] Hub not reachable yet, retrying: ${err.message}`);
     });
 
     newSocket.on('reconnect', (attemptNumber) => {
@@ -135,6 +140,11 @@ const WebSocketListener = ({
     newSocket.on('reconnect_failed', () => {
       console.error(`🔌 [WebSocket] Failed to reconnect after maximum attempts`);
       setError('Failed to reconnect to MCP server');
+    });
+
+    // Who else is connected to the hub (the MCP server = Claude)
+    newSocket.on('hubStatus', (data: { claude?: number }) => {
+      setClaudeCount(data?.claude ?? 0);
     });
 
     // Handle welcome message from server
@@ -249,8 +259,10 @@ const WebSocketListener = ({
 
   // Status is shown in the page header (MCP button), not as an overlay
   useEffect(() => {
-    onStatusChange?.(connected ? 'connected' : error ? 'offline' : 'connecting');
-  }, [connected, error, onStatusChange]);
+    onStatusChange?.(
+      connected ? (claudeCount > 0 ? 'connected' : 'waiting') : error ? 'offline' : 'connecting'
+    );
+  }, [connected, error, claudeCount, onStatusChange]);
 
   return null;
 };

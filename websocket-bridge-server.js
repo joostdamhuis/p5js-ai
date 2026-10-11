@@ -1,55 +1,60 @@
+const http = require('http');
 const { Server } = require('socket.io');
 
-// Try port 3001 first, then try alternatives
-const tryPorts = [3001, 3002, 3003, 3004];
-let currentPort = null;
+// Always 3001: the editor and the MCP server both look for the hub here.
+// (Moving to another port silently is what used to break the connection.)
+const PORT = 3001;
 let io = null;
 
-// Store connected clients
+// Store connected clients; each says whether it's the 'editor' or 'claude' (the MCP server)
 const clients = new Set();
 
-// Function to try starting server on different ports
-function startServer() {
-  function tryPort(portIndex = 0) {
-    if (portIndex >= tryPorts.length) {
-      console.error('❌ Could not start server on any available port');
-      process.exit(1);
-    }
-
-    const port = tryPorts[portIndex];
-
-    try {
-      // Create Socket.IO server
-      io = new Server(port, {
-        cors: {
-          origin: "http://localhost:3000", // Next.js dev server
-          methods: ["GET", "POST"]
-        }
-      });
-
-      currentPort = port;
-      console.log(`🚀 WebSocket Bridge Server running on port ${port}`);
-      if (port !== 3001) {
-        console.log(`⚠️  Note: Using port ${port} instead of 3001 (port conflict resolved)`);
-        console.log(`💡 Update your MCP server WebSocket connection to: ws://localhost:${port}`);
-      }
-      console.log('📝 Ready to bridge MCP commands to p5.js AI Editor...\n');
-
-      // Set up the server event handlers
-      setupServerHandlers();
-
-    } catch (error) {
-      if (error.code === 'EADDRINUSE') {
-        console.log(`⚠️  Port ${port} is in use, trying next port...`);
-        tryPort(portIndex + 1);
-      } else {
-        console.error('❌ Server error:', error);
-        process.exit(1);
-      }
-    }
+const roleCounts = () => {
+  let editors = 0;
+  let claude = 0;
+  for (const socket of clients) {
+    if (socket.data.role === 'editor') editors++;
+    else claude++; // MCP servers from before 'identify' existed count as Claude too
   }
+  return { editors, claude };
+};
 
-  tryPort();
+// Tell every editor who is connected, so it can show a live status
+const broadcastStatus = () => {
+  if (io) io.emit('hubStatus', roleCounts());
+};
+
+function startServer() {
+  // Plain HTTP on the same port answers /status, so tools can check this is our hub
+  const httpServer = http.createServer((req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.end(JSON.stringify({ hub: 'p5js-editor', ...roleCounts() }));
+  });
+
+  io = new Server(httpServer, {
+    cors: {
+      origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+      methods: ["GET", "POST"]
+    }
+  });
+
+  httpServer.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use, so the hub can't start.`);
+      console.error('   Close the other program using it, or double-click start-p5.command (it cleans this up).');
+    } else {
+      console.error('❌ Hub error:', error);
+    }
+    process.exit(1);
+  });
+
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 WebSocket Bridge Server running on port ${PORT}`);
+    console.log('📝 Ready to bridge MCP commands to p5.js AI Editor...\n');
+  });
+
+  setupServerHandlers();
 }
 
 // Set up server event handlers
@@ -58,10 +63,18 @@ function setupServerHandlers() {
   io.on('connection', (socket) => {
     console.log(`✅ Client connected: ${socket.id}`);
     clients.add(socket);
+    broadcastStatus();
+
+    socket.on('identify', (role) => {
+      socket.data.role = role === 'editor' ? 'editor' : 'claude';
+      console.log(`🪪 ${socket.id} is ${socket.data.role === 'editor' ? 'an editor' : 'Claude (MCP)'}`);
+      broadcastStatus();
+    });
 
     socket.on('disconnect', () => {
       console.log(`❌ Client disconnected: ${socket.id}`);
       clients.delete(socket);
+      broadcastStatus();
     });
 
     // Listen for heartbeat pings
@@ -182,8 +195,9 @@ function setupServerHandlers() {
 // Show status
 function showStatus() {
   console.log(`\n📊 Bridge Server Status:`);
-  console.log(`   Connected clients: ${clients.size}`);
-  console.log(`   Server port: ${currentPort}`);
+  const { editors, claude } = roleCounts();
+  console.log(`   Connected: ${editors} editor(s), ${claude} Claude`);
+  console.log(`   Server port: ${PORT}`);
   console.log(`   CORS origin: http://localhost:3000`);
   console.log(`   Mode: MCP Command Bridge`);
   console.log(`   Function: Forwards MCP commands to webapp\n`);
@@ -212,9 +226,5 @@ startServer();
 // Show initial status
 setTimeout(() => {
   showStatus();
-  console.log('💡 Instructions:');
-  console.log('   1. Start your p5.js editor at http://localhost:3000');
-  console.log('   2. Enable MCP in the editor');
-  console.log('   3. Use Claude Desktop with MCP tools');
-  console.log('   4. Commands will be automatically bridged!\n');
+  console.log('💡 Leave this running. The editor and Claude connect on their own.\n');
 }, 1000); 

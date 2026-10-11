@@ -27,13 +27,17 @@ function connectToEditor() {
     transports: ['websocket'],
     timeout: 5000,
     reconnection: true,
-    reconnectionDelay: RECONNECT_INTERVAL,
-    reconnectionAttempts: 5
+    // Keep trying forever: the hub may start after Claude does
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: RECONNECT_INTERVAL,
+    reconnectionAttempts: Infinity
   });
 
   editorSocket.on('connect', () => {
     console.error("✅ Connected to p5.js editor");
     isConnectedToEditor = true;
+    // Lets the editor show "Claude connected"
+    editorSocket?.emit('identify', 'claude');
   });
 
   editorSocket.on('disconnect', () => {

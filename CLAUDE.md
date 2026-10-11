@@ -3,14 +3,11 @@
 Local Next.js app for live p5.js sketching, controlled by Claude through an MCP.
 
 ## Running it
-Three parts, all must run:
-- WebSocket hub, port 3001: `node websocket-bridge-server.js` (repo root)
-- Editor, port 3000: `npm run dev -- -p 3000`
-- MCP server, `p5js-mcp-server-ts/` (`npm run start`): started by the Claude app itself, connects to the hub
-
-`start-p5.command` starts the hub and editor (it frees ports 3000-3002 first). After launch, click “Enable MCP” in the editor.
-If the editor lands on 3001, something held port 3000: kill ports and restart.
-`test-websocket-server.js` is a manual test tool, not the hub. It also binds 3001, so if MCP commands don't reach the editor, check `ps -p $(lsof -ti tcp:3001 -sTCP:LISTEN)`: it must be `websocket-bridge-server.js`, and the browser (Google/Safari) must show up in `lsof -iTCP:3001`.
+- Double-click `start-p5.command` (or `npm run studio`): runs `scripts/studio.mjs`, which builds the MCP server if needed, stops old editor/hub processes from this repo on 3000/3001 (refuses to touch other apps), starts hub + editor in one window, restarts them if they crash, and opens the browser
+- Hub: `websocket-bridge-server.js`, always port 3001 (no fallback ports). Clients `identify` as 'editor' or 'claude'; hub broadcasts `hubStatus` {editors, claude}; GET http://localhost:3001 returns the same JSON
+- MCP server (`p5js-mcp-server-ts/`, built to dist/) is started by the Claude app (claude_desktop_config.json → dist/index.js). Reconnects forever. After rebuilding it, the Claude app must be restarted to load the new build
+- Editor: Claude/MCP is on by default (`p5_mcp` in localStorage remembers "off"). Header pill shows Claude connected / Waiting for Claude / Hub offline; clicking it opens a checklist with fixes (ConnectionStatus.tsx)
+- `test-websocket-server.js` is a manual test tool, not the hub
 
 ## Structure
 - `app/globals.css`: Tailwind v4 + shadcn color tokens; one file controls the whole theme

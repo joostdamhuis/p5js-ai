@@ -10,6 +10,7 @@ import WebSocketListener, { McpStatus } from '@/components/editor-ui/WebSocketLi
 import Tabs from '@/components/editor-ui/Tabs';
 import Console, { LogMessage } from '@/components/editor-ui/Console';
 import ResizeHandle from '@/components/editor-ui/ResizeHandle';
+import ConnectionStatus from '@/components/editor-ui/ConnectionStatus';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, saveProject, cacheProject } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
 const LAYOUT_KEY = 'p5_layout';
+const MCP_KEY = 'p5_mcp';
 const LAYOUT_DEFAULTS = { consoleHeight: 200, sidebarWidth: 224, codeWidth: 400, controlsWidth: 280 };
 
 export default function ProjectPage() {
@@ -27,7 +29,8 @@ export default function ProjectPage() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [enableWsListener, setEnableWsListener] = useState(false);
+  // Claude (MCP) is on by default; turning it off is remembered
+  const [enableWsListener, setEnableWsListener] = useState(true);
   const [consoleMessages, setConsoleMessages] = useState<LogMessage[]>([]);
   const [consoleHeight, setConsoleHeight] = useState(LAYOUT_DEFAULTS.consoleHeight);
   const [sidebarWidth, setSidebarWidth] = useState(LAYOUT_DEFAULTS.sidebarWidth);
@@ -37,6 +40,19 @@ export default function ProjectPage() {
   const [loading, setLoading] = useState(true);
   const [hasDials, setHasDials] = useState(false);
   const [mcpStatus, setMcpStatus] = useState<McpStatus>('connecting');
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(MCP_KEY) === 'off') setEnableWsListener(false);
+    } catch {}
+  }, []);
+
+  const setMcpEnabled = (enabled: boolean) => {
+    setEnableWsListener(enabled);
+    try {
+      localStorage.setItem(MCP_KEY, enabled ? 'on' : 'off');
+    } catch {}
+  };
 
   // Panel sizes are remembered per browser
   useEffect(() => {
@@ -364,24 +380,11 @@ export default function ProjectPage() {
             onProjectChange={setProject}
           />
 
-          <button
-            onClick={() => setEnableWsListener(!enableWsListener)}
-            title={enableWsListener ? 'Disconnect Claude (MCP)' : 'Let Claude control the editor (MCP)'}
-            className={`flex items-center gap-2 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${enableWsListener
-              ? 'bg-white/[0.11] text-foreground hover:bg-white/[0.15]'
-              : 'bg-white/[0.05] text-foreground hover:bg-white/[0.1]'
-              }`}
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${!enableWsListener ? 'bg-white/30'
-              : mcpStatus === 'connected' ? 'bg-emerald-400'
-                : mcpStatus === 'offline' ? 'bg-red-400'
-                  : 'bg-white/50 animate-pulse'
-              }`} />
-            {!enableWsListener ? 'Enable MCP'
-              : mcpStatus === 'connected' ? 'MCP connected'
-                : mcpStatus === 'offline' ? 'MCP offline'
-                  : 'Connecting…'}
-          </button>
+          <ConnectionStatus
+            enabled={enableWsListener}
+            onEnabledChange={setMcpEnabled}
+            status={mcpStatus}
+          />
         </div>
       </header>
 
