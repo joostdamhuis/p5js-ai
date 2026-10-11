@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
+import { Download } from 'lucide-react';
 import { Project } from '@/lib/types';
 import { LogMessage } from './Console';
-import SketchDials from './SketchDials';
-import AutoDials from './AutoDials';
+import SketchControls from './SketchControls';
 import { findAutoDials, instrumentAutoDials } from '@/lib/auto-dials';
 
 // Keeps every sketch centred in the preview and filling it: full-window
@@ -108,6 +108,15 @@ const dialsBridge = `
             if (window.__autoDials[key]) window.__autoDials[key](data.values[key]);
           }
         }
+        // Download: hand the current frame back to the editor as a PNG
+        if (data.type === 'snapshot') {
+          const canvas = document.querySelector('canvas');
+          window.parent.postMessage({
+            source: 'p5js-dials',
+            type: 'snapshot',
+            dataUrl: canvas ? canvas.toDataURL('image/png') : null
+          }, '*');
+        }
         if (data.type === 'action') {
           if (onAction) onAction(data.action);
           else if (typeof window.dialAction === 'function') window.dialAction(data.action);
@@ -134,6 +143,9 @@ interface PreviewProps {
 const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange }: PreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [dialConfig, setDialConfig] = useState<DialConfig | null>(null);
+  // Current name for download file names (read inside the message listener)
+  const projectName = useRef(project.name);
+  projectName.current = project.name;
 
   // Plain settings at the top of the sketch's JS files become controls too
   const jsCode = project.files.filter(f => f.type === 'js').map(f => f.content).join('\n');
@@ -189,6 +201,16 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         if (latestDialValues.current) {
           postToSketch({ type: 'values', values: latestDialValues.current });
         }
+      }
+      if (data.type === 'snapshot' && data.dataUrl) {
+        const link = document.createElement('a');
+        const name = projectName.current.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sketch';
+        const d = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+        link.download = `${name}-${stamp}.png`;
+        link.href = data.dataUrl;
+        link.click();
       }
       if (data.type === 'autoReady' && latestAutoValues.current) {
         postToSketch({ type: 'autoValues', values: latestAutoValues.current });
@@ -403,10 +425,18 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   return (
     <div
       className={cn(
-        "w-full h-full overflow-hidden bg-black",
+        "group relative w-full h-full overflow-hidden bg-black",
         className
       )}
     >
+      <button
+        onClick={() => postToSketch({ type: 'snapshot' })}
+        title="Download this frame as a PNG"
+        className="absolute top-2 right-2 z-10 flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[#2a2a2a] transition-opacity"
+      >
+        <Download className="h-3.5 w-3.5" />
+        Download
+      </button>
       <iframe
         ref={iframeRef}
         className="block w-full h-full"
@@ -414,18 +444,13 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         title="Preview"
         sandbox="allow-scripts allow-same-origin"
       />
-      {isRunning && autoDials.length > 0 && (
-        <AutoDials
-          dials={autoDials}
+      {hasDials && (
+        <SketchControls
+          dialConfig={dialConfig}
+          autoDials={autoDials}
           postToSketch={postToSketch}
-          latestValues={latestAutoValues}
-        />
-      )}
-      {dialConfig && (
-        <SketchDials
-          config={dialConfig}
-          postToSketch={postToSketch}
-          latestValues={latestDialValues}
+          latestDialValues={latestDialValues}
+          latestAutoValues={latestAutoValues}
         />
       )}
     </div>

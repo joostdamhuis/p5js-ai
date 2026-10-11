@@ -339,9 +339,9 @@ export default function ProjectPage() {
   if (loading || !project) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading project...</p>
+        <div className="flex items-center gap-2.5 text-[13px] text-muted-foreground">
+          <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-white/20 border-t-white/70 animate-spin" />
+          Loading sketch…
         </div>
       </div>
     );

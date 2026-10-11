@@ -49,11 +49,12 @@ const dial = dials({
 // read dial.count, dial.shape.size etc. inside draw(); call dials() once, top level
 ```
 - Slider positions survive code edits (values are re-sent after each reload); defaults in code only apply to new controls
-- Bridge: `dialsBridge` script in Preview.tsx (inside the iframe) ↔ SketchDials.tsx (useDialKit only), via postMessage; Preview reports `onDialsChange` so the page can show an empty state
+- Bridge: `dialsBridge` script in Preview.tsx (inside the iframe) ↔ SketchControls.tsx, via postMessage. dials() controls and smart toggles share ONE DialKit panel named "Sketch" (one header, one preset row); values are split back by key. Preview reports `onDialsChange` so the page can show an empty state
+- Download button (top right of the canvas on hover): iframe sends canvas.toDataURL back, editor saves `<sketch-name>-<local time>.png`
 - Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 
 ## Smart toggles (automatic controls)
-- Any unindented `const NAME = <number | '#hex' | true/false>` in a sketch's JS becomes a control in a "Variables" panel, no dials() needed (`lib/auto-dials.ts`, `AutoDials.tsx`). ALL_CAPS names get friendly labels ("MAX_COUNT" → "Max count")
+- Any unindented `const NAME = <number | '#hex' | true/false>` in a sketch's JS becomes a control in a "Variables" panel, no dials() needed (`lib/auto-dials.ts`, shown in the same panel by `SketchControls.tsx`). ALL_CAPS names get friendly labels ("MAX_COUNT" → "Max count")
 - Before running, the code is rewritten in memory only: those consts become `let` plus a setter (`window.__autoDials`); files on disk are untouched. `let`/`var` are ignored (usually state)
 - Editing the value in code moves the control; control tweaks survive reloads
 - When writing sketches for Joost: put tweakable settings as top-level consts (simplest), or use dials() for ranges, dropdowns, folders, buttons
