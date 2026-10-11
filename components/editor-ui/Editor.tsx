@@ -89,7 +89,7 @@ const Editor = ({
           unicodeHighlight: { ambiguousCharacters: false },
           renderValidationDecorations: 'off',
           lineNumbersMinChars: 3,
-          scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 },
+          scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8, useShadows: false },
           lineNumbers: 'on',
           roundedSelection: true,
           cursorBlinking: 'smooth',

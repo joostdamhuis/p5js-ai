@@ -23,6 +23,8 @@ export const defineStudioTheme = (monaco: Monaco) => {
       'editor.background': '#00000000',
       // Transparent so the panel's tint shows through; no blue focus outline
       'focusBorder': '#00000000',
+      // No shadow under the tab bar when the code is scrolled
+      'scrollbar.shadow': '#00000000',
       'editorGutter.background': '#00000000',
       'editor.foreground': '#e6e6e6',
       // White with alpha instead of grey: reads on any tint
