@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "Untitled Project 4",
-  "lastModified": 1791728629311,
+  "lastModified": 1791729347198,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -11,7 +11,34 @@
   "controls": {
     "size": 34,
     "color": "#ffffff",
-    "background": "#000000"
+    "background": "#000000",
+    "colors": {
+      "from": "#000000",
+      "via": "#8374eb",
+      "to": "#17aceb",
+      "background": "#000000"
+    },
+    "grid": {
+      "shape": "diamond",
+      "cells": 52,
+      "fill": 0.8
+    },
+    "motion": {
+      "speed": 3,
+      "slide": 174,
+      "rowOffset": 0.04,
+      "repeats": 0.8
+    },
+    "bars": {
+      "rows": 42,
+      "minWidth": 330,
+      "maxWidth": 813,
+      "gap": 0,
+      "radius": 0,
+      "margin": 200,
+      "seed": 396
+    },
+    "Stops": 1
   },
   "fonts": [],
   "files": [
@@ -19,7 +46,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791725653285
+      "lastModified": 1791729313425
     },
     {
       "id": "index",
