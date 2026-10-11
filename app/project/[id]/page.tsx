@@ -49,6 +49,8 @@ export default function ProjectPage() {
   const [showControls, setShowControls] = useState(true);
   const [dockToolsEl, setDockToolsEl] = useState<HTMLElement | null>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
+  // Height of the code itself, so the floating code panel can fit it
+  const [codeContentHeight, setCodeContentHeight] = useState(320);
   const [isRunning, setIsRunning] = useState(true);
   const [loading, setLoading] = useState(true);
   const [hasDials, setHasDials] = useState(false);
@@ -443,7 +445,7 @@ export default function ProjectPage() {
       />
       {activeFile ? (
         <div className="flex-1 overflow-hidden min-w-0">
-          <Editor file={activeFile} onChange={handleFileChange} />
+          <Editor file={activeFile} onChange={handleFileChange} onContentHeightChange={setCodeContentHeight} />
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground/60">
@@ -556,18 +558,22 @@ export default function ProjectPage() {
           <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill />
         </div>
 
-        {/* Left: files and code + console */}
-        <div className="absolute left-2 top-14 bottom-20 z-10 flex gap-2 pointer-events-none">
-          {(showCode || showConsole) && (
-            <div className="flex flex-col min-h-0 pointer-events-auto" style={{ width: codeWidth }}>
-              {showCode && <div className={`${floating} flex-1 min-h-0`}>{codePanel}</div>}
-              {showCode && showConsole && consoleHandle}
-              {showConsole && (
-                <div className={`${floating} shrink-0 ${showCode ? '' : 'mt-auto'}`} style={{ height: consoleHeight }}>{consolePanel}</div>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Left: code + console, as tall as their content and centred vertically */}
+        {(showCode || showConsole) && (
+          <div
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)]"
+            style={{ width: codeWidth }}
+          >
+            {showCode && (
+              // 44px tab bar + the code; shrinks (and scrolls) when there isn't room
+              <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
+            )}
+            {showCode && showConsole && consoleHandle}
+            {showConsole && (
+              <div className={`${floating} shrink-0`} style={{ height: consoleHeight }}>{consolePanel}</div>
+            )}
+          </div>
+        )}
 
         {/* Right: controls */}
         {showControls && (

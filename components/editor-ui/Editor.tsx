@@ -9,6 +9,8 @@ interface EditorProps {
   onChange: (value: string) => void;
   height?: string;
   className?: string;
+  // Reports the code's full height, so a panel can fit its content
+  onContentHeightChange?: (height: number) => void;
 }
 
 // Map file types to Monaco language
@@ -31,15 +33,22 @@ const Editor = ({
   file,
   onChange,
   height = '100%',
-  className
+  className,
+  onContentHeightChange
 }: EditorProps) => {
   const editorRef = useRef<any>(null);
+  const onContentHeightRef = useRef(onContentHeightChange);
+  onContentHeightRef.current = onContentHeightChange;
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
 
     // Geist Mono may finish loading after Monaco measured its glyphs
     document.fonts.ready.then(() => monaco.editor.remeasureFonts());
+
+    const report = () => onContentHeightRef.current?.(editor.getContentHeight());
+    report();
+    editor.onDidContentSizeChange(report);
 
     // Add p5.js intellisense (would require p5.d.ts to be loaded)
     // This is a placeholder for future enhancement
