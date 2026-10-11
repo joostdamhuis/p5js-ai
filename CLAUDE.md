@@ -7,13 +7,12 @@ Local Next.js app for live p5.js sketching, controlled by Claude through an MCP.
 - Hub: `websocket-bridge-server.js`, always port 3001 (no fallback ports). Clients `identify` as 'editor' or 'claude'; hub broadcasts `hubStatus` {editors, claude}; GET http://localhost:3001 returns the same JSON
 - MCP server (`p5js-mcp-server-ts/`, built to dist/) is started by the Claude app (claude_desktop_config.json → dist/index.js). Reconnects forever. After rebuilding it, the Claude app must be restarted to load the new build
 - Editor: Claude/MCP is on by default (`p5_mcp` in localStorage remembers "off"). Header pill shows Claude connected / Waiting for Claude / Hub offline; clicking it opens a checklist with fixes (ConnectionStatus.tsx)
-- `test-websocket-server.js` is a manual test tool, not the hub
 
 ## Structure
 - `app/globals.css`: Tailwind v4 + shadcn color tokens; one file controls the whole theme
 - `app/layout.tsx`: fonts (system font / SF Pro for UI, Geist Mono 13px/500 for code; both match DialKit) and dark mode on `<html>`
 - `app/project/[id]/page.tsx`: the editor page layout (sidebar, code column, preview)
-- `components/editor-ui/`: Editor.tsx (Monaco, the one in use), CodeEditor.tsx (older unused Monaco wrapper), Preview.tsx, CodePreview.tsx, Console.tsx, WebSocketListener.tsx
+- `components/editor-ui/`: Editor.tsx (Monaco), Preview.tsx (sketch iframe + bridge), SketchControls.tsx, Console.tsx, WebSocketListener.tsx, ConnectionStatus.tsx, ResizeHandle.tsx
 - `lib/monaco-theme.ts`: “studio” Monaco theme; hex values mirror the dark studio tokens
 
 ## Design so far

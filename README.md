@@ -174,7 +174,7 @@ Claude Desktop ↔ MCP Server (TypeScript) ↔ WebSocket Bridge ↔ p5.js Editor
 For testing without Claude Desktop, use the interactive test server:
 
 ```bash
-node test-websocket-server.js
+npm run studio
 ```
 
 ### Test Commands
@@ -203,7 +203,6 @@ p5js-ai-editor/
 │   ├── dist/                    # Compiled output
 │   └── setup-claude.cjs         # Claude Desktop setup script
 ├── websocket-bridge-server.js   # WebSocket bridge server
-├── test-websocket-server.js     # Development test server
 └── README.md
 ```
 
