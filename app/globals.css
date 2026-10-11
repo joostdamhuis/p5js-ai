@@ -154,19 +154,21 @@
    white on dark panels, black on light ones. */
 .dark {
   --ink: 255 255 255;
-  --chrome: #212121;
-  --chrome-raised: #2a2a2a;
+  /* Black and white mode: black glass over dark canvases, white over light */
+  --chrome: #000000;
+  --chrome-raised: #111111;
+  --card: #000000;
 }
 
 /* Light panels: switched on automatically over light canvases
    (html[data-surface="light"], set by the editor), using DialKit's light theme */
 html.dark[data-surface="light"] {
   --ink: 0 0 0;
-  --chrome: #fafafa;
+  --chrome: #ffffff;
   --chrome-raised: #ffffff;
   --background: #f4f4f4;
   --foreground: rgb(0 0 0 / 90%);
-  --card: #fafafa;
+  --card: #ffffff;
   --card-foreground: rgb(0 0 0 / 90%);
   --popover: #ffffff;
   --popover-foreground: rgb(0 0 0 / 90%);
@@ -198,14 +200,14 @@ html.dark[data-surface="light"] .dial-surface {
 }
 /* Light/dark switches fade along with the tint */
 .panel, .dial-surface {
-  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease,
+  transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease,
     transform 0.3s ease-out;
 }
 :root {
-  transition: --ambient 0.3s ease;
+  transition: --ambient 0.1s ease;
   /* Apple-style glass: the colour comes from what's behind, blurred and
      slightly saturated, never mixed into the panel itself */
-  --glass-blur: blur(30px) saturate(180%);
+  --glass-blur: blur(30px);
 }
 
 /* Surface opacity, shared by every panel, the dock, pills and menus so their
@@ -274,7 +276,7 @@ html, body {
 .dialkit-root[data-mode="inline"] .dialkit-panel-header,
 .dialkit-root[data-mode="inline"] .dialkit-panel-header::before,
 .dialkit-root[data-mode="inline"] .dialkit-folder-header::before {
-  transition: background-color 0.25s ease;
+  transition: background-color 0.1s ease;
 }
 
 /* No shadows on DialKit's own surfaces either */
