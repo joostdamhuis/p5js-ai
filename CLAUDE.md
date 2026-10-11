@@ -30,7 +30,7 @@ Local Next.js app for live p5.js sketching, controlled by Claude through an MCP.
 - Client: `lib/projects.ts` (fetchProjects / fetchProject / saveProject / deleteProject). localStorage is only a cache/fallback; first dashboard load imports browser-only projects once (`p5_imported_to_disk` flag)
 - Editor autosaves to disk 700ms after the last change. Save / ⌘S writes immediately and then publishes: `lib/sketch-publish.ts` commits only `sketches/` ("Save sketch: <name>") and pushes with the repo-only deploy key `~/.ssh/p5js_editor_deploy` (write access, added on GitHub by Joost), then moves origin/main so GitHub Desktop stays in sync. Failures leave it saved locally with a reason on the button tooltip
 - Claude can edit sketches by editing those files, but the open editor won't reload them until the page is refreshed
-- Code colors: white tones only (keywords and numbers white, names light gray, strings mid gray, punctuation dim, comments dark gray italic); white cursor and selection; Monaco bg matches panel (#212121)
+- Code colors: calm white tones, theme does not inherit vs-dark: all code #d0d0d0, strings #9e9e9e, comments #6a6a6a italic. Regular weight, no line highlight, no sticky scroll, no squiggles or occurrence highlights, wrapped lines indented; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
 - Panel rules: 8px control radius (--radius 0.5rem), 12px panel radius, 44px panel header (h-11) with 13px/600 white title, 12px content inset (px-3); DialKit's inline panel is overridden in globals.css to match. Top bar buttons align with panel edges
 

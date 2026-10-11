@@ -20,9 +20,9 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
   );
 
   return (
-    <div className="flex items-center gap-2 h-11 px-3 shrink-0">
+    <div className="flex items-center gap-1.5 h-11 px-1.5 shrink-0">
       {/* File tabs */}
-      <div className="flex items-center gap-0.5 overflow-x-auto flex-1 min-w-0">
+      <div className="flex items-center gap-1 overflow-x-auto flex-1 min-w-0">
         {openFiles.map((file) => {
           const isActive = activeFileId === file.id;
           return (
@@ -30,7 +30,7 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
               key={file.id}
               onClick={() => onFileSelect(file.id)}
               className={cn(
-                "group flex items-center gap-1 h-8 pl-2.5 pr-1 rounded-lg text-[13px] font-medium cursor-pointer whitespace-nowrap transition-colors",
+                "group flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-lg text-[13px] font-medium cursor-pointer whitespace-nowrap transition-colors",
                 isActive
                   ? "bg-white/[0.11] text-foreground"
                   : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
