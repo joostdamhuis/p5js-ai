@@ -11,21 +11,31 @@ export const defineStudioTheme = (monaco: Monaco) => {
     // Calm white tones: almost everything one soft white,
     // only text in quotes and comments step back
     rules: [
-      { token: '', foreground: 'd0d0d0' },
-      { token: 'string', foreground: '9e9e9e' },
-      { token: 'attribute.value', foreground: '9e9e9e' },
-      { token: 'regexp', foreground: '9e9e9e' },
-      { token: 'comment', foreground: '6a6a6a', fontStyle: 'italic' },
-      { token: 'comment.doc', foreground: '6a6a6a', fontStyle: 'italic' },
+      // Bright enough to stay legible when the panel is tinted by the canvas
+      { token: '', foreground: 'e6e6e6' },
+      { token: 'string', foreground: 'b8b8b8' },
+      { token: 'attribute.value', foreground: 'b8b8b8' },
+      { token: 'regexp', foreground: 'b8b8b8' },
+      { token: 'comment', foreground: '8f8f8f', fontStyle: 'italic' },
+      { token: 'comment.doc', foreground: '8f8f8f', fontStyle: 'italic' },
     ],
     colors: {
       'editor.background': '#00000000',
       // Transparent so the panel's tint shows through; no blue focus outline
       'focusBorder': '#00000000',
       'editorGutter.background': '#00000000',
-      'editor.foreground': '#d4d4d4',
-      'editorLineNumber.foreground': '#4a4a4a',
-      'editorLineNumber.activeForeground': '#a6a6a6',
+      'editor.foreground': '#e6e6e6',
+      // White with alpha instead of grey: reads on any tint
+      'editorLineNumber.foreground': '#ffffff40',
+      'editorLineNumber.activeForeground': '#ffffffb3',
+      // Brackets in the text colour, not yellow / pink / blue
+      'editorBracketHighlight.foreground1': '#e6e6e6',
+      'editorBracketHighlight.foreground2': '#e6e6e6',
+      'editorBracketHighlight.foreground3': '#e6e6e6',
+      'editorBracketHighlight.foreground4': '#e6e6e6',
+      'editorBracketHighlight.foreground5': '#e6e6e6',
+      'editorBracketHighlight.foreground6': '#e6e6e6',
+      'editorBracketHighlight.unexpectedBracket.foreground': '#e6e6e6',
       'editorCursor.foreground': '#ffffff',
       'editor.selectionBackground': '#ffffff26',
       'editor.inactiveSelectionBackground': '#ffffff14',
