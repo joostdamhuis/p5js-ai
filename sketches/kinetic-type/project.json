@@ -1,7 +1,7 @@
 {
   "id": "project-1791712683983",
   "name": "Kinetic Type",
-  "lastModified": 1791726189961,
+  "lastModified": 1791726576880,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -14,17 +14,17 @@
     "motion": {
       "shape": "square",
       "speed": 1.12,
-      "amount": 0.72,
+      "amount": 1.9,
       "bob": 120,
       "sway": 0,
-      "letterOffset": 0.94,
-      "rowOffset": 1.76,
+      "letterOffset": 0.41,
+      "rowOffset": 0.58,
       "reverse": false
     },
     "Size": 76,
     "Rows": 1,
-    "Ink": "#e9007c",
-    "Paper": "#ffffff"
+    "Ink": "#f9ecef",
+    "Paper": "#748c55"
   },
   "canvasSize": "fit",
   "fonts": [],
