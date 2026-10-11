@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, ChevronDown, Square, Undo2 } from 'lucide-react';
+import { ArrowUp, Check, ChevronDown, Paperclip, Square, Undo2, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Project, ProjectFile } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -29,8 +29,8 @@ const writeHistory = (id: string, turns: Turn[]) => {
   try { localStorage.setItem(historyKey(id), JSON.stringify(turns.slice(-20))); } catch {}
 };
 
-// Messaging-style box at the bottom centre: your requests on the right, Claude's replies
-// on the left. The thread shows while you're typing or Claude is working.
+// Search-style bar at the bottom centre. Above it, a card shows what Claude is doing,
+// its latest reply (with Undo) and, while the bar is empty and focused, recent prompts.
 const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
   const [text, setText] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -39,13 +39,22 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
   const [undo, setUndo] = useState<ProjectFile[] | null>(null);
   const [focused, setFocused] = useState(false);
   const [model, setModel] = useState(MODELS[0].id);
+  // Reference images for the next prompt
+  const [attachments, setAttachments] = useState<{ name: string; dataUrl: string }[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const addFiles = (files: FileList | File[]) => {
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/') || file.size > 10_000_000) continue;
+      const reader = new FileReader();
+      reader.onload = () => setAttachments(prev => prev.length >= 6 ? prev : [...prev, { name: file.name || 'image', dataUrl: String(reader.result) }]);
+      reader.readAsDataURL(file);
+    }
+  };
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const threadRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const historyIndex = useRef(-1);
   const working = pending !== null;
-  const showThread = (focused || working) && (turns.length > 0 || working);
 
   useEffect(() => {
     setTurns(readHistory(project.id));
@@ -77,12 +86,6 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [text]);
 
-  // Keep the newest message in view
-  useLayoutEffect(() => {
-    const el = threadRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [turns, pending, showThread]);
-
   const addTurn = (turn: Turn) => {
     setTurns(prev => {
       const next = [...prev, turn];
@@ -96,6 +99,7 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
     if (!prompt || working) return;
     const before = project.files.map(f => ({ ...f }));
     setText('');
+    setAttachments([]);
     historyIndex.current = -1;
     setUndo(null);
     setPending({ prompt, status: 'Thinking…' });
@@ -114,6 +118,7 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
           errors: errors.slice(-10),
           history: turns.filter(t => !t.error).slice(-8).map(({ prompt, reply }) => ({ prompt, reply })),
           model,
+          attachments,
         }),
       });
       if (!res.body) throw new Error('No response');
@@ -161,62 +166,122 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
     }
   };
 
-  const lastIndex = turns.length - 1;
+  // Recent prompts, newest first, no repeats
+  const recent = Array.from(new Set(turns.map(t => t.prompt).reverse())).slice(0, 5);
+  const latest = turns[turns.length - 1];
+  const removePrompt = (prompt: string) => {
+    setTurns(prev => { const next = prev.filter(t => t.prompt !== prompt); writeHistory(project.id, next); return next; });
+  };
+  const clearHistory = () => { setTurns([]); writeHistory(project.id, []); };
+  // The card above the bar: what Claude is doing, its latest reply, and recent prompts
+  const showLatest = working || (focused && latest && undo);
+  const showRecent = focused && !working && !text && recent.length > 0;
 
   return (
     <div
       ref={boxRef}
       onFocus={() => setFocused(true)}
-      // Stay open while focus moves inside the box (Undo, the model menu)
+      // Stay open while focus moves inside the box (Undo, recent prompts, the model menu)
       onBlur={(e) => { if (!boxRef.current?.contains(e.relatedTarget as Node)) setFocused(false); }}
-      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(340px,calc(100vw-1.5rem))] flex flex-col gap-2"
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(400px,calc(100vw-1.5rem))] flex flex-col gap-2"
     >
-      {showThread && (
-        <div
-          ref={threadRef}
-          tabIndex={-1}
-          className="dial-surface max-h-[35vh] overflow-y-auto p-3 flex flex-col gap-1.5 outline-none"
-        >
-          {turns.map((t, i) => (
-            <div key={i} className="flex flex-col gap-1.5">
-              <Bubble mine>{t.prompt}</Bubble>
-              <Bubble error={t.error}>
-                <span>{t.reply}</span>
-                {i === lastIndex && undo && !working && (
-                  <button
-                    onClick={() => { onRestore(undo); setUndo(null); }}
-                    className="mt-1 -ml-1.5 flex h-6 items-center gap-1 rounded-[7px] px-1.5 text-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
-                  >
-                    <Undo2 className="h-3 w-3" /> Undo
-                  </button>
-                )}
-              </Bubble>
-            </div>
-          ))}
-          {pending && (
-            <div className="flex flex-col gap-1.5">
-              <Bubble mine>{pending.prompt}</Bubble>
-              <Bubble>
-                <span className="inline-flex items-center gap-2 text-muted-foreground">
+      {(showLatest || showRecent) && (
+        <div className="dial-surface rounded-[20px] p-1.5 flex flex-col">
+          {showLatest && (
+            <div className="px-3 py-2 text-[13px] leading-5">
+              {pending ? (
+                <span className="flex items-center gap-2 text-muted-foreground">
                   <Typing />
-                  {pending.status}
+                  <span className="truncate">{pending.status}</span>
                 </span>
-              </Bubble>
+              ) : latest && (
+                <div className="flex items-start gap-3">
+                  <span className={cn('flex-1 min-w-0', latest.error ? 'text-red-400' : 'text-foreground')}>{latest.reply}</span>
+                  {undo && (
+                    <button
+                      onClick={() => { onRestore(undo); setUndo(null); }}
+                      className="shrink-0 -my-0.5 -mr-1.5 h-6 px-1.5 flex items-center gap-1 rounded-[7px] text-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
+                    >
+                      <Undo2 className="h-3 w-3" /> Undo
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
+          )}
+          {showLatest && showRecent && <div className="mx-3 my-1 h-px bg-[rgb(var(--ink)/0.08)]" />}
+          {showRecent && (
+            <>
+              <div className="flex items-center justify-between px-3 pt-1.5 pb-1 text-[12px] text-muted-foreground">
+                <span>Recent</span>
+                <button onClick={clearHistory} className="hover:text-foreground transition-colors">Clear</button>
+              </div>
+              {recent.map(prompt => (
+                <div
+                  key={prompt}
+                  className="group flex items-center h-9 rounded-[14px] hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
+                >
+                  <button
+                    onClick={() => { setText(prompt); inputRef.current?.focus(); }}
+                    className="flex-1 min-w-0 h-full px-3 text-left text-[13px] text-foreground truncate"
+                  >
+                    {prompt}
+                  </button>
+                  <button
+                    title="Remove"
+                    onClick={() => removePrompt(prompt)}
+                    className="mr-1.5 h-6 w-6 shrink-0 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </>
           )}
         </div>
       )}
 
-      <div className="dial-surface rounded-[19px] flex items-end gap-0.5 p-[5px] pl-3.5">
+      <div className="dial-surface rounded-full flex items-end gap-0.5 p-[5px] pl-3">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; inputRef.current?.focus(); }}
+        />
+        <button
+          title="Attach an image"
+          onClick={() => fileRef.current?.click()}
+          disabled={working}
+          className="h-7 w-7 -ml-1.5 shrink-0 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:opacity-40 transition-colors"
+        >
+          <Paperclip className="h-4 w-4" />
+        </button>
+        {attachments.map((a, i) => (
+          <span key={i} className="h-7 shrink-0 flex items-center gap-1 pl-0.5 pr-1 rounded-full bg-[rgb(var(--ink)/0.1)]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={a.dataUrl} alt={a.name} className="h-6 w-6 rounded-full object-cover" />
+            <button
+              title="Remove"
+              onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+              className="h-5 w-5 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
         <textarea
           ref={inputRef}
           rows={1}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder={working ? 'Claude is working…' : 'Message Claude  ⌘K'}
+          // Pasting an image attaches it
+          onPaste={(e) => { const imgs = Array.from(e.clipboardData.files).filter(f => f.type.startsWith('image/')); if (imgs.length) { e.preventDefault(); addFiles(imgs); } }}
+          placeholder={working ? 'Claude is working…' : 'Ask Claude  ⌘K'}
           disabled={working}
-          className="flex-1 min-w-0 resize-none self-center py-1 bg-transparent text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
+          className="flex-1 min-w-0 ml-1 resize-none self-center py-1 bg-transparent text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -251,21 +316,6 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
     </div>
   );
 };
-
-// Your messages: solid, right. Claude's: soft grey, left.
-const Bubble = ({ mine, error, children }: { mine?: boolean; error?: boolean; children: React.ReactNode }) => (
-  <div
-    className={cn(
-      'max-w-[85%] px-3 py-1.5 text-[13px] leading-5 whitespace-pre-wrap break-words',
-      mine
-        ? 'self-end rounded-[16px] rounded-br-[5px] bg-[rgb(var(--ink))] text-[var(--chrome)]'
-        : 'self-start rounded-[16px] rounded-bl-[5px] bg-[rgb(var(--ink)/0.08)] text-foreground',
-      error && 'text-red-400'
-    )}
-  >
-    {children}
-  </div>
-);
 
 // Three bouncing dots
 const Typing = () => (

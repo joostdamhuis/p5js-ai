@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'child_process';
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, realpathSync, statSync, writeFileSync } from 'fs';
 import path from 'path';
 import os from 'os';
 
@@ -37,6 +37,26 @@ export interface PromptContext {
   errors: string[];
   history: { prompt: string; reply: string }[];
   model?: string;
+  // Reference images, as data URLs
+  attachments?: { name: string; dataUrl: string }[];
+}
+
+// Attachments are written here for Claude to read (and only here)
+const ATTACH_DIR = (() => {
+  const dir = path.join(os.tmpdir(), 'p5-editor-attachments');
+  mkdirSync(dir, { recursive: true });
+  return realpathSync(dir); // /var → /private/var, so the Read rule matches
+})();
+
+function saveAttachments(list: PromptContext['attachments']): string[] {
+  if (!list?.length) return [];
+  return list.slice(0, 6).flatMap((a, i) => {
+    const m = /^data:image\/(png|jpe?g|gif|webp);base64,(.+)$/.exec(a.dataUrl);
+    if (!m) return [];
+    const file = path.join(ATTACH_DIR, `${Date.now()}-${i}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`);
+    writeFileSync(file, Buffer.from(m[2], 'base64'));
+    return [file];
+  });
 }
 
 // Models the prompt box can pick (anything else falls back to Claude Code's default)
@@ -68,6 +88,7 @@ export type RunEvent =
 
 const TOOL_STATUS: Record<string, string> = {
   get_sketch: 'Reading the sketch…',
+  Read: 'Looking at your image…',
   update_code: 'Writing code…',
   select_file: 'Opening a file…',
   create_file: 'Adding a file…',
@@ -83,16 +104,21 @@ export function runPrompt(ctx: PromptContext, onEvent: (e: RunEvent) => void): C
     return null;
   }
 
+  const images = saveAttachments(ctx.attachments);
+  const prompt = images.length
+    ? `${ctx.prompt}\n\nI attached ${images.length === 1 ? 'an image' : `${images.length} images`} as reference; look at ${images.length === 1 ? 'it' : 'them'} with Read first:\n${images.join('\n')}`
+    : ctx.prompt;
+
   const mcpConfig = JSON.stringify({
     mcpServers: { 'p5js-editor': { command: process.execPath, args: [MCP_SERVER] } },
   });
   const args = [
-    '-p', ctx.prompt,
+    '-p', prompt,
     '--output-format', 'stream-json',
     '--verbose',
     '--mcp-config', mcpConfig,
     '--strict-mcp-config',
-    '--allowedTools', 'mcp__p5js-editor',
+    '--allowedTools', 'mcp__p5js-editor', `Read(/${ATTACH_DIR}/**)`,
     '--disallowedTools', 'Bash,Edit,Write,NotebookEdit,WebFetch,WebSearch,Task',
     '--append-system-prompt', systemPrompt(ctx),
     ...(ctx.model && MODELS.includes(ctx.model) ? ['--model', ctx.model] : []),
