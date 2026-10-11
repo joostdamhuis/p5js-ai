@@ -14,7 +14,8 @@ const roleCounts = () => {
   let claude = 0;
   for (const socket of clients) {
     if (socket.data.role === 'editor') editors++;
-    else claude++; // MCP servers from before 'identify' existed count as Claude too
+    else if (socket.data.role === 'claude') claude++;
+    // 'pending': just connected, hasn't said what it is yet
   }
   return { editors, claude };
 };
@@ -62,7 +63,16 @@ function setupServerHandlers() {
   // Handle client connections
   io.on('connection', (socket) => {
     console.log(`✅ Client connected: ${socket.id}`);
+    socket.data.role = 'pending';
     clients.add(socket);
+    // Editors identify right away. Anything silent after 2s is an older MCP server
+    // (built before 'identify' existed), which is Claude.
+    setTimeout(() => {
+      if (socket.connected && socket.data.role === 'pending') {
+        socket.data.role = 'claude';
+        broadcastStatus();
+      }
+    }, 2000);
     broadcastStatus();
 
     socket.on('identify', (role) => {
