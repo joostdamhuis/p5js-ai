@@ -154,21 +154,22 @@
    white on dark panels, black on light ones. */
 .dark {
   --ink: 255 255 255;
-  /* Black and white mode: black glass over dark canvases, white over light */
-  --chrome: #000000;
-  --chrome-raised: #111111;
-  --card: #000000;
+  /* DialKit's own colours: #212121 panels, #2a2a2a menus */
+  --chrome: #212121;
+  --chrome-raised: #2a2a2a;
+  --card: #212121;
 }
 
 /* Light panels: switched on automatically over light canvases
    (html[data-surface="light"], set by the editor), using DialKit's light theme */
 html.dark[data-surface="light"] {
   --ink: 0 0 0;
-  --chrome: #ffffff;
+  /* DialKit's light theme: #fafafa panels, white menus */
+  --chrome: #fafafa;
   --chrome-raised: #ffffff;
   --background: #f4f4f4;
   --foreground: rgb(0 0 0 / 90%);
-  --card: #ffffff;
+  --card: #fafafa;
   --card-foreground: rgb(0 0 0 / 90%);
   --popover: #ffffff;
   --popover-foreground: rgb(0 0 0 / 90%);
@@ -218,7 +219,7 @@ html.dark[data-surface="light"] .dial-surface {
   --surface-alpha: 70%;
 }
 
-/* Everything is solid: black over dark canvases, white over light ones */
+/* Everything is solid, in DialKit's colours: dark over dark canvases, light over light ones */
 @utility panel {
   background-color: var(--card);
   border: 1px solid rgb(var(--ink) / 10%);
@@ -301,5 +302,5 @@ html, body {
 .dialkit-image-popover,
 .dialkit-preset-dropdown,
 .dialkit-shortcuts-dropdown {
-  background: var(--chrome) !important;
+  background: var(--chrome-raised) !important;
 }
