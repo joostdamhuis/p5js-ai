@@ -42,6 +42,9 @@ const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
 >(({ className, ...props }, ref) => (
+  // Portaled: inside the parent menu it was clipped by the parent's rounded,
+  // overflow-hidden box and its blur
+  <DropdownMenuPrimitive.Portal>
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
@@ -50,6 +53,7 @@ const DropdownMenuSubContent = React.forwardRef<
     )}
     {...props}
   />
+  </DropdownMenuPrimitive.Portal>
 ))
 DropdownMenuSubContent.displayName =
   DropdownMenuPrimitive.SubContent.displayName
