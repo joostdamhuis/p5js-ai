@@ -80,7 +80,7 @@ const ProjectManager = ({ currentProject, onProjectChange, compact }: ProjectMan
           ? `Saved on this Mac, not on GitHub: ${saveNote}`
           : saveState === 'pushed' ? 'Saved to GitHub' : 'Save and back up to GitHub (⌘S)'}
         className={cn(
-          'h-8 w-8 flex items-center justify-center rounded-full transition-colors hover:bg-[rgb(var(--ink)/0.1)]',
+          'h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-[rgb(var(--ink)/0.1)]',
           saveState === 'local' ? 'text-amber-300' : saveState === 'failed' ? 'text-red-400' : 'text-muted-foreground hover:text-foreground'
         )}
       >
