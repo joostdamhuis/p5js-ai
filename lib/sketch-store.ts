@@ -24,6 +24,16 @@ export const isValidId = (id: string) => /^[A-Za-z0-9_-]{1,100}$/.test(id);
 const isSafeFileName = (name: string) =>
   /^[A-Za-z0-9._ -]{1,100}$/.test(name) && !name.startsWith('.') && name !== META && name !== THUMBNAIL;
 
+export const FONT_TYPES: Record<string, string> = {
+  ttf: 'font/ttf',
+  otf: 'font/otf',
+  woff: 'font/woff',
+  woff2: 'font/woff2',
+};
+
+export const isFontFile = (name: string) =>
+  /^[A-Za-z0-9._ -]{1,100}$/.test(name) && !name.startsWith('.') && /\.(ttf|otf|woff2?)$/i.test(name);
+
 const slugify = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'sketch';
 
@@ -97,10 +107,15 @@ export async function saveProject(project: Project): Promise<void> {
   }
 
   // Remove files that were deleted or renamed in the editor
-  const keep = new Set([META, THUMBNAIL, ...files.map(f => f.name)]);
+  const keepFonts = (project.fonts ?? (await readMeta(dir))?.fonts ?? []).filter(isFontFile);
+  const keep = new Set([META, THUMBNAIL, ...files.map(f => f.name), ...keepFonts]);
   for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
     if (entry.isFile() && !keep.has(entry.name)) await fs.unlink(path.join(dir, entry.name));
   }
+
+  // A client that doesn't send these (an older tab, a code update from Claude)
+  // must not wipe them: keep what's on disk
+  const existing = await readMeta(dir);
 
   const meta: ProjectMeta = {
     id: project.id,
@@ -108,8 +123,9 @@ export async function saveProject(project: Project): Promise<void> {
     lastModified: project.lastModified,
     activeFile: project.activeFile,
     openTabs: project.openTabs,
-    controls: project.controls,
-    canvasSize: project.canvasSize,
+    controls: project.controls ?? existing?.controls,
+    canvasSize: project.canvasSize ?? existing?.canvasSize,
+    fonts: (project.fonts ?? existing?.fonts ?? []).filter(isFontFile),
     files: files.map(({ content: _content, ...rest }) => rest),
   };
   await fs.writeFile(path.join(dir, META), JSON.stringify(meta, null, 2) + '\n', 'utf8');
@@ -131,4 +147,23 @@ export async function saveThumbnail(id: string, jpeg: Buffer): Promise<boolean> 
 export async function readThumbnail(id: string): Promise<Buffer | null> {
   const dir = await findDir(id);
   return dir ? fs.readFile(path.join(dir, THUMBNAIL)).catch(() => null) : null;
+}
+
+// Font files live in the sketch folder next to the code
+export async function saveFont(id: string, name: string, data: Buffer): Promise<boolean> {
+  const dir = await findDir(id);
+  if (!dir || !isFontFile(name)) return false;
+  await fs.writeFile(path.join(dir, name), data);
+  return true;
+}
+
+export async function readFont(id: string, name: string): Promise<Buffer | null> {
+  const dir = await findDir(id);
+  if (!dir || !isFontFile(name)) return null;
+  return fs.readFile(path.join(dir, name)).catch(() => null);
+}
+
+export async function deleteFont(id: string, name: string): Promise<void> {
+  const dir = await findDir(id);
+  if (dir && isFontFile(name)) await fs.unlink(path.join(dir, name)).catch(() => {});
 }
