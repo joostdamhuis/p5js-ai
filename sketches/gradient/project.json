@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "gradient",
-  "lastModified": 1791731565685,
+  "lastModified": 1791732106647,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -24,21 +24,22 @@
       "fill": 0.8
     },
     "motion": {
-      "speed": 0.85,
-      "slide": 400,
-      "rowOffset": 0.16,
-      "repeats": 0.8
+      "speed": 1.33,
+      "slide": 287,
+      "rowOffset": 0.25,
+      "repeats": 1.7,
+      "breathe": 0.25
     },
     "bars": {
-      "rows": 5,
+      "rows": 14,
       "minWidth": 134,
       "maxWidth": 813,
-      "gap": 6,
-      "radius": 60,
+      "gap": 3,
+      "radius": 24,
       "margin": 0,
       "seed": 780
     },
-    "Stops": 1,
+    "Stops": 29,
     "reds": {
       "from": "#ff2a2a",
       "via": "#9e0016",
@@ -47,16 +48,16 @@
     },
     "cursor": {
       "reach": 20,
-      "swell": 0.2,
-      "drag": 3.17,
-      "shift": 0.81,
-      "ease": 0.89
+      "swell": 0,
+      "drag": 0,
+      "shift": 0.17,
+      "ease": 0.01
     },
     "greens": {
-      "from": "#3dff7a",
-      "via": "#00703a",
-      "to": "#b8ff5c",
-      "background": "#02120a"
+      "from": "#1fd655",
+      "via": "#0a5c2a",
+      "to": "#b6ff8f",
+      "background": "#050f08"
     },
     "yellows": {
       "from": "#ffe600",
@@ -66,9 +67,14 @@
     },
     "blues": {
       "from": "#1e6bff",
-      "via": "#0a2f8a",
+      "via": "#000000",
       "to": "#8fd0ff",
-      "background": "#050a18"
+      "background": "#000000"
+    },
+    "finish": {
+      "sheen": 0.22,
+      "glow": 18,
+      "vignette": 0.55
     }
   },
   "fonts": [],
@@ -77,7 +83,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791731392714
+      "lastModified": 1791732106647
     },
     {
       "id": "index",

@@ -3,10 +3,10 @@
 // Press R (or change seed) for a new arrangement.
 const dial = dials({
   blues: {
-    from: '#1e6bff',
-    via: '#0a2f8a',
-    to: '#8fd0ff',
-    background: '#050a18',
+    from: '#1e90ff',
+    via: '#0a1f5c',
+    to: '#b8e0ff',
+    background: '#050a14',
   },
   bars: {
     rows: [12, 2, 60, 1],
@@ -22,6 +22,7 @@ const dial = dials({
     slide: [40, 0, 400, 1], // pixels per second the rows drift
     rowOffset: [0.08, 0, 0.5, 0.01],
     repeats: [1, 0.25, 4, 0.05],
+    breathe: [0.25, 0, 1, 0.01], // gentle height pulse per bar
   },
   cursor: {
     reach: [240, 20, 900, 1], // how far the cursor's influence spreads
@@ -29,6 +30,11 @@ const dial = dials({
     drag: [1, 0, 4, 0.01], // how much moving the cursor pushes rows
     shift: [0.25, 0, 1, 0.01], // colour shift near the cursor
     ease: [0.15, 0.01, 1, 0.01], // how quickly the effect follows the cursor
+  },
+  finish: {
+    sheen: [0.22, 0, 1, 0.01], // light on top, shade underneath
+    glow: [18, 0, 80, 1], // soft light around bars near the cursor
+    vignette: [0.55, 0, 1, 0.01],
   },
 });
 
@@ -59,7 +65,7 @@ function buildLayout() {
     let x = 0;
     while (x < width + hi) {
       const w = random(lo, hi);
-      rects.push({ x, w });
+      rects.push({ x, w, ph: random(TAU), rate: random(0.6, 1.4) });
       x += w + b.gap;
     }
     layout.push({ rects, length: x, dir: random() < 0.5 ? -1 : 1, pace: random(0.5, 1.5) });
@@ -73,6 +79,7 @@ function draw() {
   const b = dial.bars;
   const m = dial.motion;
   const k = dial.cursor;
+  const f = dial.finish;
   const dt = min(deltaTime, 50) / 1000;
   const secs = millis() / 1000;
   const t = secs * m.speed * 0.1;
@@ -110,18 +117,52 @@ function draw() {
         if (x > width || x + rc.w < 0) continue;
         const d = dist(x + rc.w / 2, mid, cx, cy);
         const near = strength * exp(-sq(d / k.reach));
-        const rh = h * (1 + k.swell * near);
+        const pulse = 1 - m.breathe * 0.5 * (1 + sin(secs * rc.rate * (0.6 + m.speed) + rc.ph)) * 0.5;
+        const rh = h * pulse * (1 + k.swell * near);
+        const ry = mid - rh / 2;
+        const rr = min(b.radius, rh / 2, rc.w / 2);
+
         // Gradient follows screen position, so colours flow across the gaps
         const grad = ctx.createLinearGradient(x, 0, x + rc.w, 0);
         for (let i = 0; i <= STOPS; i++) {
           const u = (x + (rc.w * i) / STOPS) / width;
           grad.addColorStop(i / STOPS, palette(u * m.repeats - phase + k.shift * near, c1, c2, c3).toString());
         }
+
+        // Soft glow, strongest under the cursor
+        if (f.glow > 0) {
+          const gc = palette(((x + rc.w / 2) / width) * m.repeats - phase + k.shift * near, c1, c2, c3);
+          gc.setAlpha(255 * (0.25 + 0.75 * near));
+          ctx.shadowColor = gc.toString();
+          ctx.shadowBlur = f.glow * (0.2 + 0.8 * near);
+        }
         ctx.fillStyle = grad;
-        rect(x, mid - rh / 2, rc.w, rh, min(b.radius, rh / 2, rc.w / 2));
+        rect(x, ry, rc.w, rh, rr);
+        ctx.shadowBlur = 0;
+
+        // Sheen: light along the top, shade along the bottom
+        if (f.sheen > 0) {
+          const s = ctx.createLinearGradient(0, ry, 0, ry + rh);
+          s.addColorStop(0, `rgba(255,255,255,${f.sheen})`);
+          s.addColorStop(0.45, 'rgba(255,255,255,0)');
+          s.addColorStop(0.6, 'rgba(0,0,0,0)');
+          s.addColorStop(1, `rgba(0,0,0,${f.sheen * 0.8})`);
+          ctx.fillStyle = s;
+          rect(x, ry, rc.w, rh, rr);
+        }
       }
     }
   });
+
+  // Vignette to pull the eye to the centre
+  if (f.vignette > 0) {
+    const bg = color(dial.blues.background);
+    const v = ctx.createRadialGradient(width / 2, height / 2, min(width, height) * 0.25, width / 2, height / 2, max(width, height) * 0.75);
+    v.addColorStop(0, `rgba(${red(bg)},${green(bg)},${blue(bg)},0)`);
+    v.addColorStop(1, `rgba(${red(bg)},${green(bg)},${blue(bg)},${f.vignette})`);
+    ctx.fillStyle = v;
+    rect(0, 0, width, height);
+  }
 }
 
 // from → via → to → via → from, repeating every 1, so it never shows a seam
