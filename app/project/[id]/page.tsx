@@ -22,11 +22,40 @@ import {
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelBottom, Columns3, Code2, SlidersHorizontal, Play, Square, MoreHorizontal, Plus } from 'lucide-react';
+import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Square, MoreHorizontal, Plus } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
 const LAYOUT_KEY = 'p5_layout';
+
+// How see-through the panels can be over this canvas colour while their dimmer
+// (secondary) text still reaches 4.5:1 contrast. Mirrors the CSS: the panel is
+// its grey mixed 82/18 with the canvas colour, at this opacity over the canvas.
+const SURFACE_ALPHA_MIN = 0.5;
+const SURFACE_ALPHA_MAX = 0.94;
+type RGB = [number, number, number];
+const mix = (a: RGB, b: RGB, t: number): RGB => [0, 1, 2].map(i => a[i] * t + b[i] * (1 - t)) as RGB;
+const relLum = ([r, g, b]: RGB) => {
+  const c = [r, g, b].map(v => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+const contrast = (a: RGB, b: RGB) => {
+  const [l1, l2] = [relLum(a), relLum(b)].sort((x, y) => y - x);
+  return (l1 + 0.05) / (l2 + 0.05);
+};
+function surfaceAlphaFor(canvas: RGB, light: boolean) {
+  const base: RGB = light ? [250, 250, 250] : [33, 33, 33];
+  const ink: RGB = light ? [0, 0, 0] : [255, 255, 255];
+  const tinted = mix(base, canvas, 0.82);
+  // Whole-percent steps (adding 0.02 repeatedly drifts past the maximum)
+  for (let pct = SURFACE_ALPHA_MIN * 100; pct <= SURFACE_ALPHA_MAX * 100; pct += 2) {
+    const alpha = pct / 100;
+    const surface = mix(tinted, canvas, alpha);
+    const secondaryText = mix(ink, surface, light ? 0.55 : 0.6);
+    if (contrast(secondaryText, surface) >= 4.5) return alpha;
+  }
+  return SURFACE_ALPHA_MAX;
+}
 const MCP_KEY = 'p5_mcp';
 const LAYOUT_DEFAULTS = { consoleHeight: 200, codeWidth: 400, controlsWidth: 280 };
 
@@ -153,17 +182,27 @@ export default function ProjectPage() {
   // Over a light canvas the panels switch to light (with a little hysteresis
   // so a canvas near the threshold doesn't flip back and forth)
   const [lightSurface, setLightSurface] = useState(false);
+  const lightRef = useRef(false);
   const setAmbient = useCallback(([r, g, b]: [number, number, number]) => {
-    document.documentElement.style.setProperty('--ambient', `rgb(${r} ${g} ${b})`);
+    const root = document.documentElement;
+    root.style.setProperty('--ambient', `rgb(${r} ${g} ${b})`);
     const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-    setLightSurface(prev => (prev ? luminance > 0.5 : luminance > 0.62));
+    const light = lightRef.current ? luminance > 0.5 : luminance > 0.62;
+    lightRef.current = light;
+    setLightSurface(light);
+    root.style.setProperty('--surface-alpha', `${Math.round(surfaceAlphaFor([r, g, b], light) * 100)}%`);
   }, []);
   useEffect(() => {
     if (!tintPanels) {
       document.documentElement.style.removeProperty('--ambient');
+      document.documentElement.style.removeProperty('--surface-alpha');
+      lightRef.current = false;
       setLightSurface(false);
     }
-    return () => { document.documentElement.style.removeProperty('--ambient'); };
+    return () => {
+      document.documentElement.style.removeProperty('--ambient');
+      document.documentElement.style.removeProperty('--surface-alpha');
+    };
   }, [tintPanels]);
   useEffect(() => {
     if (lightSurface) document.documentElement.dataset.surface = 'light';
@@ -587,11 +626,10 @@ export default function ProjectPage() {
         {/* Side panels stay mounted and slide in/out from their edge */}
         {/* Left: code + console, as tall as their content and centred vertically */}
         <div
-          className="absolute left-3 top-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)] transition-[transform,opacity] duration-300 ease-out [--surface-alpha:50%]"
+          className="absolute left-3 top-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)] transition-transform duration-300 ease-out"
           style={{
             width: codeWidth,
             transform: `translateY(-50%) translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
-            opacity: showCode || showConsole ? 1 : 0,
             pointerEvents: showCode || showConsole ? 'auto' : 'none',
           }}
           aria-hidden={!(showCode || showConsole)}
@@ -612,11 +650,10 @@ export default function ProjectPage() {
 
         {/* Right: controls */}
         <aside
-          className={`${floating} absolute right-3 top-1/2 z-10 max-h-[calc(100vh-10rem)] transition-[transform,opacity] duration-300 ease-out [--surface-alpha:50%]`}
+          className={`${floating} absolute right-3 top-1/2 z-10 max-h-[calc(100vh-10rem)]`}
           style={{
             width: controlsWidth,
             transform: `translateY(-50%) translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
-            opacity: showControls ? 1 : 0,
             pointerEvents: showControls ? 'auto' : 'none',
           }}
           aria-hidden={!showControls}
@@ -643,8 +680,12 @@ export default function ProjectPage() {
           }}
         />
         <div className="dial-surface absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 p-1.5">
-          {dockToggle(showCode, () => setShowCode(!showCode), 'code', <Code2 className="w-4 h-4" />)}
-          {dockToggle(showControls, () => setShowControls(!showControls), 'controls', <SlidersHorizontal className="w-4 h-4" />)}
+          {dockToggle(
+            showCode || showControls,
+            () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
+            'panels',
+            <PanelsLeftRight className="w-4 h-4" />
+          )}
           {divider}
           <button
             onClick={isRunning ? handleStop : handleStart}

@@ -198,14 +198,16 @@ html.dark[data-surface="light"] .dial-surface {
 }
 /* Light/dark switches fade along with the tint */
 .panel, .dial-surface {
-  transition: background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease,
-    transform 0.3s ease-out, opacity 0.3s ease-out;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease,
+    transform 0.3s ease-out;
 }
 :root {
-  transition: --ambient 1s ease;
+  transition: --ambient 0.3s ease;
 }
 
-/* Surface opacity: how much of the canvas shows through every panel */
+/* Surface opacity, shared by every panel, the dock, pills and menus so their
+   colours match. The editor sets it per canvas colour: as see-through as
+   possible while secondary text keeps 4.5:1 contrast */
 :root {
   --surface-alpha: 70%;
 }
@@ -269,7 +271,7 @@ html, body {
 .dialkit-root[data-mode="inline"] .dialkit-panel-header,
 .dialkit-root[data-mode="inline"] .dialkit-panel-header::before,
 .dialkit-root[data-mode="inline"] .dialkit-folder-header::before {
-  transition: background-color 0.6s ease;
+  transition: background-color 0.25s ease;
 }
 
 /* No shadows on DialKit's own surfaces either */
