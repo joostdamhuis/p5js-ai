@@ -1,17 +1,14 @@
 import { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { X, Play } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface TabsProps {
   project: Project;
   onFileSelect: (fileId: string) => void;
   onCloseTab?: (fileId: string) => void;
-  isRunning?: boolean;
-  onStart?: () => void;
-  onStop?: () => void;
 }
 
-const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, onStop }: TabsProps) => {
+const Tabs = ({ project, onFileSelect, onCloseTab }: TabsProps) => {
   const activeFileId = project.activeFile;
 
   // Get only the files that are in the openTabs array
@@ -58,31 +55,6 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
         })}
       </div>
 
-      {/* Run toggle: green dot while the sketch runs */}
-      {onStart && onStop && (
-        <button
-          onClick={isRunning ? onStop : onStart}
-          title={isRunning ? 'Stop sketch' : 'Run sketch'}
-          className={cn(
-            "flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium shrink-0 transition-colors",
-            isRunning
-              ? "bg-[rgb(var(--ink)/0.05)] text-foreground hover:bg-[rgb(var(--ink)/0.1)]"
-              : "bg-primary text-primary-foreground hover:bg-primary/90"
-          )}
-        >
-          {isRunning ? (
-            <>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Stop
-            </>
-          ) : (
-            <>
-              <Play className="h-3.5 w-3.5" />
-              Run
-            </>
-          )}
-        </button>
-      )}
     </div>
   );
 };

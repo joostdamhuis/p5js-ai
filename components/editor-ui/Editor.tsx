@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import MonacoEditor, { OnMount } from '@monaco-editor/react';
 import { cn } from '@/lib/utils';
 import { ProjectFile, FileType } from '@/lib/types';

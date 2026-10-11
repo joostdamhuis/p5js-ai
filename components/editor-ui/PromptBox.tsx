@@ -203,16 +203,16 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
         {/* The prompt side; the card above lines up with it */}
         <div className="relative flex-1 min-w-0 flex items-end gap-0.5">
           {(showLatest || showRecent) && (
-            <div ref={cardRef} className="dial-surface absolute bottom-[calc(100%+12px)] -left-1 -right-1 p-1.5 flex flex-col">
+            <div ref={cardRef} className="dial-surface absolute bottom-[calc(100%+12px)] -left-1 -right-1 p-1 flex flex-col">
               {showLatest && (
-                <div className="px-3 py-2 text-[13px] leading-5">
+                <div className="min-h-9 px-3 py-2 flex items-center text-[13px] leading-5">
                   {pending ? (
-                    <span className="flex items-center gap-2 text-muted-foreground">
+                    <span className="flex items-center gap-2.5 text-muted-foreground">
                       <Typing />
                       <span className="truncate">{pending.status}</span>
                     </span>
                   ) : latest && (
-                    <div className="flex items-start gap-3">
+                    <div className="flex flex-1 items-start gap-3">
                       <span className={cn('flex-1 min-w-0', latest.error ? 'text-red-400' : 'text-foreground')}>{latest.reply}</span>
                       {undo && (
                         <button
@@ -229,14 +229,14 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
               {showLatest && showRecent && <div className="mx-3 my-1 h-px bg-[rgb(var(--ink)/0.08)]" />}
               {showRecent && (
                 <>
-                  <div className="flex items-center justify-between px-3 pt-1.5 pb-1 text-[12px] text-muted-foreground">
+                  <div className="flex items-center justify-between h-8 px-3 text-[12px] font-medium text-muted-foreground">
                     <span>Recent</span>
                     <button onClick={clearHistory} className="hover:text-foreground transition-colors">Clear</button>
                   </div>
                   {recent.map(prompt => (
                     <div
                       key={prompt}
-                      className="group flex items-center h-9 rounded-[8px] hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
+                      className="group flex items-center h-9 rounded-[10px] hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
                     >
                       <button
                         onClick={() => { setText(prompt); inputRef.current?.focus(); }}
@@ -336,11 +336,11 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
 
 // Three bouncing dots
 const Typing = () => (
-  <span className="inline-flex gap-0.5">
+  <span className="inline-flex items-center gap-[3px]">
     {[0, 1, 2].map(i => (
       <span
         key={i}
-        className="h-1.5 w-1.5 rounded-full bg-current animate-bounce"
+        className="h-1 w-1 rounded-full bg-current animate-bounce"
         style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }}
       />
     ))}

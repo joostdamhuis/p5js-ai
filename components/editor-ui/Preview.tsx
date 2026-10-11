@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
-import { Download, ChevronDown, Square, Share, MoreHorizontal, Image as ImageIcon, Video, Crop } from 'lucide-react';
+import { Square, MoreHorizontal, Image as ImageIcon, Video, Crop } from 'lucide-react';
 import { CANVAS_SIZES, getCanvasSize } from '@/lib/canvas-sizes';
 import { fontFamily, fontUrl } from '@/lib/projects';
 import { buildFramerComponent } from '@/lib/framer-export';
@@ -246,7 +246,7 @@ interface PreviewProps {
   onCanvasSizeChange?: (id: string) => void;
   // Average canvas colour, about twice a second (for tinting the panels)
   onAmbientColor?: (rgb: [number, number, number]) => void;
-  // Dock layout: render the canvas toolbar into this element instead of on the canvas
+  // Where the More menu (export + menuItems) renders: a slot in the bottom bar
   toolbarTarget?: HTMLElement | null;
   // Dock: the page's own menu items (Console, Appearance…), shown under the export items
   menuItems?: React.ReactNode;
@@ -736,78 +736,6 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     </>
   );
 
-  // Toolbar buttons: dark chips on the canvas, plain buttons inside the dock
-  const itemBg = toolbarTarget ? 'bg-transparent hover:bg-[rgb(var(--ink)/0.1)]' : 'bg-[var(--chrome)] hover:bg-[var(--chrome-raised)]';
-  const toolbarItems = (
-    <>
-        <div className="relative">
-          <select
-            value={size.id}
-            onChange={(e) => onCanvasSizeChange?.(e.target.value)}
-            disabled={!!recording}
-            title="Canvas size"
-            className={`appearance-none h-8 pl-2.5 pr-7 rounded-lg ${itemBg} text-[13px] font-medium text-foreground outline-none cursor-pointer`}
-          >
-            {CANVAS_SIZES.map(s => <option key={s.id} value={s.id}>{toolbarTarget ? s.short : s.label}</option>)}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        </div>
-        {recording ? (
-          <button
-            onClick={() => postToSketch({ type: 'recordStop' })}
-            title="Stop and download the video"
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-600 transition-colors"
-          >
-            <Square className="h-3 w-3 fill-current" />
-            {formatElapsed(now - recording.since)}
-            {recording.seconds ? ` / ${formatElapsed(recording.seconds * 1000)}` : ''}
-          </button>
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                title="Record a video of the canvas"
-                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-2 rounded-lg text-[13px] font-medium text-foreground ${itemBg} data-[state=open]:bg-[rgb(var(--ink)/0.11)] transition-colors`}
-              >
-                <span className="h-2 w-2 rounded-full bg-red-500" />
-                Record
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart', length: 'loop' })}>
-                One perfect loop
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart' })}>
-                Until I stop
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {[3, 5, 10].map(sec => (
-                <DropdownMenuItem key={sec} onClick={() => postToSketch({ type: 'recordStart', length: sec })}>
-                  {sec} seconds
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-        <button
-          onClick={copyForFramer}
-          title="Copy this sketch as a Framer code component, with its controls as Framer properties"
-          className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg ${itemBg} text-[13px] font-medium text-foreground`}
-        >
-          <svg viewBox="0 0 14 21" className="h-3 w-3 fill-current" aria-hidden><path d="M0 0h14v7H7zM0 7h7l7 7H7v7l-7-7z" /></svg>
-          Framer
-        </button>
-        <button
-          onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}
-          title="Download this frame as a PNG"
-          className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg ${itemBg} text-[13px] font-medium text-foreground`}
-        >
-          <Download className="h-3.5 w-3.5" />
-          PNG
-        </button>
-    </>
-  );
 
   return (
     <div
@@ -817,20 +745,11 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       )}
     >
       {/* Canvas toolbar: on the canvas (on hover, always while recording), or in the dock */}
-      {toolbarTarget
-        ? createPortal(dockExport, toolbarTarget)
-        : (
-          <div className={cn(
-            "absolute top-2 right-2 z-10 flex items-center gap-1 transition-opacity",
-            recording ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 has-[[data-state=open]]:opacity-100"
-          )}>
-            {toolbarItems}
-          </div>
-        )}
+      {toolbarTarget && createPortal(dockExport, toolbarTarget)}
       {recordNote && (
         <div className={cn(
           "absolute z-30 rounded-lg bg-[var(--chrome)] px-2.5 py-1.5 text-[12px] text-muted-foreground",
-          toolbarTarget ? "bottom-20 left-1/2 -translate-x-1/2" : "top-12 right-2"
+          "bottom-20 left-1/2 -translate-x-1/2"
         )}>
           {recordNote}
         </div>

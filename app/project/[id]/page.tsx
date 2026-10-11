@@ -10,10 +10,8 @@ import Tabs from '@/components/editor-ui/Tabs';
 import Console, { LogMessage } from '@/components/editor-ui/Console';
 import ResizeHandle from '@/components/editor-ui/ResizeHandle';
 import ConnectionStatus from '@/components/editor-ui/ConnectionStatus';
-import FontsMenu, { FontsSubmenu } from '@/components/editor-ui/FontsMenu';
+import { FontsSubmenu } from '@/components/editor-ui/FontsMenu';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -21,13 +19,11 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib/appearance';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Pause, MoreHorizontal, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
+import { ArrowLeft, PanelsLeftRight, Play, Pause, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import PromptBox from '@/components/editor-ui/PromptBox';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
@@ -50,8 +46,6 @@ export default function ProjectPage() {
   const [consoleHeight, setConsoleHeight] = useState(LAYOUT_DEFAULTS.consoleHeight);
   const [codeWidth, setCodeWidth] = useState(LAYOUT_DEFAULTS.codeWidth);
   const [controlsWidth, setControlsWidth] = useState(LAYOUT_DEFAULTS.controlsWidth);
-  // Layout: 'columns' (panels side by side) or 'dock' (full canvas, floating panels, one dock)
-  const [layoutMode, setLayoutMode] = useState<'columns' | 'dock'>('dock');
   const [showCode, setShowCode] = useState(true);
   const [showConsole, setShowConsole] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -98,7 +92,6 @@ export default function ProjectPage() {
       if (saved.consoleHeight) setConsoleHeight(saved.consoleHeight);
       if (saved.codeWidth) setCodeWidth(saved.codeWidth);
       if (saved.controlsWidth) setControlsWidth(saved.controlsWidth);
-      if (saved.layout === 'dock' || saved.layout === 'columns') setLayoutMode(saved.layout);
       if (typeof saved.showCode === 'boolean') setShowCode(saved.showCode);
       if (typeof saved.showConsole === 'boolean') setShowConsole(saved.showConsole);
       if (typeof saved.showControls === 'boolean') setShowControls(saved.showControls);
@@ -107,9 +100,9 @@ export default function ProjectPage() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, codeWidth, controlsWidth, layout: layoutMode, showCode, showConsole, showControls }));
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, codeWidth, controlsWidth, showCode, showConsole, showControls }));
     } catch {}
-  }, [consoleHeight, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls]);
+  }, [consoleHeight, codeWidth, controlsWidth, showCode, showConsole, showControls]);
 
   useEffect(() => { setAppearance(readAppearance()); }, []);
   const chooseAppearance = (value: Appearance) => {
@@ -441,47 +434,12 @@ export default function ProjectPage() {
 
   // ---- Pieces shared by both layouts ----
 
-  const nameInput = (
-    <input
-      value={project.name}
-      onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-      className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] min-w-0 w-56 truncate transition-colors"
-      title="Rename project"
-      spellCheck={false}
-    />
-  );
-
-  const backButton = (
-    <Button variant="ghost" size="icon" onClick={handleBackToDashboard} title="All projects">
-      <ArrowLeft className="w-4 h-4" />
-    </Button>
-  );
-
-  const connection = (
-    <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} />
-  );
-
-  const layoutSwitch = (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setLayoutMode(layoutMode === 'dock' ? 'columns' : 'dock')}
-      title={layoutMode === 'dock' ? 'Switch to columns layout' : 'Switch to dock layout'}
-    >
-      {layoutMode === 'dock' ? <Columns3 className="w-4 h-4" /> : <PanelBottom className="w-4 h-4" />}
-    </Button>
-  );
-
   const codePanel = (
     <>
       <Tabs
         project={project}
         onFileSelect={handleFileSelect}
         onCloseTab={handleCloseTab}
-        isRunning={isRunning}
-        // In the dock layout Run/Stop lives in the dock
-        onStart={layoutMode === 'dock' ? undefined : handleStart}
-        onStop={layoutMode === 'dock' ? undefined : handleStop}
       />
       {activeFile ? (
         <div className="flex-1 overflow-hidden min-w-0">
@@ -518,7 +476,7 @@ export default function ProjectPage() {
           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowConsole(!showConsole); }}>
             <SquareTerminal className="mr-2 h-4 w-4" />
             Console
-            {showConsole && <Check className="ml-auto h-4 w-4" />}
+            {showConsole && <Check className="ml-auto h-3.5 w-3.5 !text-foreground" />}
           </DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
@@ -539,10 +497,6 @@ export default function ProjectPage() {
             <Plus className="mr-2 h-4 w-4" />
             New sketch
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setLayoutMode('columns')}>
-            <Columns3 className="mr-2 h-4 w-4" />
-            Columns layout
-          </DropdownMenuItem>
     </>
   );
 
@@ -555,8 +509,8 @@ export default function ProjectPage() {
       onDialsChange={setHasDials}
       onControlsChange={handleControlsChange}
       onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
-      toolbarTarget={layoutMode === 'dock' ? dockToolsEl : undefined}
-      menuItems={layoutMode === 'dock' ? moreMenuItems : undefined}
+      toolbarTarget={dockToolsEl}
+      menuItems={moreMenuItems}
       onAmbientColor={appearance === 'auto' ? setAmbient : undefined}
     />
   );
@@ -595,197 +549,130 @@ export default function ProjectPage() {
     />
   );
 
-  // ---- Dock layout: the canvas fills the window, panels float, one dock ----
+  // The canvas fills the window; panels float; one bar at the bottom
 
-  if (layoutMode === 'dock') {
-    const floating = 'panel flex flex-col';
-    const dockToggle = (on: boolean, toggle: () => void, label: string, icon: React.ReactNode) => (
-      <button
-        onClick={toggle}
-        title={`${on ? 'Hide' : 'Show'} ${label}`}
-        aria-pressed={on}
-        className={`h-9 w-9 flex items-center justify-center rounded-[10px] transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
-      >
-        {icon}
-      </button>
-    );
-
-    return (
-      <div className="h-screen relative bg-black overflow-hidden">
-        <div className="absolute inset-0">{preview}</div>
-
-        {/* Top corners */}
-        <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-11 px-1">
-          <button
-            onClick={handleBackToDashboard}
-            title="All projects"
-            className="h-9 w-9 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-          </button>
-          <input
-            value={project.name}
-            onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-            className="h-9 px-2.5 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
-            title="Rename project"
-            spellCheck={false}
-          />
-        </div>
-        <div className="absolute top-3 right-3 z-20">
-          <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill popupWidth={controlsWidth} />
-        </div>
-
-        {/* Side panels stay mounted and slide in/out from their edge */}
-        {/* Left: code + console, top-aligned with Controls, as tall as their content */}
-        <div
-          className="absolute left-3 top-[68px] z-10 flex flex-col max-h-[calc(100vh-136px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
-          style={{
-            width: codeWidth,
-            transform: `translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
-            pointerEvents: showCode || showConsole ? 'auto' : 'none',
-          }}
-          aria-hidden={!(showCode || showConsole)}
-        >
-          {showCode && (
-            // 44px tab bar + the code; shrinks (and scrolls) when there isn't room
-            <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
-          )}
-          {showCode && showConsole && consoleHandle}
-          {showConsole && (
-            <div className={`${floating} shrink-0`} style={{ height: consoleHeight }}>{consolePanel}</div>
-          )}
-          {/* Keep the editor mounted while sliding out, so the slide shows its content */}
-          {!showCode && !showConsole && (
-            <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
-          )}
-        </div>
-
-        {/* Right: controls */}
-        <aside
-          className={`${floating} absolute right-3 top-[68px] z-10 max-h-[calc(100vh-136px)]`}
-          style={{
-            width: controlsWidth,
-            transform: `translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
-            pointerEvents: showControls ? 'auto' : 'none',
-          }}
-          aria-hidden={!showControls}
-        >
-          {controlsPanel}
-        </aside>
-
-        {/* The dock: panels left, Run/Stop in the middle, Export / Save / More right */}
-        <input
-          ref={fontInputRef}
-          type="file"
-          accept=".ttf,.otf,.woff,.woff2"
-          className="hidden"
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            e.target.value = '';
-            if (!file) return;
-            try {
-              await uploadFont(project.id, file);
-              setProject(prev => prev ? { ...prev, fonts: Array.from(new Set([...(prev.fonts ?? []), file.name])), lastModified: Date.now() } : prev);
-            } catch (error) {
-              alert(`Couldn't add the font: ${(error as Error).message}`);
-            }
-          }}
-        />
-        <PromptBox
-          project={project}
-          errors={consoleMessages.filter(m => m.type === 'error').map(m => String(m.content))}
-          onRestore={(files) => setProject(prev => prev ? { ...prev, files, lastModified: Date.now() } : prev)}
-          // The toolbar lives in the same bar, left of the prompt
-          tools={
-            <>
-              <button
-                onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
-                title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
-                className="mr-1 h-9 w-9 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
-              >
-                {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
-              </button>
-              {dockToggle(
-                showCode || showControls,
-                () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
-                'panels',
-                <PanelsLeftRight className="w-4 h-4" />
-              )}
-              <ProjectManager currentProject={project} onProjectChange={setProject} compact />
-              {/* More menu (export + the items below), rendered by Preview */}
-              <span ref={setDockToolsEl} className="flex items-center" />
-            </>
-          }
-        />
-
-        {listener}
-      </div>
-    );
-  }
-
-  // ---- Columns layout ----
+  const floating = 'panel flex flex-col';
+  const dockToggle = (on: boolean, toggle: () => void, label: string, icon: React.ReactNode) => (
+    <button
+      onClick={toggle}
+      title={`${on ? 'Hide' : 'Show'} ${label}`}
+      aria-pressed={on}
+      className={`h-9 w-9 flex items-center justify-center rounded-[10px] transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
+    >
+      {icon}
+    </button>
+  );
 
   return (
-    <div className="h-screen bg-background flex flex-col p-2 pt-0 overflow-hidden">
-      <header className="h-12 flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-0.5 min-w-0">
-          {backButton}
-          <div className="ml-1.5">{nameInput}</div>
-        </div>
+    <div className="h-screen relative bg-black overflow-hidden">
+      <div className="absolute inset-0">{preview}</div>
 
-        <div className="flex items-center gap-1.5">
-          <FontsMenu project={project} onProjectChange={setProject} />
-          <ProjectManager currentProject={project} onProjectChange={setProject} />
-          {layoutSwitch}
-          {connection}
-        </div>
-      </header>
-
-      <div className="flex flex-1 min-h-0">
-        {/* Main content */}
-        <div className="flex-1 flex flex-col md:flex-row gap-2 md:gap-0 min-w-0 min-h-0">
-          {/* Editor Section with Console */}
-          <div
-            className="w-full h-1/2 md:h-full md:w-[var(--code-w)] md:shrink-0 flex flex-col min-w-0 min-h-0"
-            style={{ '--code-w': `${codeWidth}px` } as React.CSSProperties}
-          >
-            <div className="panel flex-1 flex flex-col min-h-0">{codePanel}</div>
-            {consoleHandle}
-            <div style={{ height: `${consoleHeight}px` }} className="panel shrink-0 min-w-0">{consolePanel}</div>
-          </div>
-
-          <ResizeHandle
-            axis="x"
-            value={codeWidth}
-            onChange={setCodeWidth}
-            min={260}
-            max={960}
-            onReset={() => setCodeWidth(LAYOUT_DEFAULTS.codeWidth)}
-            className="hidden md:flex"
-          />
-
-          {/* Preview Section */}
-          <div className="panel w-full h-1/2 md:h-full md:flex-1 min-w-0 bg-black">{preview}</div>
-
-          <ResizeHandle
-            axis="x"
-            value={controlsWidth}
-            onChange={setControlsWidth}
-            min={220}
-            max={520}
-            invert
-            onReset={() => setControlsWidth(LAYOUT_DEFAULTS.controlsWidth)}
-            className="hidden lg:flex"
-          />
-
-          {/* Controls: the sketch's dials, docked */}
-          <aside className="panel shrink-0 hidden lg:flex flex-col" style={{ width: controlsWidth }}>
-            {controlsPanel}
-          </aside>
-        </div>
+      {/* Top corners */}
+      <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-11 px-1">
+        <button
+          onClick={handleBackToDashboard}
+          title="All projects"
+          className="h-9 w-9 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+        </button>
+        <input
+          value={project.name}
+          onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
+          className="h-9 px-2.5 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+          title="Rename project"
+          spellCheck={false}
+        />
       </div>
+      <div className="absolute top-3 right-3 z-20">
+        <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill popupWidth={controlsWidth} />
+      </div>
+
+      {/* Side panels stay mounted and slide in/out from their edge */}
+      {/* Left: code + console, top-aligned with Controls, as tall as their content */}
+      <div
+        className="absolute left-3 top-[68px] z-10 flex flex-col max-h-[calc(100vh-136px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
+        style={{
+          width: codeWidth,
+          transform: `translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
+          pointerEvents: showCode || showConsole ? 'auto' : 'none',
+        }}
+        aria-hidden={!(showCode || showConsole)}
+      >
+        {showCode && (
+          // 44px tab bar + the code; shrinks (and scrolls) when there isn't room
+          <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
+        )}
+        {showCode && showConsole && consoleHandle}
+        {showConsole && (
+          <div className={`${floating} shrink-0`} style={{ height: consoleHeight }}>{consolePanel}</div>
+        )}
+        {/* Keep the editor mounted while sliding out, so the slide shows its content */}
+        {!showCode && !showConsole && (
+          <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
+        )}
+      </div>
+
+      {/* Right: controls */}
+      <aside
+        className={`${floating} absolute right-3 top-[68px] z-10 max-h-[calc(100vh-136px)]`}
+        style={{
+          width: controlsWidth,
+          transform: `translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
+          pointerEvents: showControls ? 'auto' : 'none',
+        }}
+        aria-hidden={!showControls}
+      >
+        {controlsPanel}
+      </aside>
+
+      {/* The dock: panels left, Run/Stop in the middle, Export / Save / More right */}
+      <input
+        ref={fontInputRef}
+        type="file"
+        accept=".ttf,.otf,.woff,.woff2"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (!file) return;
+          try {
+            await uploadFont(project.id, file);
+            setProject(prev => prev ? { ...prev, fonts: Array.from(new Set([...(prev.fonts ?? []), file.name])), lastModified: Date.now() } : prev);
+          } catch (error) {
+            alert(`Couldn't add the font: ${(error as Error).message}`);
+          }
+        }}
+      />
+      <PromptBox
+        project={project}
+        errors={consoleMessages.filter(m => m.type === 'error').map(m => String(m.content))}
+        onRestore={(files) => setProject(prev => prev ? { ...prev, files, lastModified: Date.now() } : prev)}
+        // The toolbar lives in the same bar, left of the prompt
+        tools={
+          <>
+            <button
+              onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
+              title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
+              className="mr-1 h-9 w-9 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
+            >
+              {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
+            </button>
+            {dockToggle(
+              showCode || showControls,
+              () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
+              'panels',
+              <PanelsLeftRight className="w-4 h-4" />
+            )}
+            <ProjectManager currentProject={project} onProjectChange={setProject} compact />
+            {/* More menu (export + the items below), rendered by Preview */}
+            <span ref={setDockToolsEl} className="flex items-center" />
+          </>
+        }
+      />
 
       {listener}
     </div>
   );
+
 } 

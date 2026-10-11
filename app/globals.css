@@ -206,19 +206,6 @@ html.dark[data-surface="light"] .dial-surface {
   /* colours switch instantly; only the slide animates, with a tiny bounce */
   transition: transform 0.35s cubic-bezier(0.34, 1.25, 0.64, 1);
 }
-:root {
-  transition: none;
-  /* Apple-style glass: the colour comes from what's behind, blurred and
-     slightly saturated, never mixed into the panel itself */
-  --glass-blur: blur(30px);
-}
-
-/* Surface opacity, shared by every panel, the dock, pills and menus so their
-   colours match. The editor sets it per canvas colour: as see-through as
-   possible while secondary text keeps 4.5:1 contrast */
-:root {
-  --surface-alpha: 70%;
-}
 
 /* Everything is solid, in DialKit's colours: dark over dark canvases, light over light ones */
 @utility panel {
