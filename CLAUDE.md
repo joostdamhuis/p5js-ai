@@ -35,6 +35,7 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 - Claude can edit sketches by editing those files, but the open editor won't reload them until the page is refreshed
 - Code colors: soft lavender keywords, sage strings, sand numbers, light blue types, gray italic comments; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
+- Panel rules: 8px control radius (--radius 0.5rem), 12px panel radius, 44px panel header (h-11) with 13px/600 white title, 12px content inset (px-3); DialKit's inline panel is overridden in globals.css to match. Top bar buttons align with panel edges
 
 ## Sketch dials (DialKit)
 Sketches can declare live controls; the editor shows them in the docked Controls column (right of the preview, `<DialRoot mode="inline">` in page.tsx) and pushes values into the running sketch. Always include dials in sketches for Joost; the starter sketch for new projects (DEFAULT_PROJECT in lib/types.ts) already has them.

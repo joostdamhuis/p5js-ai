@@ -20,7 +20,7 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
   );
 
   return (
-    <div className="flex items-center gap-2 h-11 px-1.5 shrink-0">
+    <div className="flex items-center gap-2 h-11 px-3 shrink-0">
       {/* File tabs */}
       <div className="flex items-center gap-0.5 overflow-x-auto flex-1 min-w-0">
         {openFiles.map((file) => {

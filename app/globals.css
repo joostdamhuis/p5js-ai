@@ -44,7 +44,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem; /* rounded-lg = 8px, like DialKit controls */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -156,4 +156,14 @@
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 12px;
   overflow: hidden;
+}
+
+/* DialKit docked in the Controls column: same header height, title style
+   and 12px content inset as the other panels */
+.dialkit-root[data-mode="inline"] .dialkit-panel-inner {
+  padding: 2px 12px 12px;
+}
+.dialkit-root[data-mode="inline"] .dialkit-folder-title {
+  font-size: 13px;
+  font-weight: 600;
 }

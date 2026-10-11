@@ -330,7 +330,7 @@ export default function ProjectPage() {
 
   return (
     <div className="h-screen bg-background flex flex-col p-2 pt-0 overflow-hidden">
-      <header className="h-12 flex items-center justify-between gap-3 px-1 shrink-0">
+      <header className="h-12 flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-0.5 min-w-0">
           <Button
             variant="ghost"
@@ -491,12 +491,12 @@ export default function ProjectPage() {
 
           {/* Controls: the sketch's dials, docked */}
           <aside className="panel shrink-0 hidden lg:flex flex-col" style={{ width: controlsWidth }}>
-            <div className="flex-1 overflow-y-auto min-h-0 p-1">
+            <div className="flex-1 overflow-y-auto min-h-0">
               <DialRoot mode="inline" theme="dark" productionEnabled />
               {!hasDials && (
-                <div className="px-2.5 py-2">
-                  <h3 className="text-[13px] font-medium text-muted-foreground">Controls</h3>
-                  <p className="text-[12px] leading-relaxed text-muted-foreground/70 mt-3">
+                <div className="px-3 pb-3">
+                  <h3 className="h-11 flex items-center text-[13px] font-semibold text-foreground">Controls</h3>
+                  <p className="text-[12px] leading-relaxed text-muted-foreground">
                     Sliders for your sketch show up here. Add a <code className="font-mono text-foreground/80">dials</code> line
                     at the top of your sketch, or ask Claude for a sketch with controls.
                   </p>

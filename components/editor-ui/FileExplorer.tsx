@@ -253,8 +253,8 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between h-10 pl-3.5 pr-1.5 shrink-0">
-        <h3 className="text-[13px] font-medium text-muted-foreground">Files</h3>
+      <div className="flex items-center justify-between h-11 pl-3 pr-1.5 shrink-0">
+        <h3 className="text-[13px] font-semibold text-foreground">Files</h3>
         <div className="flex items-center">
           <Button
             variant="ghost"
@@ -294,7 +294,7 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
       </div>
 
       {showNewFileInput && (
-        <div className="px-1.5 pb-1 flex items-center">
+        <div className="px-3 pb-1 flex items-center">
           <Input
             value={newFileName}
             onChange={(e) => setNewFileName(e.target.value)}
@@ -310,7 +310,7 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
         </div>
       )}
 
-      <div className="overflow-y-auto flex-1 px-1.5 pb-1.5 space-y-px">
+      <div className="overflow-y-auto flex-1 px-3 pb-3 space-y-px">
         {project.files.map((file) => (
           <div
             key={file.id}

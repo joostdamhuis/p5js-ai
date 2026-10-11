@@ -27,11 +27,11 @@ const Console = ({ messages, onClear, className }: ConsoleProps) => {
 
   return (
     <div className={cn("flex flex-col h-full min-w-0", className)}>
-      <div className="flex justify-between items-center h-10 pl-3.5 pr-1.5 shrink-0">
-        <h3 className="text-[13px] font-medium text-muted-foreground">
+      <div className="flex justify-between items-center h-11 pl-3 pr-1.5 shrink-0">
+        <h3 className="text-[13px] font-semibold text-foreground">
           Console
           {messages.length > 0 && (
-            <span className="ml-1.5 text-[11px] tabular-nums opacity-60">{messages.length}</span>
+            <span className="ml-1.5 text-[11px] font-medium tabular-nums text-muted-foreground">{messages.length}</span>
           )}
         </h3>
         {messages.length > 0 && (
@@ -44,9 +44,9 @@ const Console = ({ messages, onClear, className }: ConsoleProps) => {
         )}
       </div>
 
-      <div className="flex-1 overflow-auto font-mono px-1.5 pb-1.5 min-w-0">
+      <div className="flex-1 overflow-auto font-mono px-3 pb-3 min-w-0">
         {messages.length === 0 ? (
-          <div className="text-muted-foreground/60 px-2 text-[12px]">Nothing logged yet</div>
+          <div className="text-muted-foreground/60 text-[12px]">Nothing logged yet</div>
         ) : (
           messages.map((msg) => (
             <div
