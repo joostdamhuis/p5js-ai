@@ -150,12 +150,24 @@
   --sidebar-ring: rgb(255 255 255 / 60%);
 }
 
-/* Floating rounded surface, like the DialKit panel */
+/* Every panel uses DialKit's panel recipe: #212121, 10% border, 14px corners,
+   soft deep shadow, light blur */
 @utility panel {
   background-color: var(--card);
   border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 12px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
+  backdrop-filter: blur(20px);
   overflow: hidden;
+}
+
+/* DialKit's floating chrome (dock, pills, popups): same surface as panels */
+@utility dial-surface {
+  background-color: rgb(33 33 33 / 92%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
+  backdrop-filter: blur(20px);
 }
 
 /* DialKit docked in the Controls column: same header height, title style

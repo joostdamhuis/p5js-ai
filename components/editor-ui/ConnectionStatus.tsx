@@ -72,7 +72,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
         className={cn(
           'flex items-center gap-2 text-[13px] font-medium transition-colors',
           pill
-            ? 'h-9 px-3.5 rounded-full border border-white/10 backdrop-blur-xl ' + (open ? 'bg-[#2a2a2a]' : 'bg-[#212121]/85 hover:bg-[#2a2a2a]')
+            ? 'dial-surface h-10 px-3.5 ' + (open ? '!bg-[#2a2a2a]' : 'hover:!bg-[#2a2a2a]')
             : 'h-8 px-3 rounded-lg ' + (open ? 'bg-white/[0.11]' : 'bg-white/[0.05] hover:bg-white/[0.1]'),
           'text-foreground'
         )}
@@ -82,7 +82,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 z-50 w-80 rounded-xl border border-white/10 bg-popover p-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="dial-surface absolute right-0 top-12 z-50 w-80 !bg-[#212121] p-3">
           <div className="flex items-center justify-between gap-3 pb-3">
             <div>
               <div className="text-[13px] font-semibold">Let Claude control the editor</div>
@@ -108,7 +108,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
 
           <div className="space-y-1">
             {checks.map((check) => (
-              <div key={check.label} className="flex gap-2.5 rounded-lg bg-white/[0.05] px-2.5 py-2">
+              <div key={check.label} className="flex gap-2.5 rounded-lg bg-white/[0.05] px-3 py-2">
                 {/* Same height as the label's line, so the dot is centred on it */}
                 <span className="flex h-5 shrink-0 items-center">
                   <span

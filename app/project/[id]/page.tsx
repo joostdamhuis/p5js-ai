@@ -520,13 +520,13 @@ export default function ProjectPage() {
   // ---- Dock layout: the canvas fills the window, panels float, one dock ----
 
   if (layoutMode === 'dock') {
-    const floating = 'panel !bg-[#212121]/90 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col';
+    const floating = 'panel !bg-[#212121]/92 flex flex-col';
     const dockToggle = (on: boolean, toggle: () => void, label: string, icon: React.ReactNode) => (
       <button
         onClick={toggle}
         title={`${on ? 'Hide' : 'Show'} ${label}`}
         aria-pressed={on}
-        className={`h-9 w-9 flex items-center justify-center rounded-full transition-colors ${on ? 'bg-white/[0.11] text-foreground' : 'text-muted-foreground hover:bg-white/[0.1] hover:text-foreground'}`}
+        className={`h-9 w-9 flex items-center justify-center rounded-lg transition-colors ${on ? 'bg-white/[0.11] text-foreground' : 'text-muted-foreground hover:bg-white/[0.1] hover:text-foreground'}`}
       >
         {icon}
       </button>
@@ -538,18 +538,18 @@ export default function ProjectPage() {
         <div className="absolute inset-0">{preview}</div>
 
         {/* Top corners */}
-        <div className="absolute top-3 left-3 z-20 flex items-center p-1 pr-1.5 rounded-full bg-[#212121]/85 backdrop-blur-xl border border-white/10">
+        <div className="dial-surface absolute top-3 left-3 z-20 flex items-center p-1 pr-1.5">
           <button
             onClick={handleBackToDashboard}
             title="All projects"
-            className="h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
           </button>
           <input
             value={project.name}
             onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-            className="h-7 px-2 rounded-full bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+            className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
             title="Rename project"
             spellCheck={false}
           />
@@ -603,14 +603,14 @@ export default function ProjectPage() {
             }
           }}
         />
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 p-1.5 rounded-full bg-[#212121]/90 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="dial-surface absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 p-1.5">
           {dockToggle(showCode, () => setShowCode(!showCode), 'code', <Code2 className="w-4 h-4" />)}
           {dockToggle(showControls, () => setShowControls(!showControls), 'controls', <SlidersHorizontal className="w-4 h-4" />)}
           {divider}
           <button
             onClick={isRunning ? handleStop : handleStart}
             title={isRunning ? 'Stop sketch' : 'Run sketch'}
-            className={`h-10 w-10 flex items-center justify-center rounded-full transition-colors ${isRunning ? 'bg-white/[0.11] text-foreground hover:bg-white/[0.16]' : 'bg-white text-[#212121] hover:bg-white/90'}`}
+            className={`h-9 w-11 flex items-center justify-center rounded-lg transition-colors ${isRunning ? 'bg-white/[0.11] text-foreground hover:bg-white/[0.16]' : 'bg-white text-[#212121] hover:bg-white/90'}`}
           >
             {isRunning ? <Square className="h-3.5 w-3.5 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
           </button>
@@ -621,7 +621,7 @@ export default function ProjectPage() {
             <DropdownMenuTrigger asChild>
               <button
                 title="More"
-                className="h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-white/[0.1] hover:text-foreground data-[state=open]:bg-white/[0.11] data-[state=open]:text-foreground transition-colors"
+                className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-white/[0.1] hover:text-foreground data-[state=open]:bg-white/[0.11] data-[state=open]:text-foreground transition-colors"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </button>

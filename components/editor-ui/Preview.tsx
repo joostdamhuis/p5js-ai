@@ -616,7 +616,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     <button
       onClick={() => postToSketch({ type: 'recordStop' })}
       title="Stop and download the video"
-      className="flex items-center gap-1.5 h-9 px-3 rounded-full text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-500/90 transition-colors"
+      className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-500/90 transition-colors"
     >
       <Square className="h-3 w-3 fill-current" />
       {formatElapsed(now - recording.since)}
@@ -627,7 +627,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       <DropdownMenuTrigger asChild>
         <button
           title="Export"
-          className="flex items-center gap-1.5 h-9 pl-3 pr-2.5 rounded-full text-[13px] font-medium text-foreground hover:bg-white/[0.1] data-[state=open]:bg-white/[0.11] transition-colors"
+          className="flex items-center gap-1.5 h-9 pl-3 pr-2.5 rounded-lg text-[13px] font-medium text-foreground hover:bg-white/[0.1] data-[state=open]:bg-white/[0.11] transition-colors"
         >
           <Share className="h-4 w-4" />
           Export

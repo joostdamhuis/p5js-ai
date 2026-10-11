@@ -33,7 +33,8 @@ Local Next.js app for live p5.js sketching, controlled by Claude through an MCP.
 - Claude can edit sketches by editing those files, but the open editor won't reload them until the page is refreshed
 - Code colors: calm white tones, theme does not inherit vs-dark: all code #d0d0d0, strings #9e9e9e, comments #6a6a6a italic. Regular weight, no line highlight, no sticky scroll, no squiggles or occurrence highlights, wrapped lines indented; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
-- Panel rules: 8px control radius (--radius 0.5rem), 12px panel radius, 44px panel header (h-11) with 13px/600 white title, 12px content inset (px-3); DialKit's inline panel is overridden in globals.css to match. Top bar buttons align with panel edges
+- Everything follows DialKit's panel: `panel` and `dial-surface` utilities in globals.css (#212121, 10% white border, 14px corners, 0 8px 32px black/50% shadow, 20px blur). Controls inside use 8px corners (rounded-lg), no full pills except dots and switches. Menus (ui/dropdown-menu) are DialKit's dropdown: #2a2a2a, 10px corners, 32px rows at 13px/500
+- Panel rules: 8px control radius (--radius 0.5rem), 14px panel radius, 44px panel header (h-11) with 13px/600 white title, 12px content inset (px-3); DialKit's inline panel is overridden in globals.css to match. Top bar buttons align with panel edges
 
 ## Sketch dials (DialKit)
 Sketches can declare live controls; the editor shows them in the docked Controls column (right of the preview, `<DialRoot mode="inline">` in page.tsx) and pushes values into the running sketch. Always include dials in sketches for Joost; the starter sketch for new projects (DEFAULT_PROJECT in lib/types.ts) already has them.
