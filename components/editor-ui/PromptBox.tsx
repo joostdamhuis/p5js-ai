@@ -334,7 +334,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   );
 };
 
-// Thinking: a 3×3 grid of small squares that flicker on and off at random
+// Thinking: a 3×3 grid of small dots that flicker on and off at random
 const Typing = () => {
   // Each square gets its own random rhythm, picked once when it appears
   const [cells] = useState(() =>
@@ -345,7 +345,7 @@ const Typing = () => {
       {cells.map((c, i) => (
         <span
           key={i}
-          className="thinking-cell h-[3px] w-[3px] rounded-[0.5px] bg-current"
+          className="thinking-cell h-[3px] w-[3px] rounded-full bg-current"
           style={{ animationDelay: `-${c.delay}s`, animationDuration: `${c.duration}s` }}
         />
       ))}
