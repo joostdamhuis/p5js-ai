@@ -14,7 +14,7 @@ import ConnectionStatus from '@/components/editor-ui/ConnectionStatus';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, saveProject, cacheProject } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelLeft } from 'lucide-react';
+import { ArrowLeft, PanelLeft, PanelBottom, Columns3, Folder, Code2, SquareTerminal, SlidersHorizontal, Play } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
@@ -36,6 +36,12 @@ export default function ProjectPage() {
   const [sidebarWidth, setSidebarWidth] = useState(LAYOUT_DEFAULTS.sidebarWidth);
   const [codeWidth, setCodeWidth] = useState(LAYOUT_DEFAULTS.codeWidth);
   const [controlsWidth, setControlsWidth] = useState(LAYOUT_DEFAULTS.controlsWidth);
+  // Layout: 'columns' (panels side by side) or 'dock' (full canvas, floating panels, one dock)
+  const [layoutMode, setLayoutMode] = useState<'columns' | 'dock'>('columns');
+  const [showCode, setShowCode] = useState(true);
+  const [showConsole, setShowConsole] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [dockToolsEl, setDockToolsEl] = useState<HTMLElement | null>(null);
   const [isRunning, setIsRunning] = useState(true);
   const [loading, setLoading] = useState(true);
   const [hasDials, setHasDials] = useState(false);
@@ -69,14 +75,18 @@ export default function ProjectPage() {
       if (saved.sidebarWidth) setSidebarWidth(saved.sidebarWidth);
       if (saved.codeWidth) setCodeWidth(saved.codeWidth);
       if (saved.controlsWidth) setControlsWidth(saved.controlsWidth);
+      if (saved.layoutMode === 'dock' || saved.layoutMode === 'columns') setLayoutMode(saved.layoutMode);
+      if (typeof saved.showCode === 'boolean') setShowCode(saved.showCode);
+      if (typeof saved.showConsole === 'boolean') setShowConsole(saved.showConsole);
+      if (typeof saved.showControls === 'boolean') setShowControls(saved.showControls);
     } catch {}
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, sidebarWidth, codeWidth, controlsWidth }));
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, sidebarWidth, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls }));
     } catch {}
-  }, [consoleHeight, sidebarWidth, codeWidth, controlsWidth]);
+  }, [consoleHeight, sidebarWidth, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls]);
 
   // Load the project from the sketches folder (falls back to this browser's copy)
   useEffect(() => {
@@ -374,18 +384,212 @@ export default function ProjectPage() {
     ? project.files.find(f => f.id === project.activeFile)
     : null;
 
+  // ---- Pieces shared by both layouts ----
+
+  const nameInput = (
+    <input
+      value={project.name}
+      onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
+      className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] min-w-0 w-56 truncate transition-colors"
+      title="Rename project"
+      spellCheck={false}
+    />
+  );
+
+  const backButton = (
+    <Button variant="ghost" size="icon" onClick={handleBackToDashboard} title="All projects">
+      <ArrowLeft className="w-4 h-4" />
+    </Button>
+  );
+
+  const connection = (
+    <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} />
+  );
+
+  const layoutSwitch = (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setLayoutMode(layoutMode === 'dock' ? 'columns' : 'dock')}
+      title={layoutMode === 'dock' ? 'Switch to columns layout' : 'Switch to dock layout'}
+    >
+      {layoutMode === 'dock' ? <Columns3 className="w-4 h-4" /> : <PanelBottom className="w-4 h-4" />}
+    </Button>
+  );
+
+  const filesPanel = (
+    <FileExplorer project={project} onProjectChange={setProject} onFileSelect={handleFileSelect} />
+  );
+
+  const codePanel = (
+    <>
+      <Tabs
+        project={project}
+        onFileSelect={handleFileSelect}
+        onCloseTab={handleCloseTab}
+        isRunning={isRunning}
+        // In the dock layout Run/Stop lives in the dock
+        onStart={layoutMode === 'dock' ? undefined : handleStart}
+        onStop={layoutMode === 'dock' ? undefined : handleStop}
+      />
+      {activeFile ? (
+        <div className="flex-1 overflow-hidden min-w-0">
+          <Editor file={activeFile} onChange={handleFileChange} />
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground/60">
+          Open a file from the sidebar
+        </div>
+      )}
+    </>
+  );
+
+  const consolePanel = (
+    <Console messages={consoleMessages} onClear={clearConsole} sketchName={project.name} />
+  );
+
+  const consoleHandle = (
+    <ResizeHandle
+      axis="y"
+      value={consoleHeight}
+      onChange={setConsoleHeight}
+      min={50}
+      max={600}
+      invert
+      onReset={() => setConsoleHeight(LAYOUT_DEFAULTS.consoleHeight)}
+    />
+  );
+
+  const preview = (
+    <Preview
+      project={project}
+      onConsoleMessage={handleConsoleMessage}
+      isRunning={isRunning}
+      onDialsChange={setHasDials}
+      onControlsChange={handleControlsChange}
+      onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
+      toolbarTarget={layoutMode === 'dock' ? dockToolsEl : undefined}
+    />
+  );
+
+  const controlsPanel = (
+    <div className="flex-1 overflow-y-auto min-h-0">
+      <DialRoot mode="inline" theme="dark" productionEnabled />
+      {!hasDials && (
+        <div className="px-3 pb-3">
+          <h3 className="h-11 flex items-center text-[13px] font-semibold text-foreground">Controls</h3>
+          <p className="text-[12px] leading-relaxed text-muted-foreground">
+            Sliders for your sketch show up here. Add a <code className="font-mono text-foreground/80">dials</code> line
+            at the top of your sketch, or ask Claude for a sketch with controls.
+          </p>
+          <pre className="mt-3 rounded-lg bg-white/[0.05] px-3 py-2.5 font-mono text-[11px] leading-[1.7] text-muted-foreground overflow-x-auto">{`const dial = dials({
+  size: [24, 2, 80],
+  color: '#ffffff',
+});
+
+// then use dial.size`}</pre>
+        </div>
+      )}
+    </div>
+  );
+
+  const listener = enableWsListener && (
+    <WebSocketListener
+      onCodeUpdate={handleCodeUpdate}
+      onExecutionControl={handleExecutionControl}
+      onConsoleControl={handleConsoleControl}
+      onFileControl={handleFileControl}
+      onLayoutControl={handleLayoutControl}
+      onNavigationControl={handleNavigationControl}
+      onStatusChange={setMcpStatus}
+      getSketchState={getSketchState}
+    />
+  );
+
+  // ---- Dock layout: the canvas fills the window, panels float, one dock ----
+
+  if (layoutMode === 'dock') {
+    const floating = 'panel !bg-[#212121]/90 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col';
+    const dockToggle = (on: boolean, toggle: () => void, label: string, icon: React.ReactNode) => (
+      <button
+        onClick={toggle}
+        title={`${on ? 'Hide' : 'Show'} ${label}`}
+        aria-pressed={on}
+        className={`h-8 w-8 flex items-center justify-center rounded-lg transition-colors ${on ? 'bg-white/[0.11] text-foreground' : 'text-muted-foreground hover:bg-white/[0.1] hover:text-foreground'}`}
+      >
+        {icon}
+      </button>
+    );
+    const divider = <span className="mx-1 h-5 w-px bg-white/10" />;
+
+    return (
+      <div className="h-screen relative bg-black overflow-hidden">
+        <div className="absolute inset-0">{preview}</div>
+
+        {/* Top corners */}
+        <div className="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 rounded-xl bg-[#212121]/85 backdrop-blur-xl border border-white/10">
+          {backButton}
+          {nameInput}
+        </div>
+        <div className="absolute top-2 right-2 z-20">{connection}</div>
+
+        {/* Left: files and code + console */}
+        <div className="absolute left-2 top-14 bottom-20 z-10 flex gap-2 pointer-events-none">
+          {sidebarOpen && (
+            <aside className={`${floating} pointer-events-auto`} style={{ width: sidebarWidth }}>{filesPanel}</aside>
+          )}
+          {(showCode || showConsole) && (
+            <div className="flex flex-col min-h-0 pointer-events-auto" style={{ width: codeWidth }}>
+              {showCode && <div className={`${floating} flex-1 min-h-0`}>{codePanel}</div>}
+              {showCode && showConsole && consoleHandle}
+              {showConsole && (
+                <div className={`${floating} shrink-0 ${showCode ? '' : 'mt-auto'}`} style={{ height: consoleHeight }}>{consolePanel}</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right: controls */}
+        {showControls && (
+          <aside className={`${floating} absolute right-2 top-14 bottom-20 z-10`} style={{ width: controlsWidth }}>
+            {controlsPanel}
+          </aside>
+        )}
+
+        {/* The dock */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-1.5 rounded-2xl bg-[#212121]/90 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+          {dockToggle(sidebarOpen, () => setSidebarOpen(!sidebarOpen), 'files', <Folder className="w-4 h-4" />)}
+          {dockToggle(showCode, () => setShowCode(!showCode), 'code', <Code2 className="w-4 h-4" />)}
+          {dockToggle(showConsole, () => setShowConsole(!showConsole), 'console', <SquareTerminal className="w-4 h-4" />)}
+          {dockToggle(showControls, () => setShowControls(!showControls), 'controls', <SlidersHorizontal className="w-4 h-4" />)}
+          {divider}
+          <button
+            onClick={isRunning ? handleStop : handleStart}
+            title={isRunning ? 'Stop sketch' : 'Run sketch'}
+            className={`flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${isRunning ? 'bg-white/[0.05] text-foreground hover:bg-white/[0.1]' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
+          >
+            {isRunning ? <><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />Stop</> : <><Play className="h-3.5 w-3.5" />Run</>}
+          </button>
+          {divider}
+          <span ref={setDockToolsEl} className="flex items-center" />
+          {divider}
+          <ProjectManager currentProject={project} onProjectChange={setProject} />
+          {divider}
+          {layoutSwitch}
+        </div>
+
+        {listener}
+      </div>
+    );
+  }
+
+  // ---- Columns layout ----
+
   return (
     <div className="h-screen bg-background flex flex-col p-2 pt-0 overflow-hidden">
       <header className="h-12 flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-0.5 min-w-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBackToDashboard}
-            title="All projects"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+          {backButton}
           <Button
             variant="ghost"
             size="icon"
@@ -395,26 +599,13 @@ export default function ProjectPage() {
           >
             <PanelLeft className="w-4 h-4" />
           </Button>
-          <input
-            value={project.name}
-            onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-            className="ml-1.5 h-8 px-2 -mx-0 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] min-w-0 w-64 truncate transition-colors"
-            title="Rename project"
-            spellCheck={false}
-          />
+          <div className="ml-1.5">{nameInput}</div>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <ProjectManager
-            currentProject={project}
-            onProjectChange={setProject}
-          />
-
-          <ConnectionStatus
-            enabled={enableWsListener}
-            onEnabledChange={setMcpEnabled}
-            status={mcpStatus}
-          />
+          <ProjectManager currentProject={project} onProjectChange={setProject} />
+          {layoutSwitch}
+          {connection}
         </div>
       </header>
 
@@ -423,11 +614,7 @@ export default function ProjectPage() {
         {sidebarOpen && (
           <>
             <aside className="panel shrink-0 hidden md:flex flex-col" style={{ width: sidebarWidth }}>
-              <FileExplorer
-                project={project}
-                onProjectChange={setProject}
-                onFileSelect={handleFileSelect}
-              />
+              {filesPanel}
             </aside>
             <ResizeHandle
               axis="x"
@@ -448,48 +635,9 @@ export default function ProjectPage() {
             className="w-full h-1/2 md:h-full md:w-[var(--code-w)] md:shrink-0 flex flex-col min-w-0 min-h-0"
             style={{ '--code-w': `${codeWidth}px` } as React.CSSProperties}
           >
-            <div className="panel flex-1 flex flex-col min-h-0">
-              <Tabs
-                project={project}
-                onFileSelect={handleFileSelect}
-                onCloseTab={handleCloseTab}
-                isRunning={isRunning}
-                onStart={handleStart}
-                onStop={handleStop}
-              />
-              {activeFile ? (
-                <div className="flex-1 overflow-hidden min-w-0">
-                  <Editor
-                    file={activeFile}
-                    onChange={handleFileChange}
-                  />
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground/60">
-                  Open a file from the sidebar
-                </div>
-              )}
-            </div>
-
-            {/* Resize handle: the gap between code and console */}
-            <ResizeHandle
-              axis="y"
-              value={consoleHeight}
-              onChange={setConsoleHeight}
-              min={50}
-              max={600}
-              invert
-              onReset={() => setConsoleHeight(LAYOUT_DEFAULTS.consoleHeight)}
-            />
-
-            {/* Console */}
-            <div style={{ height: `${consoleHeight}px` }} className="panel shrink-0 min-w-0">
-              <Console
-                messages={consoleMessages}
-                onClear={clearConsole}
-                sketchName={project.name}
-              />
-            </div>
+            <div className="panel flex-1 flex flex-col min-h-0">{codePanel}</div>
+            {consoleHandle}
+            <div style={{ height: `${consoleHeight}px` }} className="panel shrink-0 min-w-0">{consolePanel}</div>
           </div>
 
           <ResizeHandle
@@ -503,16 +651,7 @@ export default function ProjectPage() {
           />
 
           {/* Preview Section */}
-          <div className="panel w-full h-1/2 md:h-full md:flex-1 min-w-0 bg-black">
-            <Preview
-              project={project}
-              onConsoleMessage={handleConsoleMessage}
-              isRunning={isRunning}
-              onDialsChange={setHasDials}
-              onControlsChange={handleControlsChange}
-              onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
-            />
-          </div>
+          <div className="panel w-full h-1/2 md:h-full md:flex-1 min-w-0 bg-black">{preview}</div>
 
           <ResizeHandle
             axis="x"
@@ -527,40 +666,12 @@ export default function ProjectPage() {
 
           {/* Controls: the sketch's dials, docked */}
           <aside className="panel shrink-0 hidden lg:flex flex-col" style={{ width: controlsWidth }}>
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <DialRoot mode="inline" theme="dark" productionEnabled />
-              {!hasDials && (
-                <div className="px-3 pb-3">
-                  <h3 className="h-11 flex items-center text-[13px] font-semibold text-foreground">Controls</h3>
-                  <p className="text-[12px] leading-relaxed text-muted-foreground">
-                    Sliders for your sketch show up here. Add a <code className="font-mono text-foreground/80">dials</code> line
-                    at the top of your sketch, or ask Claude for a sketch with controls.
-                  </p>
-                  <pre className="mt-3 rounded-lg bg-white/[0.05] px-3 py-2.5 font-mono text-[11px] leading-[1.7] text-muted-foreground overflow-x-auto">{`const dial = dials({
-  size: [24, 2, 80],
-  color: '#ffffff',
-});
-
-// then use dial.size`}</pre>
-                </div>
-              )}
-            </div>
+            {controlsPanel}
           </aside>
         </div>
       </div>
 
-      {enableWsListener && (
-        <WebSocketListener
-          onCodeUpdate={handleCodeUpdate}
-          onExecutionControl={handleExecutionControl}
-          onConsoleControl={handleConsoleControl}
-          onFileControl={handleFileControl}
-          onLayoutControl={handleLayoutControl}
-          onNavigationControl={handleNavigationControl}
-          onStatusChange={setMcpStatus}
-          getSketchState={getSketchState}
-        />
-      )}
+      {listener}
     </div>
   );
 } 

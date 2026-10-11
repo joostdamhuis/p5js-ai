@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
 import { Download, ChevronDown, Square } from 'lucide-react';
@@ -205,9 +206,11 @@ interface PreviewProps {
   // Control positions are stored with the project
   onControlsChange?: (values: Record<string, unknown>) => void;
   onCanvasSizeChange?: (id: string) => void;
+  // Dock layout: render the canvas toolbar into this element instead of on the canvas
+  toolbarTarget?: HTMLElement | null;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange, onCanvasSizeChange }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget }: PreviewProps) => {
   const size = getCanvasSize(project.canvasSize);
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
@@ -592,27 +595,19 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     );
   }
 
-  return (
-    <div
-      className={cn(
-        "group relative w-full h-full overflow-hidden bg-black",
-        className
-      )}
-    >
-      {/* Canvas toolbar: visible on hover, and always while recording */}
-      <div className={cn(
-        "absolute top-2 right-2 z-10 flex items-center gap-1 transition-opacity",
-        recording ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 has-[[data-state=open]]:opacity-100"
-      )}>
+  // Toolbar buttons: dark chips on the canvas, plain buttons inside the dock
+  const itemBg = toolbarTarget ? 'bg-transparent hover:bg-white/[0.1]' : 'bg-[#212121]/80 backdrop-blur hover:bg-[#2a2a2a]';
+  const toolbarItems = (
+    <>
         <div className="relative">
           <select
             value={size.id}
             onChange={(e) => onCanvasSizeChange?.(e.target.value)}
             disabled={!!recording}
             title="Canvas size"
-            className="appearance-none h-8 pl-2.5 pr-7 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground hover:bg-[#2a2a2a] outline-none cursor-pointer"
+            className={`appearance-none h-8 pl-2.5 pr-7 rounded-lg ${itemBg} text-[13px] font-medium text-foreground outline-none cursor-pointer`}
           >
-            {CANVAS_SIZES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+            {CANVAS_SIZES.map(s => <option key={s.id} value={s.id}>{toolbarTarget ? s.short : s.label}</option>)}
           </select>
           <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         </div>
@@ -631,7 +626,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             <DropdownMenuTrigger asChild>
               <button
                 title="Record a video of the canvas"
-                className="flex items-center gap-1.5 h-8 pl-2.5 pr-2 rounded-lg backdrop-blur text-[13px] font-medium bg-[#212121]/80 text-foreground hover:bg-[#2a2a2a] data-[state=open]:bg-[#2a2a2a] transition-colors"
+                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-2 rounded-lg text-[13px] font-medium text-foreground ${itemBg} data-[state=open]:bg-white/[0.11] transition-colors`}
               >
                 <span className="h-2 w-2 rounded-full bg-red-500" />
                 Record
@@ -666,7 +661,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             setTimeout(() => setRecordNote(''), 6000);
           }}
           title="Copy this sketch as a Framer code component, with its controls as Framer properties"
-          className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground hover:bg-[#2a2a2a]"
+          className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg ${itemBg} text-[13px] font-medium text-foreground`}
         >
           <svg viewBox="0 0 14 21" className="h-3 w-3 fill-current" aria-hidden><path d="M0 0h14v7H7zM0 7h7l7 7H7v7l-7-7z" /></svg>
           Framer
@@ -674,12 +669,32 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         <button
           onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}
           title="Download this frame as a PNG"
-          className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground hover:bg-[#2a2a2a]"
+          className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg ${itemBg} text-[13px] font-medium text-foreground`}
         >
           <Download className="h-3.5 w-3.5" />
           PNG
         </button>
-      </div>
+    </>
+  );
+
+  return (
+    <div
+      className={cn(
+        "group relative w-full h-full overflow-hidden bg-black",
+        className
+      )}
+    >
+      {/* Canvas toolbar: on the canvas (on hover, always while recording), or in the dock */}
+      {toolbarTarget
+        ? createPortal(<div className="flex items-center gap-0.5">{toolbarItems}</div>, toolbarTarget)
+        : (
+          <div className={cn(
+            "absolute top-2 right-2 z-10 flex items-center gap-1 transition-opacity",
+            recording ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 has-[[data-state=open]]:opacity-100"
+          )}>
+            {toolbarItems}
+          </div>
+        )}
       {recordNote && (
         <div className="absolute top-12 right-2 z-10 rounded-lg bg-[#212121]/90 px-2.5 py-1.5 text-[12px] text-muted-foreground">
           {recordNote}
