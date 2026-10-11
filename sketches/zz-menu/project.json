@@ -1,0 +1,18 @@
+{
+  "id": "zz-menu",
+  "name": "zz menu",
+  "lastModified": 1,
+  "activeFile": "s",
+  "openTabs": [
+    "s"
+  ],
+  "fonts": [],
+  "files": [
+    {
+      "id": "s",
+      "name": "sketch.js",
+      "type": "js",
+      "lastModified": 1
+    }
+  ]
+}
