@@ -310,3 +310,10 @@ html, body {
   --dial-surface-subtle: rgb(var(--ink) / 5%);
   --dial-border: rgb(var(--ink) / 10%);
 }
+
+/* No sticky headers in the Controls panel: they're transparent here, so content
+   scrolled underneath them and overlapped (the Sketch title, folder titles) */
+.dialkit-root[data-mode="inline"] .dialkit-panel-header,
+.dialkit-root[data-mode="inline"] .dialkit-folder-section > .dialkit-folder-header {
+  position: static !important;
+}
