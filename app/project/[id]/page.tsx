@@ -623,12 +623,12 @@ export default function ProjectPage() {
         </div>
 
         {/* Side panels stay mounted and slide in/out from their edge */}
-        {/* Left: code + console, as tall as their content and centred vertically */}
+        {/* Left: code + console, top-aligned with Controls, as tall as their content */}
         <div
-          className="absolute left-3 top-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
+          className="absolute left-3 top-16 z-10 flex flex-col max-h-[calc(100vh-9rem)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
           style={{
             width: codeWidth,
-            transform: `translateY(-50%) translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
+            transform: `translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
             pointerEvents: showCode || showConsole ? 'auto' : 'none',
           }}
           aria-hidden={!(showCode || showConsole)}
@@ -649,10 +649,10 @@ export default function ProjectPage() {
 
         {/* Right: controls */}
         <aside
-          className={`${floating} absolute right-3 top-1/2 z-10 max-h-[calc(100vh-10rem)]`}
+          className={`${floating} absolute right-3 top-16 z-10 max-h-[calc(100vh-9rem)]`}
           style={{
             width: controlsWidth,
-            transform: `translateY(-50%) translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
+            transform: `translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
             pointerEvents: showControls ? 'auto' : 'none',
           }}
           aria-hidden={!showControls}
