@@ -334,17 +334,23 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   );
 };
 
-// Thinking: a 3×3 grid of small squares with a light sweeping diagonally across
-const Typing = () => (
-  <span className="grid grid-cols-3 gap-[2px] shrink-0" aria-hidden>
-    {Array.from({ length: 9 }, (_, i) => (
-      <span
-        key={i}
-        className="thinking-cell h-[3px] w-[3px] rounded-[0.5px] bg-current"
-        style={{ animationDelay: `${((i % 3) + Math.floor(i / 3)) * 0.12}s` }}
-      />
-    ))}
-  </span>
-);
+// Thinking: a 3×3 grid of small squares that flicker on and off at random
+const Typing = () => {
+  // Each square gets its own random rhythm, picked once when it appears
+  const [cells] = useState(() =>
+    Array.from({ length: 9 }, () => ({ delay: Math.random() * 1.2, duration: 0.6 + Math.random() * 0.9 }))
+  );
+  return (
+    <span className="grid grid-cols-3 gap-[2px] shrink-0" aria-hidden>
+      {cells.map((c, i) => (
+        <span
+          key={i}
+          className="thinking-cell h-[3px] w-[3px] rounded-[0.5px] bg-current"
+          style={{ animationDelay: `-${c.delay}s`, animationDuration: `${c.duration}s` }}
+        />
+      ))}
+    </span>
+  );
+};
 
 export default PromptBox;
