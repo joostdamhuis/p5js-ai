@@ -334,14 +334,14 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   );
 };
 
-// Three bouncing dots
+// Thinking: a 3×3 grid of small squares with a light sweeping diagonally across
 const Typing = () => (
-  <span className="inline-flex items-center gap-[3px]">
-    {[0, 1, 2].map(i => (
+  <span className="grid grid-cols-3 gap-[2px] shrink-0" aria-hidden>
+    {Array.from({ length: 9 }, (_, i) => (
       <span
         key={i}
-        className="h-1 w-1 rounded-full bg-current animate-bounce"
-        style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }}
+        className="thinking-cell h-[3px] w-[3px] rounded-[0.5px] bg-current"
+        style={{ animationDelay: `${((i % 3) + Math.floor(i / 3)) * 0.12}s` }}
       />
     ))}
   </span>
