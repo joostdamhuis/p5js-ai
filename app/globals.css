@@ -198,7 +198,8 @@ html.dark[data-surface="light"] .dial-surface {
 }
 /* Light/dark switches fade along with the tint */
 .panel, .dial-surface {
-  transition: background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease;
+  transition: background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease,
+    transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 :root {
   transition: --ambient 1s ease;

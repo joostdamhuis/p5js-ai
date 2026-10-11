@@ -584,32 +584,45 @@ export default function ProjectPage() {
           <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill />
         </div>
 
+        {/* Side panels stay mounted and slide in/out from their edge */}
         {/* Left: code + console, as tall as their content and centred vertically */}
-        {(showCode || showConsole) && (
-          <div
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)]"
-            style={{ width: codeWidth }}
-          >
-            {showCode && (
-              // 44px tab bar + the code; shrinks (and scrolls) when there isn't room
-              <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
-            )}
-            {showCode && showConsole && consoleHandle}
-            {showConsole && (
-              <div className={`${floating} shrink-0`} style={{ height: consoleHeight }}>{consolePanel}</div>
-            )}
-          </div>
-        )}
+        <div
+          className="absolute left-3 top-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)] transition-[transform,opacity] duration-300 ease-out [--surface-alpha:50%]"
+          style={{
+            width: codeWidth,
+            transform: `translateY(-50%) translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
+            opacity: showCode || showConsole ? 1 : 0,
+            pointerEvents: showCode || showConsole ? 'auto' : 'none',
+          }}
+          aria-hidden={!(showCode || showConsole)}
+        >
+          {showCode && (
+            // 44px tab bar + the code; shrinks (and scrolls) when there isn't room
+            <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
+          )}
+          {showCode && showConsole && consoleHandle}
+          {showConsole && (
+            <div className={`${floating} shrink-0`} style={{ height: consoleHeight }}>{consolePanel}</div>
+          )}
+          {/* Keep the editor mounted while sliding out, so the slide shows its content */}
+          {!showCode && !showConsole && (
+            <div className={`${floating} shrink min-h-[140px]`} style={{ height: codeContentHeight + 44 }}>{codePanel}</div>
+          )}
+        </div>
 
         {/* Right: controls */}
-        {showControls && (
-          <aside
-            className={`${floating} absolute right-3 top-1/2 -translate-y-1/2 z-10 max-h-[calc(100vh-10rem)]`}
-            style={{ width: controlsWidth }}
-          >
-            {controlsPanel}
-          </aside>
-        )}
+        <aside
+          className={`${floating} absolute right-3 top-1/2 z-10 max-h-[calc(100vh-10rem)] transition-[transform,opacity] duration-300 ease-out [--surface-alpha:50%]`}
+          style={{
+            width: controlsWidth,
+            transform: `translateY(-50%) translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
+            opacity: showControls ? 1 : 0,
+            pointerEvents: showControls ? 'auto' : 'none',
+          }}
+          aria-hidden={!showControls}
+        >
+          {controlsPanel}
+        </aside>
 
         {/* The dock: panels left, Run/Stop in the middle, Export / Save / More right */}
         <input
