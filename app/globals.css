@@ -201,7 +201,8 @@ html.dark[data-surface="light"] .dial-surface {
 /* Light/dark switches fade along with the tint */
 .panel, .dial-surface {
   transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease,
-    transform 0.3s ease-out;
+    /* tiny bounce: a small overshoot that settles back */
+    transform 0.35s cubic-bezier(0.34, 1.25, 0.64, 1);
 }
 :root {
   transition: --ambient 0.1s ease;
@@ -217,8 +218,7 @@ html.dark[data-surface="light"] .dial-surface {
   --surface-alpha: 70%;
 }
 
-/* Side panels are solid: black over dark canvases, white over light ones.
-   Only the floating chrome (dock, pills, menus) is see-through glass. */
+/* Everything is solid: black over dark canvases, white over light ones */
 @utility panel {
   background-color: var(--card);
   border: 1px solid rgb(var(--ink) / 10%);
@@ -228,10 +228,9 @@ html.dark[data-surface="light"] .dial-surface {
 
 /* DialKit's floating chrome (dock, pills, popups): same surface as panels */
 @utility dial-surface {
-  background-color: color-mix(in srgb, var(--chrome) var(--surface-alpha), transparent);
+  background-color: var(--chrome);
   border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
-  backdrop-filter: var(--glass-blur);
 }
 
 /* DialKit docked in the Controls column: same header height, title style
@@ -302,6 +301,5 @@ html, body {
 .dialkit-image-popover,
 .dialkit-preset-dropdown,
 .dialkit-shortcuts-dropdown {
-  background: color-mix(in srgb, var(--chrome) var(--surface-alpha), transparent) !important;
-  backdrop-filter: var(--glass-blur);
+  background: var(--chrome) !important;
 }

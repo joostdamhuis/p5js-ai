@@ -625,7 +625,7 @@ export default function ProjectPage() {
         {/* Side panels stay mounted and slide in/out from their edge */}
         {/* Left: code + console, as tall as their content and centred vertically */}
         <div
-          className="absolute left-3 top-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)] transition-transform duration-300 ease-out"
+          className="absolute left-3 top-1/2 z-10 flex flex-col max-h-[calc(100vh-10rem)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
           style={{
             width: codeWidth,
             transform: `translateY(-50%) translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,

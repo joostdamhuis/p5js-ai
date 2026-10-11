@@ -708,7 +708,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   );
 
   // Toolbar buttons: dark chips on the canvas, plain buttons inside the dock
-  const itemBg = toolbarTarget ? 'bg-transparent hover:bg-[rgb(var(--ink)/0.1)]' : 'bg-[color-mix(in_srgb,var(--chrome)_80%,transparent)] backdrop-blur hover:bg-[var(--chrome-raised)]';
+  const itemBg = toolbarTarget ? 'bg-transparent hover:bg-[rgb(var(--ink)/0.1)]' : 'bg-[var(--chrome)] hover:bg-[var(--chrome-raised)]';
   const toolbarItems = (
     <>
         <div className="relative">
@@ -727,7 +727,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           <button
             onClick={() => postToSketch({ type: 'recordStop' })}
             title="Stop and download the video"
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg backdrop-blur text-[13px] font-medium tabular-nums bg-red-500/90 text-white hover:bg-red-500 transition-colors"
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-600 transition-colors"
           >
             <Square className="h-3 w-3 fill-current" />
             {formatElapsed(now - recording.since)}
@@ -800,7 +800,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         )}
       {recordNote && (
         <div className={cn(
-          "absolute z-30 rounded-lg bg-[color-mix(in_srgb,var(--chrome)_90%,transparent)] px-2.5 py-1.5 text-[12px] text-muted-foreground",
+          "absolute z-30 rounded-lg bg-[var(--chrome)] px-2.5 py-1.5 text-[12px] text-muted-foreground",
           toolbarTarget ? "bottom-20 left-1/2 -translate-x-1/2" : "top-12 right-2"
         )}>
           {recordNote}
