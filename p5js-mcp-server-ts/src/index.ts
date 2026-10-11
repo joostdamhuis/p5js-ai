@@ -83,6 +83,66 @@ function sendToEditor(event: string, data?: any): Promise<boolean> {
 
 // MCP Tools
 
+// 0. Read the sketch: code, console output and control values
+type SketchState = {
+  requestId: string;
+  visible: boolean;
+  projectName: string;
+  activeFile?: string;
+  files: { name: string; content: string }[];
+  console: { type: string; content: string }[];
+  controls?: Record<string, unknown>;
+  canvasSize?: string;
+};
+
+function requestSketchState(): Promise<SketchState | null> {
+  return new Promise((resolve) => {
+    if (!editorSocket || !isConnectedToEditor) return resolve(null);
+    const requestId = Math.random().toString(36).slice(2);
+    const answers: SketchState[] = [];
+    const onState = (state: SketchState) => {
+      if (state?.requestId === requestId) answers.push(state);
+    };
+    editorSocket.on('sketchState', onState);
+    editorSocket.emit('requestSketchState', requestId);
+    // Several editor tabs may answer; prefer the one on screen
+    setTimeout(() => {
+      editorSocket?.off('sketchState', onState);
+      resolve(answers.find(a => a.visible) ?? answers[0] ?? null);
+    }, 700);
+  });
+}
+
+server.tool(
+  "get_sketch",
+  "Read what is open in the p5.js editor: every file's code, the console output (errors, warnings, logs) and the current control values. Use this before fixing an error or changing the user's current sketch.",
+  {},
+  async () => {
+    const state = await requestSketchState();
+    if (!state) {
+      return {
+        content: [{ type: "text", text: "❌ No editor answered. Make sure the editor is open in the browser and connected (header pill says Claude connected)." }],
+        isError: true
+      };
+    }
+    const files = state.files
+      .map(f => `--- ${f.name}${f.name === state.activeFile ? ' (open)' : ''} ---\n${f.content}`)
+      .join('\n\n');
+    const consoleText = state.console.length
+      ? state.console.map(m => `[${m.type}] ${m.content}`).join('\n')
+      : '(empty)';
+    return {
+      content: [{
+        type: "text",
+        text: `Sketch: ${state.projectName}${state.canvasSize ? ` (canvas ${state.canvasSize})` : ''}\n\n` +
+          `Console:\n${consoleText}\n\n` +
+          `Control values: ${JSON.stringify(state.controls ?? {})}\n\n` +
+          `Files:\n${files}`
+      }]
+    };
+  }
+);
+
 // 1. Code Update Tool
 server.tool(
   "update_code",

@@ -184,6 +184,17 @@ function setupServerHandlers() {
       // Could forward this to MCP server if needed
     });
 
+    // Claude asks what's in the editor (code, console, controls); editors answer
+    socket.on('requestSketchState', (requestId) => {
+      console.log('🔎 [MCP→WebApp] Claude asked for the sketch state, forwarding...');
+      socket.broadcast.emit('requestSketchState', requestId);
+    });
+
+    socket.on('sketchState', (state) => {
+      console.log(`📤 [WebApp→MCP] Sketch state: ${state?.projectName} (${state?.console?.length || 0} console lines)`);
+      socket.broadcast.emit('sketchState', state);
+    });
+
     socket.on('getProjectState', () => {
       console.log('📝 [WebApp→MCP] Client requesting project state...');
     });

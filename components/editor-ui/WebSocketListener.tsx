@@ -10,6 +10,8 @@ interface WebSocketListenerProps {
   onLayoutControl?: (action: 'sidebar' | 'projectName', data?: any) => void;
   onNavigationControl?: (action: 'dashboard') => void;
   onStatusChange?: (status: McpStatus) => void;
+  // Answers Claude's get_sketch: code, console, controls
+  getSketchState?: () => Record<string, unknown>;
   serverUrl?: string;
 }
 
@@ -24,6 +26,7 @@ const WebSocketListener = ({
   onLayoutControl,
   onNavigationControl,
   onStatusChange,
+  getSketchState,
   serverUrl = 'http://localhost:3001'
 }: WebSocketListenerProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -31,6 +34,8 @@ const WebSocketListener = ({
   const [error, setError] = useState<string | null>(null);
   const [, setConnectionAttempts] = useState(0);
   const [claudeCount, setClaudeCount] = useState(0);
+  const getSketchStateRef = useRef(getSketchState);
+  getSketchStateRef.current = getSketchState;
 
   // Use refs to store the latest callback references
   const callbacksRef = useRef({
@@ -140,6 +145,14 @@ const WebSocketListener = ({
     newSocket.on('reconnect_failed', () => {
       console.error(`🔌 [WebSocket] Failed to reconnect after maximum attempts`);
       setError('Failed to reconnect to MCP server');
+    });
+
+    // Claude asked what's in the editor
+    newSocket.on('requestSketchState', (requestId: string) => {
+      const state = getSketchStateRef.current?.();
+      if (state) {
+        newSocket.emit('sketchState', { requestId, visible: document.visibilityState === 'visible', ...state });
+      }
     });
 
     // Who else is connected to the hub (the MCP server = Claude)

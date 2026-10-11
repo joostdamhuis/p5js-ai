@@ -276,6 +276,13 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     return () => clearTimeout(timer);
   }, [filesKey, isRunning, size.id, postToSketch]);
 
+  // Save asks for a fresh thumbnail too
+  useEffect(() => {
+    const capture = () => postToSketch({ type: 'snapshot', purpose: 'thumbnail' });
+    window.addEventListener('p5:capture-thumbnail', capture);
+    return () => window.removeEventListener('p5:capture-thumbnail', capture);
+  }, [postToSketch]);
+
   // Show the dials panel for whatever controls the running sketch declares
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -458,7 +465,8 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
 
           // Capture global errors
           window.addEventListener('error', function(event) {
-            sendConsoleMessage('error', [event.message + ' at ' + event.filename + ':' + event.lineno]);
+            // Just the message: the file name is the whole sketch as a data: URL
+            sendConsoleMessage('error', [event.message]);
           });
         })();
       </script>

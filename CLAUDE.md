@@ -57,6 +57,12 @@ const dial = dials({
 - Dashboard thumbnails: 2.5s after a sketch (re)starts the iframe sends a 480px JPEG, saved as `sketches/<slug>/thumbnail.jpg` via `/api/sketches/[id]/thumbnail` (gitignored); cards fall back to code
 - Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 
+## Fixing errors (get_sketch)
+- MCP tool `get_sketch` returns every file, the last 50 console lines, control values and canvas size. Flow: MCP emits `requestSketchState` → hub → editors answer `sketchState` (visible tab preferred)
+- Console "Fix with Claude" (shown when there's an error) copies `Fix the error in my p5.js sketch "<name>": <error>` for Joost to paste. When asked to fix: call get_sketch first, then update_code with the whole file
+- Sketch error messages show only the message (the data: URL file name is dropped)
+- Save also refreshes the dashboard thumbnail (`p5:capture-thumbnail` window event)
+
 ## Smart toggles (automatic controls)
 - Any unindented `const NAME = <number | '#hex' | true/false>` in a sketch's JS becomes a control in a "Variables" panel, no dials() needed (`lib/auto-dials.ts`, shown in the same panel by `SketchControls.tsx`). ALL_CAPS names get friendly labels ("MAX_COUNT" → "Max count")
 - Before running, the code is rewritten in memory only: those consts become `let` plus a setter (`window.__autoDials`); files on disk are untouched. `let`/`var` are ignored (usually state)

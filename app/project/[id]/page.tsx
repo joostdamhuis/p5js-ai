@@ -116,6 +116,16 @@ export default function ProjectPage() {
     });
   }, []);
 
+  // What Claude sees when it calls get_sketch
+  const getSketchState = () => project ? {
+    projectName: project.name,
+    activeFile: project.files.find(f => f.id === project.activeFile)?.name,
+    files: project.files.map(f => ({ name: f.name, content: f.content })),
+    console: consoleMessages.slice(-50).map(m => ({ type: m.type, content: m.content })),
+    controls: project.controls,
+    canvasSize: project.canvasSize,
+  } : {};
+
   // Handle file selection
   const handleFileSelect = (fileId: string) => {
     if (!project) return;
@@ -475,6 +485,7 @@ export default function ProjectPage() {
               <Console
                 messages={consoleMessages}
                 onClear={clearConsole}
+                sketchName={project.name}
               />
             </div>
           </div>
@@ -545,6 +556,7 @@ export default function ProjectPage() {
           onLayoutControl={handleLayoutControl}
           onNavigationControl={handleNavigationControl}
           onStatusChange={setMcpStatus}
+          getSketchState={getSketchState}
         />
       )}
     </div>

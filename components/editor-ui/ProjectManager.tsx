@@ -27,6 +27,8 @@ const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps
     setSaveNote('');
     try {
       await saveProject(updatedProject);
+      // Fresh dashboard thumbnail of what's on the canvas right now
+      window.dispatchEvent(new Event('p5:capture-thumbnail'));
       const result = await publishSketches(updatedProject.name);
       if (result.status === 'saved-locally') {
         setSaveState('local');
