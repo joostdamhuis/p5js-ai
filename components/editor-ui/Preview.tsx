@@ -209,6 +209,10 @@ const dialsBridge = `
   </script>
 `;
 
+// Space the dock takes at the bottom (16px margin + 44px dock + 12px gap):
+// dock menus' sub-menus stay above it
+const DOCK_CLEARANCE = 72;
+
 const formatElapsed = (ms: number) => {
   const sec = Math.floor(ms / 1000);
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
@@ -672,7 +676,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             <Video className="mr-2 h-4 w-4" />
             Video
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
+          <DropdownMenuSubContent collisionPadding={{ top: 12, right: 12, left: 12, bottom: DOCK_CLEARANCE }}>
             <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart', length: 'loop' })}>One perfect loop</DropdownMenuItem>
             <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart' })}>Until I stop</DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -691,7 +695,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             <Crop className="mr-2 h-4 w-4" />
             Size: {size.short}
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
+          <DropdownMenuSubContent collisionPadding={{ top: 12, right: 12, left: 12, bottom: DOCK_CLEARANCE }}>
             <DropdownMenuRadioGroup value={size.id} onValueChange={(id) => onCanvasSizeChange?.(id)}>
               {CANVAS_SIZES.map(s => (
                 <DropdownMenuRadioItem key={s.id} value={s.id}>{s.label}</DropdownMenuRadioItem>

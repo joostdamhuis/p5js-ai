@@ -41,12 +41,18 @@ DropdownMenuSubTrigger.displayName =
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
->(({ className, ...props }, ref) => (
+>(({ className, sideOffset = 6, alignOffset = -5, collisionPadding = 12, ...props }, ref) => (
   // Portaled: inside the parent menu it was clipped by the parent's rounded,
-  // overflow-hidden box and its blur
+  // overflow-hidden box and its blur.
+  // Opens beside its row (first item level with the hovered row: -5px = the
+  // menu's padding + border); near an edge it shifts back inside, keeping a
+  // margin, so near the bottom it grows upward from the hovered row.
   <DropdownMenuPrimitive.Portal>
   <DropdownMenuPrimitive.SubContent
     ref={ref}
+    sideOffset={sideOffset}
+    alignOffset={alignOffset}
+    collisionPadding={collisionPadding}
     className={cn(
       "z-50 min-w-[8rem] overflow-hidden rounded-[10px] border border-[rgb(var(--ink)/0.1)] bg-[color-mix(in_srgb,var(--chrome)_var(--surface-alpha),transparent)] [backdrop-filter:var(--glass-blur)] p-1 text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
       className
