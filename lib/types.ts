@@ -17,6 +17,8 @@ export interface Project {
   openTabs: string[]; // IDs of files that are open in tabs
   // Positions of the sketch's controls (DialKit values by key), so they survive a reload
   controls?: Record<string, unknown>;
+  // Canvas size preset id from lib/canvas-sizes.ts ('fit' when missing)
+  canvasSize?: string;
 }
 
 export const getFileTypeFromName = (filename: string): FileType => {

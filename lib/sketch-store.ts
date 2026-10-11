@@ -12,6 +12,7 @@ import { Project, ProjectFile } from './types';
 
 const ROOT = path.join(process.cwd(), 'sketches');
 const META = 'project.json';
+const THUMBNAIL = 'thumbnail.jpg';
 
 type ProjectMeta = Omit<Project, 'files'> & {
   files: Omit<ProjectFile, 'content'>[];
@@ -21,7 +22,7 @@ export const isValidId = (id: string) => /^[A-Za-z0-9_-]{1,100}$/.test(id);
 
 // Plain file names only: no folders, no hidden files, never our metadata file
 const isSafeFileName = (name: string) =>
-  /^[A-Za-z0-9._ -]{1,100}$/.test(name) && !name.startsWith('.') && name !== META;
+  /^[A-Za-z0-9._ -]{1,100}$/.test(name) && !name.startsWith('.') && name !== META && name !== THUMBNAIL;
 
 const slugify = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'sketch';
@@ -96,7 +97,7 @@ export async function saveProject(project: Project): Promise<void> {
   }
 
   // Remove files that were deleted or renamed in the editor
-  const keep = new Set([META, ...files.map(f => f.name)]);
+  const keep = new Set([META, THUMBNAIL, ...files.map(f => f.name)]);
   for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
     if (entry.isFile() && !keep.has(entry.name)) await fs.unlink(path.join(dir, entry.name));
   }
@@ -108,6 +109,7 @@ export async function saveProject(project: Project): Promise<void> {
     activeFile: project.activeFile,
     openTabs: project.openTabs,
     controls: project.controls,
+    canvasSize: project.canvasSize,
     files: files.map(({ content: _content, ...rest }) => rest),
   };
   await fs.writeFile(path.join(dir, META), JSON.stringify(meta, null, 2) + '\n', 'utf8');
@@ -116,4 +118,17 @@ export async function saveProject(project: Project): Promise<void> {
 export async function deleteProject(id: string): Promise<void> {
   const dir = await findDir(id);
   if (dir) await fs.rm(dir, { recursive: true, force: true });
+}
+
+// Small picture of the sketch for the dashboard (not committed to git)
+export async function saveThumbnail(id: string, jpeg: Buffer): Promise<boolean> {
+  const dir = await findDir(id);
+  if (!dir) return false;
+  await fs.writeFile(path.join(dir, THUMBNAIL), jpeg);
+  return true;
+}
+
+export async function readThumbnail(id: string): Promise<Buffer | null> {
+  const dir = await findDir(id);
+  return dir ? fs.readFile(path.join(dir, THUMBNAIL)).catch(() => null) : null;
 }

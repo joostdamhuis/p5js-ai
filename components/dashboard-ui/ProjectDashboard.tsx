@@ -24,6 +24,7 @@ interface ProjectDashboardProps {
 
 const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [missingThumbs, setMissingThumbs] = useState<Set<string>>(new Set());
   const router = useRouter();
 
   // Load projects from the sketches folder
@@ -121,10 +122,20 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
                 onClick={() => handleOpenProject(project)}
                 className="panel group cursor-pointer p-1.5 transition-colors hover:bg-[#262626]"
               >
-                <div className="rounded-lg bg-black/40 px-3 py-2.5 aspect-square overflow-hidden">
-                  <pre className="text-[11px] leading-[1.6] text-muted-foreground/70 font-mono overflow-hidden">
+                <div className="relative rounded-lg bg-black aspect-square overflow-hidden">
+                  {/* Code shows until (or unless) the sketch has a thumbnail */}
+                  <pre className="px-3 py-2.5 text-[11px] leading-[1.6] text-muted-foreground/70 font-mono overflow-hidden">
                     {getProjectPreview(project)}
                   </pre>
+                  {!missingThumbs.has(project.id) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`/api/sketches/${encodeURIComponent(project.id)}/thumbnail?v=${project.lastModified}`}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-contain bg-black"
+                      onError={() => setMissingThumbs(prev => new Set(prev).add(project.id))}
+                    />
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between gap-2 pl-2 pr-0.5 pt-2 pb-0.5">

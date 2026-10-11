@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
-import { Download } from 'lucide-react';
+import { Download, ChevronDown, Square } from 'lucide-react';
+import { CANVAS_SIZES, getCanvasSize } from '@/lib/canvas-sizes';
 import { Project } from '@/lib/types';
 import { LogMessage } from './Console';
 import SketchControls from './SketchControls';
@@ -34,6 +35,12 @@ const frameFit = `
   </style>
   <script>
     (function() {
+      // Fixed canvas sizes: render at 1x so exports are exactly the chosen pixels
+      if (window.__fixedSize) {
+        window.addEventListener('load', function() {
+          setTimeout(function() { if (typeof pixelDensity === 'function') pixelDensity(1); }, 0);
+        });
+      }
       let lastW = window.innerWidth;
       let lastH = window.innerHeight;
       window.addEventListener('resize', function() {
@@ -108,15 +115,46 @@ const dialsBridge = `
             if (window.__autoDials[key]) window.__autoDials[key](data.values[key]);
           }
         }
-        // Download: hand the current frame back to the editor as a PNG
+        // Snapshot: full-size PNG for downloads, small JPEG for dashboard thumbnails
         if (data.type === 'snapshot') {
           const canvas = document.querySelector('canvas');
-          window.parent.postMessage({
-            source: 'p5js-dials',
-            type: 'snapshot',
-            dataUrl: canvas ? canvas.toDataURL('image/png') : null
-          }, '*');
+          let dataUrl = null;
+          if (canvas && data.purpose === 'thumbnail') {
+            const scale = Math.min(1, 480 / Math.max(canvas.width, canvas.height));
+            const small = document.createElement('canvas');
+            small.width = Math.round(canvas.width * scale);
+            small.height = Math.round(canvas.height * scale);
+            const ctx = small.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, small.width, small.height);
+            ctx.drawImage(canvas, 0, 0, small.width, small.height);
+            dataUrl = small.toDataURL('image/jpeg', 0.8);
+          } else if (canvas) {
+            dataUrl = canvas.toDataURL('image/png');
+          }
+          window.parent.postMessage({ source: 'p5js-dials', type: 'snapshot', purpose: data.purpose, dataUrl }, '*');
         }
+        // Video: record the canvas with MediaRecorder (MP4 when the browser can, else WebM)
+        if (data.type === 'recordStart' && !window.__recorder) {
+          const canvas = document.querySelector('canvas');
+          const types = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+          const mime = window.MediaRecorder && types.find(function(t) { return MediaRecorder.isTypeSupported(t); });
+          if (!canvas || !mime) {
+            window.parent.postMessage({ source: 'p5js-dials', type: 'recordError', reason: canvas ? 'This browser can’t record video' : 'No canvas to record' }, '*');
+            return;
+          }
+          const chunks = [];
+          const recorder = new MediaRecorder(canvas.captureStream(60), { mimeType: mime, videoBitsPerSecond: 16000000 });
+          recorder.ondataavailable = function(e) { if (e.data && e.data.size) chunks.push(e.data); };
+          recorder.onstop = function() {
+            window.__recorder = null;
+            window.parent.postMessage({ source: 'p5js-dials', type: 'recording', blob: new Blob(chunks, { type: mime }), mime: mime }, '*');
+          };
+          window.__recorder = recorder;
+          recorder.start(250);
+          window.parent.postMessage({ source: 'p5js-dials', type: 'recordStarted' }, '*');
+        }
+        if (data.type === 'recordStop' && window.__recorder) window.__recorder.stop();
         if (data.type === 'action') {
           if (onAction) onAction(data.action);
           else if (typeof window.dialAction === 'function') window.dialAction(data.action);
@@ -130,6 +168,11 @@ const dialsBridge = `
   </script>
 `;
 
+const formatElapsed = (ms: number) => {
+  const sec = Math.floor(ms / 1000);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+};
+
 interface PreviewProps {
   project: Project;
   height?: string;
@@ -140,14 +183,57 @@ interface PreviewProps {
   onDialsChange?: (hasDials: boolean) => void;
   // Control positions are stored with the project
   onControlsChange?: (values: Record<string, unknown>) => void;
+  onCanvasSizeChange?: (id: string) => void;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange, onCanvasSizeChange }: PreviewProps) => {
+  const size = getCanvasSize(project.canvasSize);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [frameScale, setFrameScale] = useState(1);
+  const [recording, setRecording] = useState<{ since: number } | null>(null);
+  const [now, setNow] = useState(Date.now());
+  const [recordNote, setRecordNote] = useState('');
+
+  // Scale a fixed-size canvas down to fit the panel
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el || !size.w || !size.h) return;
+    const fit = () => setFrameScale(Math.min(1, (el.clientWidth - 24) / size.w!, (el.clientHeight - 24) / size.h!));
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [size.w, size.h, isRunning]);
+
+  // Recording timer, and a 2 minute safety stop
+  useEffect(() => {
+    if (!recording) return;
+    const timer = setInterval(() => {
+      setNow(Date.now());
+      if (Date.now() - recording.since > 120_000) postToSketchRef.current({ type: 'recordStop' });
+    }, 250);
+    return () => clearInterval(timer);
+  }, [recording]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const postToSketchRef = useRef<(message: Record<string, unknown>) => void>(() => {});
   const [dialConfig, setDialConfig] = useState<DialConfig | null>(null);
-  // Current name for download file names (read inside the message listener)
+  // Current name and id, read inside the message listener
   const projectName = useRef(project.name);
   projectName.current = project.name;
+  const projectId = useRef(project.id);
+  projectId.current = project.id;
+
+  // Saves a file named after the sketch and the local time
+  const downloadFile = (href: string, ext: string) => {
+    const name = projectName.current.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sketch';
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    const link = document.createElement('a');
+    link.download = `${name}-${stamp}.${ext}`;
+    link.href = href;
+    link.click();
+  };
 
   // Plain settings at the top of the sketch's JS files become controls too
   const jsCode = project.files.filter(f => f.type === 'js').map(f => f.content).join('\n');
@@ -165,6 +251,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   const postToSketch = useCallback((message: Record<string, unknown>) => {
     iframeRef.current?.contentWindow?.postMessage({ source: 'p5js-editor-dials', ...message }, '*');
   }, []);
+  postToSketchRef.current = postToSketch;
 
   // Only the files' names and contents matter for the running sketch, so
   // switching tabs or renaming the project doesn't restart the animation
@@ -180,7 +267,14 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       setDialConfig(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filesKey, isRunning]);
+  }, [filesKey, isRunning, size.id]);
+
+  // Dashboard thumbnail: capture the sketch a couple of seconds after it starts
+  useEffect(() => {
+    if (!isRunning) return;
+    const timer = setTimeout(() => postToSketch({ type: 'snapshot', purpose: 'thumbnail' }), 2500);
+    return () => clearTimeout(timer);
+  }, [filesKey, isRunning, size.id, postToSketch]);
 
   // Show the dials panel for whatever controls the running sketch declares
   useEffect(() => {
@@ -204,15 +298,28 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           postToSketch({ type: 'values', values: latestDialValues.current });
         }
       }
-      if (data.type === 'snapshot' && data.dataUrl) {
-        const link = document.createElement('a');
-        const name = projectName.current.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sketch';
-        const d = new Date();
-        const pad = (n: number) => String(n).padStart(2, '0');
-        const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-        link.download = `${name}-${stamp}.png`;
-        link.href = data.dataUrl;
-        link.click();
+      if (data.type === 'snapshot' && data.dataUrl && data.purpose === 'thumbnail') {
+        fetch(`/api/sketches/${encodeURIComponent(projectId.current)}/thumbnail`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dataUrl: data.dataUrl }),
+        }).catch(() => {});
+      } else if (data.type === 'snapshot' && data.dataUrl) {
+        downloadFile(data.dataUrl, 'png');
+      }
+      if (data.type === 'recordStarted') {
+        setRecordNote('');
+        setRecording({ since: Date.now() });
+      }
+      if (data.type === 'recordError') {
+        setRecording(null);
+        setRecordNote(data.reason);
+      }
+      if (data.type === 'recording' && data.blob) {
+        setRecording(null);
+        const url = URL.createObjectURL(data.blob);
+        downloadFile(url, String(data.mime).includes('mp4') ? 'mp4' : 'webm');
+        setTimeout(() => URL.revokeObjectURL(url), 10_000);
       }
       if (data.type === 'autoReady' && latestAutoValues.current) {
         postToSketch({ type: 'autoValues', values: latestAutoValues.current });
@@ -381,7 +488,8 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     // Centre and fit the canvas, after the sketch's own styles
     const headCloseIndex = htmlContent.indexOf('</head>');
     if (headCloseIndex !== -1) {
-      htmlContent = htmlContent.slice(0, headCloseIndex) + frameFit + htmlContent.slice(headCloseIndex);
+      const sizeFlag = size.w ? '<script>window.__fixedSize = true;</script>' : '';
+      htmlContent = htmlContent.slice(0, headCloseIndex) + sizeFlag + frameFit + htmlContent.slice(headCloseIndex);
     }
 
     // Use data URI to avoid cross-origin issues
@@ -431,21 +539,69 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         className
       )}
     >
-      <button
-        onClick={() => postToSketch({ type: 'snapshot' })}
-        title="Download this frame as a PNG"
-        className="absolute top-2 right-2 z-10 flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[#2a2a2a] transition-opacity"
-      >
-        <Download className="h-3.5 w-3.5" />
-        Download
-      </button>
-      <iframe
-        ref={iframeRef}
-        className="block w-full h-full"
-        style={{ height }}
-        title="Preview"
-        sandbox="allow-scripts allow-same-origin"
-      />
+      {/* Canvas toolbar: visible on hover, and always while recording */}
+      <div className={cn(
+        "absolute top-2 right-2 z-10 flex items-center gap-1 transition-opacity",
+        recording ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+      )}>
+        <div className="relative">
+          <select
+            value={size.id}
+            onChange={(e) => onCanvasSizeChange?.(e.target.value)}
+            disabled={!!recording}
+            title="Canvas size"
+            className="appearance-none h-8 pl-2.5 pr-7 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground hover:bg-[#2a2a2a] outline-none cursor-pointer"
+          >
+            {CANVAS_SIZES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        </div>
+        <button
+          onClick={() => postToSketch({ type: recording ? 'recordStop' : 'recordStart' })}
+          title={recording ? 'Stop and download the video' : 'Record a video of the canvas'}
+          className={cn(
+            "flex items-center gap-1.5 h-8 px-2.5 rounded-lg backdrop-blur text-[13px] font-medium tabular-nums transition-colors",
+            recording ? "bg-red-500/90 text-white hover:bg-red-500" : "bg-[#212121]/80 text-foreground hover:bg-[#2a2a2a]"
+          )}
+        >
+          {recording ? (
+            <>
+              <Square className="h-3 w-3 fill-current" />
+              {formatElapsed(now - recording.since)}
+            </>
+          ) : (
+            <>
+              <span className="h-2 w-2 rounded-full bg-red-500" />
+              Record
+            </>
+          )}
+        </button>
+        <button
+          onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}
+          title="Download this frame as a PNG"
+          className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground hover:bg-[#2a2a2a]"
+        >
+          <Download className="h-3.5 w-3.5" />
+          PNG
+        </button>
+      </div>
+      {recordNote && (
+        <div className="absolute top-12 right-2 z-10 rounded-lg bg-[#212121]/90 px-2.5 py-1.5 text-[12px] text-muted-foreground">
+          {recordNote}
+        </div>
+      )}
+
+      <div ref={frameRef} className="absolute inset-0">
+        <iframe
+          ref={iframeRef}
+          title="Preview"
+          sandbox="allow-scripts allow-same-origin"
+          className={size.w ? "absolute left-1/2 top-1/2 block outline outline-1 outline-white/15" : "block w-full h-full"}
+          style={size.w
+            ? { width: size.w, height: size.h, transform: `translate(-50%, -50%) scale(${frameScale})`, transformOrigin: 'center' }
+            : { height }}
+        />
+      </div>
       {hasDials && (
         <SketchControls
           dialConfig={dialConfig}

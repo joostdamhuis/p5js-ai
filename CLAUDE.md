@@ -51,7 +51,10 @@ const dial = dials({
 - Slider positions survive code edits (values are re-sent after each reload); defaults in code only apply to new controls
 - Bridge: `dialsBridge` script in Preview.tsx (inside the iframe) ↔ SketchControls.tsx, via postMessage. dials() controls and smart toggles share ONE DialKit panel named "Sketch" (one header, one preset row); values are split back by key. Preview reports `onDialsChange` so the page can show an empty state
 - Control positions are saved with the project (`controls` in project.json, keyed like DialKit values) and restored on open; SketchControls retries the restore until each control shows its saved value (DialKit re-registers panels in dev StrictMode)
-- Download button (top right of the canvas on hover): iframe sends canvas.toDataURL back, editor saves `<sketch-name>-<local time>.png`
+- Canvas toolbar (top right on hover): size picker, Record, PNG. Files are named `<sketch-name>-<local time>.<ext>`
+  - Sizes (`lib/canvas-sizes.ts`, saved as `canvasSize` in project.json): Fit window, 1080×1080, 1080×1350, 1080×1920, 1920×1080. Fixed sizes make the iframe exactly that size (scaled down with a CSS transform) and set pixelDensity(1), so windowWidth/Height, PNGs and videos match the preset
+  - Record: MediaRecorder on canvas.captureStream(60) inside the iframe (MP4 if supported, else WebM), Blob posted back; 2 min safety stop
+- Dashboard thumbnails: 2.5s after a sketch (re)starts the iframe sends a 480px JPEG, saved as `sketches/<slug>/thumbnail.jpg` via `/api/sketches/[id]/thumbnail` (gitignored); cards fall back to code
 - Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 
 ## Smart toggles (automatic controls)

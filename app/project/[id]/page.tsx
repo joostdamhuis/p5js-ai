@@ -497,6 +497,7 @@ export default function ProjectPage() {
               isRunning={isRunning}
               onDialsChange={setHasDials}
               onControlsChange={handleControlsChange}
+              onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
             />
           </div>
 
