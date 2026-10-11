@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "gradient",
-  "lastModified": 1791732958732,
+  "lastModified": 1791733148283,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -31,9 +31,9 @@
       "breathe": 0.25
     },
     "bars": {
-      "rows": 14,
-      "minWidth": 134,
-      "maxWidth": 813,
+      "rows": 15,
+      "minWidth": 352,
+      "maxWidth": 380,
       "gap": 3,
       "radius": 24,
       "margin": 0,
