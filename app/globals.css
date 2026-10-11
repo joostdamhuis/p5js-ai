@@ -150,6 +150,44 @@
   --sidebar-ring: rgb(255 255 255 / 60%);
 }
 
+/* Chrome colours. --ink is the overlay/text colour as an rgb triplet:
+   white on dark panels, black on light ones. */
+.dark {
+  --ink: 255 255 255;
+  --chrome: #212121;
+  --chrome-raised: #2a2a2a;
+}
+
+/* Light panels: switched on automatically over light canvases
+   (html[data-surface="light"], set by the editor), using DialKit's light theme */
+html.dark[data-surface="light"] {
+  --ink: 0 0 0;
+  --chrome: #fafafa;
+  --chrome-raised: #ffffff;
+  --background: #f4f4f4;
+  --foreground: rgb(0 0 0 / 90%);
+  --card: #fafafa;
+  --card-foreground: rgb(0 0 0 / 90%);
+  --popover: #ffffff;
+  --popover-foreground: rgb(0 0 0 / 90%);
+  --primary: #000000;
+  --primary-foreground: #fafafa;
+  --secondary: rgb(0 0 0 / 4%);
+  --secondary-foreground: rgb(0 0 0 / 90%);
+  --muted: rgb(0 0 0 / 4%);
+  --muted-foreground: rgb(0 0 0 / 55%);
+  --accent: rgb(0 0 0 / 8%);
+  --accent-foreground: rgb(0 0 0 / 90%);
+  --border: rgb(0 0 0 / 10%);
+  --input: rgb(0 0 0 / 10%);
+  --ring: rgb(0 0 0 / 50%);
+}
+html.dark[data-surface="light"] .panel,
+html.dark[data-surface="light"] .dial-surface {
+  border-color: rgb(0 0 0 / 10%);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 8%);
+}
+
 /* Every panel uses DialKit's panel recipe: #212121, 10% border, 14px corners,
    soft deep shadow, light blur */
 /* Ambient tint: the canvas's average colour, set on :root by the editor and
@@ -159,13 +197,17 @@
   inherits: true;
   initial-value: #212121;
 }
+/* Light/dark switches fade along with the tint */
+.panel, .dial-surface {
+  transition: background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease;
+}
 :root {
   transition: --ambient 1s ease;
 }
 
 @utility panel {
   background-color: color-mix(in srgb, var(--card) 82%, var(--ambient) 18%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
   backdrop-filter: blur(20px);
@@ -174,8 +216,8 @@
 
 /* DialKit's floating chrome (dock, pills, popups): same surface as panels */
 @utility dial-surface {
-  background-color: color-mix(in srgb, rgb(33 33 33 / 92%) 82%, var(--ambient) 18%);
-  border: 1px solid rgb(255 255 255 / 10%);
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--chrome) 92%, transparent) 82%, var(--ambient) 18%);
+  border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
   backdrop-filter: blur(20px);

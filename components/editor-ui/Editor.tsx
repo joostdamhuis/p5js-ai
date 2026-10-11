@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import MonacoEditor, { OnMount } from '@monaco-editor/react';
 import { cn } from '@/lib/utils';
 import { ProjectFile, FileType } from '@/lib/types';
-import { STUDIO_THEME, defineStudioTheme } from '@/lib/monaco-theme';
+import { STUDIO_THEME, STUDIO_LIGHT_THEME, defineStudioTheme, defineStudioLightTheme } from '@/lib/monaco-theme';
 
 interface EditorProps {
   file: ProjectFile;
@@ -11,6 +11,8 @@ interface EditorProps {
   className?: string;
   // Reports the code's full height, so a panel can fit its content
   onContentHeightChange?: (height: number) => void;
+  // Light panels (over a light canvas)
+  light?: boolean;
 }
 
 // Map file types to Monaco language
@@ -34,7 +36,8 @@ const Editor = ({
   onChange,
   height = '100%',
   className,
-  onContentHeightChange
+  onContentHeightChange,
+  light
 }: EditorProps) => {
   const editorRef = useRef<any>(null);
   const onContentHeightRef = useRef(onContentHeightChange);
@@ -61,7 +64,7 @@ const Editor = ({
         language={getLanguage(file.type)}
         value={file.content}
         onChange={(value) => onChange(value || '')}
-        beforeMount={defineStudioTheme}
+        beforeMount={(monaco) => { defineStudioTheme(monaco); defineStudioLightTheme(monaco); }}
         onMount={handleEditorDidMount}
         options={{
           minimap: { enabled: false },
@@ -96,7 +99,7 @@ const Editor = ({
           cursorSmoothCaretAnimation: 'on',
           smoothScrolling: true,
         }}
-        theme={STUDIO_THEME}
+        theme={light ? STUDIO_LIGHT_THEME : STUDIO_THEME}
       />
     </div>
   );

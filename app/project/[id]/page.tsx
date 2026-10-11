@@ -149,14 +149,27 @@ export default function ProjectPage() {
     fonts: project.fonts ?? [],
   } : {};
 
-  // Ambient tint: the canvas colour as --ambient on :root (CSS fades it)
+  // Ambient tint: the canvas colour as --ambient on :root (CSS fades it).
+  // Over a light canvas the panels switch to light (with a little hysteresis
+  // so a canvas near the threshold doesn't flip back and forth)
+  const [lightSurface, setLightSurface] = useState(false);
   const setAmbient = useCallback(([r, g, b]: [number, number, number]) => {
     document.documentElement.style.setProperty('--ambient', `rgb(${r} ${g} ${b})`);
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    setLightSurface(prev => (prev ? luminance > 0.5 : luminance > 0.62));
   }, []);
   useEffect(() => {
-    if (!tintPanels) document.documentElement.style.removeProperty('--ambient');
+    if (!tintPanels) {
+      document.documentElement.style.removeProperty('--ambient');
+      setLightSurface(false);
+    }
     return () => { document.documentElement.style.removeProperty('--ambient'); };
   }, [tintPanels]);
+  useEffect(() => {
+    if (lightSurface) document.documentElement.dataset.surface = 'light';
+    else delete document.documentElement.dataset.surface;
+    return () => { delete document.documentElement.dataset.surface; };
+  }, [lightSurface]);
 
   const createNewSketch = async () => {
     const count = (await fetchProjects()).length;
@@ -400,7 +413,7 @@ export default function ProjectPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex items-center gap-2.5 text-[13px] text-muted-foreground">
-          <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-white/20 border-t-white/70 animate-spin" />
+          <span className="h-3.5 w-3.5 rounded-full border-[1.5px] border-[rgb(var(--ink)/0.2)] border-t-white/70 animate-spin" />
           Loading sketch…
         </div>
       </div>
@@ -417,7 +430,7 @@ export default function ProjectPage() {
     <input
       value={project.name}
       onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-      className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] min-w-0 w-56 truncate transition-colors"
+      className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-[rgb(var(--ink)/0.05)] focus:bg-[rgb(var(--ink)/0.1)] min-w-0 w-56 truncate transition-colors"
       title="Rename project"
       spellCheck={false}
     />
@@ -457,7 +470,7 @@ export default function ProjectPage() {
       />
       {activeFile ? (
         <div className="flex-1 overflow-hidden min-w-0">
-          <Editor file={activeFile} onChange={handleFileChange} onContentHeightChange={setCodeContentHeight} />
+          <Editor file={activeFile} onChange={handleFileChange} onContentHeightChange={setCodeContentHeight} light={lightSurface} />
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground/60">
@@ -498,7 +511,7 @@ export default function ProjectPage() {
 
   const controlsPanel = (
     <div className="flex-1 overflow-y-auto min-h-0">
-      <DialRoot mode="inline" theme="dark" productionEnabled />
+      <DialRoot mode="inline" theme={lightSurface ? 'light' : 'dark'} productionEnabled />
       {!hasDials && (
         <div className="px-3 pb-3">
           <h3 className="h-11 flex items-center text-[13px] font-semibold text-foreground">Controls</h3>
@@ -506,7 +519,7 @@ export default function ProjectPage() {
             Sliders for your sketch show up here. Add a <code className="font-mono text-foreground/80">dials</code> line
             at the top of your sketch, or ask Claude for a sketch with controls.
           </p>
-          <pre className="mt-3 rounded-lg bg-white/[0.05] px-3 py-2.5 font-mono text-[11px] leading-[1.7] text-muted-foreground overflow-x-auto">{`const dial = dials({
+          <pre className="mt-3 rounded-lg bg-[rgb(var(--ink)/0.05)] px-3 py-2.5 font-mono text-[11px] leading-[1.7] text-muted-foreground overflow-x-auto">{`const dial = dials({
   size: [24, 2, 80],
   color: '#ffffff',
 });
@@ -539,12 +552,12 @@ export default function ProjectPage() {
         onClick={toggle}
         title={`${on ? 'Hide' : 'Show'} ${label}`}
         aria-pressed={on}
-        className={`h-9 w-9 flex items-center justify-center rounded-lg transition-colors ${on ? 'bg-white/[0.11] text-foreground' : 'text-muted-foreground hover:bg-white/[0.1] hover:text-foreground'}`}
+        className={`h-9 w-9 flex items-center justify-center rounded-lg transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
       >
         {icon}
       </button>
     );
-    const divider = <span className="mx-1 h-5 w-px bg-white/10" />;
+    const divider = <span className="mx-1 h-5 w-px bg-[rgb(var(--ink)/0.1)]" />;
 
     return (
       <div className="h-screen relative bg-black overflow-hidden">
@@ -555,14 +568,14 @@ export default function ProjectPage() {
           <button
             onClick={handleBackToDashboard}
             title="All projects"
-            className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
           </button>
           <input
             value={project.name}
             onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-            className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+            className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.05)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
             title="Rename project"
             spellCheck={false}
           />
@@ -623,7 +636,7 @@ export default function ProjectPage() {
           <button
             onClick={isRunning ? handleStop : handleStart}
             title={isRunning ? 'Stop sketch' : 'Run sketch'}
-            className={`h-9 w-11 flex items-center justify-center rounded-lg transition-colors ${isRunning ? 'bg-white/[0.11] text-foreground hover:bg-white/[0.16]' : 'bg-white text-[#212121] hover:bg-white/90'}`}
+            className={`h-9 w-11 flex items-center justify-center rounded-lg transition-colors ${isRunning ? 'bg-[rgb(var(--ink)/0.11)] text-foreground hover:bg-[rgb(var(--ink)/0.16)]' : 'bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.9)]'}`}
           >
             {isRunning ? <Square className="h-3.5 w-3.5 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
           </button>
@@ -634,7 +647,7 @@ export default function ProjectPage() {
             <DropdownMenuTrigger asChild>
               <button
                 title="More"
-                className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-white/[0.1] hover:text-foreground data-[state=open]:bg-white/[0.11] data-[state=open]:text-foreground transition-colors"
+                className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </button>
@@ -644,7 +657,7 @@ export default function ProjectPage() {
                 Console
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem checked={tintPanels} onCheckedChange={(v) => setTintPanels(!!v)}>
-                Tint panels with canvas
+                Adapt panels to canvas
               </DropdownMenuCheckboxItem>
               <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
               <DropdownMenuSeparator />

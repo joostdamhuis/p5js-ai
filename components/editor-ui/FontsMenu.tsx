@@ -51,7 +51,7 @@ const FontsMenu = ({ project, onProjectChange, className }: FontsMenuProps) => {
         <DropdownMenuTrigger asChild>
           <button
             title="Fonts"
-            className={className ?? 'h-8 w-8 flex items-center justify-center rounded-lg text-[12px] font-semibold text-muted-foreground hover:bg-white/[0.1] hover:text-foreground data-[state=open]:bg-white/[0.11] data-[state=open]:text-foreground transition-colors'}
+            className={className ?? 'h-8 w-8 flex items-center justify-center rounded-lg text-[12px] font-semibold text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors'}
           >
             Aa
           </button>

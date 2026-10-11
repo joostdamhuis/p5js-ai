@@ -11,8 +11,8 @@ interface ConnectionStatusProps {
 }
 
 const LABELS: Record<McpStatus | 'off', { text: string; dot: string }> = {
-  off: { text: 'Claude off', dot: 'bg-white/30' },
-  connecting: { text: 'Connecting…', dot: 'bg-white/50 animate-pulse' },
+  off: { text: 'Claude off', dot: 'bg-[rgb(var(--ink)/0.3)]' },
+  connecting: { text: 'Connecting…', dot: 'bg-[rgb(var(--ink)/0.5)] animate-pulse' },
   offline: { text: 'Hub offline', dot: 'bg-red-400' },
   waiting: { text: 'Waiting for Claude', dot: 'bg-amber-300' },
   connected: { text: 'Claude connected', dot: 'bg-emerald-400' },
@@ -72,8 +72,8 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
         className={cn(
           'flex items-center gap-2 text-[13px] font-medium transition-colors',
           pill
-            ? 'dial-surface h-10 px-3.5 ' + (open ? '!bg-[#2a2a2a]' : 'hover:!bg-[#2a2a2a]')
-            : 'h-8 px-3 rounded-lg ' + (open ? 'bg-white/[0.11]' : 'bg-white/[0.05] hover:bg-white/[0.1]'),
+            ? 'dial-surface h-10 px-3.5 ' + (open ? '!bg-[var(--chrome-raised)]' : 'hover:!bg-[var(--chrome-raised)]')
+            : 'h-8 px-3 rounded-lg ' + (open ? 'bg-[rgb(var(--ink)/0.11)]' : 'bg-[rgb(var(--ink)/0.05)] hover:bg-[rgb(var(--ink)/0.1)]'),
           'text-foreground'
         )}
       >
@@ -82,7 +82,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
       </button>
 
       {open && (
-        <div className="dial-surface absolute right-0 top-12 z-50 w-80 !bg-[#212121] p-3">
+        <div className="dial-surface absolute right-0 top-12 z-50 w-80 !bg-[var(--chrome)] p-3">
           <div className="flex items-center justify-between gap-3 pb-3">
             <div>
               <div className="text-[13px] font-semibold">Let Claude control the editor</div>
@@ -94,13 +94,13 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
               onClick={() => onEnabledChange(!enabled)}
               className={cn(
                 'relative h-5 w-9 shrink-0 rounded-full transition-colors',
-                enabled ? 'bg-white' : 'bg-white/15'
+                enabled ? 'bg-[rgb(var(--ink))]' : 'bg-[rgb(var(--ink)/0.15)]'
               )}
             >
               <span
                 className={cn(
                   'absolute top-0.5 h-4 w-4 rounded-full transition-all',
-                  enabled ? 'left-[18px] bg-[#212121]' : 'left-0.5 bg-white/70'
+                  enabled ? 'left-[18px] bg-[var(--chrome)]' : 'left-0.5 bg-[rgb(var(--ink)/0.7)]'
                 )}
               />
             </button>
@@ -108,13 +108,13 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
 
           <div className="space-y-1">
             {checks.map((check) => (
-              <div key={check.label} className="flex gap-2.5 rounded-lg bg-white/[0.05] px-3 py-2">
+              <div key={check.label} className="flex gap-2.5 rounded-lg bg-[rgb(var(--ink)/0.05)] px-3 py-2">
                 {/* Same height as the label's line, so the dot is centred on it */}
                 <span className="flex h-5 shrink-0 items-center">
                   <span
                     className={cn(
                       'h-1.5 w-1.5 rounded-full',
-                      check.ok === null ? 'bg-white/30' : check.ok ? 'bg-emerald-400' : 'bg-red-400'
+                      check.ok === null ? 'bg-[rgb(var(--ink)/0.3)]' : check.ok ? 'bg-emerald-400' : 'bg-red-400'
                     )}
                   />
                 </span>

@@ -32,8 +32,8 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
               className={cn(
                 "group flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-lg text-[13px] font-medium cursor-pointer whitespace-nowrap transition-colors",
                 isActive
-                  ? "bg-white/[0.11] text-foreground"
-                  : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
+                  ? "bg-[rgb(var(--ink)/0.11)] text-foreground"
+                  : "text-muted-foreground hover:bg-[rgb(var(--ink)/0.05)] hover:text-foreground"
               )}
             >
               <span className="truncate max-w-[120px]">{file.name}</span>
@@ -41,7 +41,7 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
               {onCloseTab && (
                 <button
                   className={cn(
-                    "p-0.5 rounded hover:bg-white/10 transition-opacity",
+                    "p-0.5 rounded hover:bg-[rgb(var(--ink)/0.1)] transition-opacity",
                     isActive ? "opacity-60 hover:opacity-100" : "opacity-0 group-hover:opacity-60 hover:!opacity-100"
                   )}
                   onClick={(e) => {
@@ -66,7 +66,7 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
           className={cn(
             "flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium shrink-0 transition-colors",
             isRunning
-              ? "bg-white/[0.05] text-foreground hover:bg-white/[0.1]"
+              ? "bg-[rgb(var(--ink)/0.05)] text-foreground hover:bg-[rgb(var(--ink)/0.1)]"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
         >

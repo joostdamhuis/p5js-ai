@@ -102,7 +102,7 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
 
         {projects.length === 0 ? (
           <div className="panel flex flex-col items-center text-center py-20 px-6">
-            <div className="w-10 h-10 mb-4 rounded-xl bg-white/[0.05] flex items-center justify-center">
+            <div className="w-10 h-10 mb-4 rounded-xl bg-[rgb(var(--ink)/0.05)] flex items-center justify-center">
               <FileCode className="w-4 h-4 text-muted-foreground" />
             </div>
             <h2 className="text-[13px] font-semibold">No sketches yet</h2>

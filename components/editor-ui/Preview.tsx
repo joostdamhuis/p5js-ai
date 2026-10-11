@@ -656,7 +656,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       <DropdownMenuTrigger asChild>
         <button
           title="Export"
-          className="flex items-center gap-1.5 h-9 pl-3 pr-2.5 rounded-lg text-[13px] font-medium text-foreground hover:bg-white/[0.1] data-[state=open]:bg-white/[0.11] transition-colors"
+          className="flex items-center gap-1.5 h-9 pl-3 pr-2.5 rounded-lg text-[13px] font-medium text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] transition-colors"
         >
           <Share className="h-4 w-4" />
           Export
@@ -704,7 +704,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   );
 
   // Toolbar buttons: dark chips on the canvas, plain buttons inside the dock
-  const itemBg = toolbarTarget ? 'bg-transparent hover:bg-white/[0.1]' : 'bg-[#212121]/80 backdrop-blur hover:bg-[#2a2a2a]';
+  const itemBg = toolbarTarget ? 'bg-transparent hover:bg-[rgb(var(--ink)/0.1)]' : 'bg-[color-mix(in_srgb,var(--chrome)_80%,transparent)] backdrop-blur hover:bg-[var(--chrome-raised)]';
   const toolbarItems = (
     <>
         <div className="relative">
@@ -734,7 +734,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             <DropdownMenuTrigger asChild>
               <button
                 title="Record a video of the canvas"
-                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-2 rounded-lg text-[13px] font-medium text-foreground ${itemBg} data-[state=open]:bg-white/[0.11] transition-colors`}
+                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-2 rounded-lg text-[13px] font-medium text-foreground ${itemBg} data-[state=open]:bg-[rgb(var(--ink)/0.11)] transition-colors`}
               >
                 <span className="h-2 w-2 rounded-full bg-red-500" />
                 Record
@@ -796,7 +796,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         )}
       {recordNote && (
         <div className={cn(
-          "absolute z-30 rounded-lg bg-[#212121]/90 px-2.5 py-1.5 text-[12px] text-muted-foreground",
+          "absolute z-30 rounded-lg bg-[color-mix(in_srgb,var(--chrome)_90%,transparent)] px-2.5 py-1.5 text-[12px] text-muted-foreground",
           toolbarTarget ? "bottom-20 left-1/2 -translate-x-1/2" : "top-12 right-2"
         )}>
           {recordNote}
@@ -808,7 +808,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           ref={iframeRef}
           title="Preview"
           sandbox="allow-scripts allow-same-origin"
-          className={size.w ? "absolute left-1/2 top-1/2 block outline outline-1 outline-white/15" : "block w-full h-full"}
+          className={size.w ? "absolute left-1/2 top-1/2 block outline outline-1 outline-[rgb(var(--ink)/0.15)]" : "block w-full h-full"}
           style={size.w
             ? { width: size.w, height: size.h, transform: `translate(-50%, -50%) scale(${frameScale})`, transformOrigin: 'center' }
             : { height }}

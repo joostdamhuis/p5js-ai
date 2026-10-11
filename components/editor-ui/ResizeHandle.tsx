@@ -55,7 +55,7 @@ const ResizeHandle = ({ axis, value, onChange, min, max, invert, onReset, classN
         className={cn(
           'rounded-full transition-colors',
           axis === 'x' ? 'w-0.5 h-8' : 'h-0.5 w-8',
-          dragging ? 'bg-white/40' : 'bg-white/0 group-hover:bg-white/20'
+          dragging ? 'bg-[rgb(var(--ink)/0.4)]' : 'bg-[rgb(var(--ink)/0.0)] group-hover:bg-[rgb(var(--ink)/0.2)]'
         )}
       />
       {/* While dragging, cover the page so the sketch iframe can't swallow the mouse */}

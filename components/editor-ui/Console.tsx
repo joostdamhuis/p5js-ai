@@ -54,7 +54,7 @@ const Console = ({ messages, onClear, sketchName, className }: ConsoleProps) => 
           <button
             onClick={() => fixWithClaude(firstError)}
             title="Copy a request to paste into Claude. Claude reads the error and code and sends the fix."
-            className="flex items-center gap-1.5 h-7 px-2 rounded-md text-[12px] font-medium text-foreground bg-white/[0.05] hover:bg-white/[0.1] shrink-0 transition-colors"
+            className="flex items-center gap-1.5 h-7 px-2 rounded-md text-[12px] font-medium text-foreground bg-[rgb(var(--ink)/0.05)] hover:bg-[rgb(var(--ink)/0.1)] shrink-0 transition-colors"
           >
             {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Sparkles className="h-3 w-3" />}
             {copied ? 'Copied, paste in Claude' : 'Fix with Claude'}
@@ -63,7 +63,7 @@ const Console = ({ messages, onClear, sketchName, className }: ConsoleProps) => 
         {messages.length > 0 && (
           <button
             onClick={onClear}
-            className="h-7 px-2 rounded-md text-[12px] font-medium text-muted-foreground hover:bg-white/[0.1] hover:text-foreground shrink-0 transition-colors"
+            className="h-7 px-2 rounded-md text-[12px] font-medium text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground shrink-0 transition-colors"
           >
             Clear
           </button>
