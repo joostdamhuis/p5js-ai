@@ -34,6 +34,7 @@ Local Next.js app for live p5.js sketching, controlled by Claude through an MCP.
 - Code colors: calm white tones, theme does not inherit vs-dark: all code #d0d0d0, strings #9e9e9e, comments #6a6a6a italic. Regular weight, no line highlight, no sticky scroll, no squiggles or occurrence highlights, wrapped lines indented; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
 - Everything follows DialKit's panel: `panel` and `dial-surface` utilities in globals.css (#212121, 10% white border, 14px corners, 0 8px 32px black/50% shadow, 20px blur). Controls inside use 8px corners (rounded-lg), no full pills except dots and switches. Menus (ui/dropdown-menu) are DialKit's dropdown: #2a2a2a, 10px corners, 32px rows at 13px/500
+- Ambient tint (More → Tint panels with canvas, on by default): Preview asks the sketch for its average colour (16×16 sample) every 500ms; page sets `--ambient` on :root (registered @property, 1s transition); `panel`, `dial-surface` and menus mix 18% of it into their grey. Monaco and DialKit's inner panel backgrounds are transparent so the tint shows
 - Panel rules: 8px control radius (--radius 0.5rem), 14px panel radius, 44px panel header (h-11) with 13px/600 white title, 12px content inset (px-3); DialKit's inline panel is overridden in globals.css to match. Top bar buttons align with panel edges
 
 ## Sketch dials (DialKit)

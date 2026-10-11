@@ -149,6 +149,20 @@ const dialsBridge = `
           }
           window.parent.postMessage({ source: 'p5js-dials', type: 'snapshot', purpose: data.purpose, dataUrl }, '*');
         }
+        // Ambient tint: average colour of the canvas, from a 16x16 copy
+        if (data.type === 'ambientSample') {
+          const canvas = document.querySelector('canvas');
+          if (!canvas || !canvas.width) return;
+          const tiny = window.__ambientCanvas || (window.__ambientCanvas = document.createElement('canvas'));
+          tiny.width = tiny.height = 16;
+          const ctx = tiny.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(canvas, 0, 0, 16, 16);
+          const px = ctx.getImageData(0, 0, 16, 16).data;
+          let r = 0, g = 0, b = 0;
+          for (let i = 0; i < px.length; i += 4) { r += px[i]; g += px[i + 1]; b += px[i + 2]; }
+          const n = px.length / 4;
+          window.parent.postMessage({ source: 'p5js-dials', type: 'ambient', r: Math.round(r / n), g: Math.round(g / n), b: Math.round(b / n) }, '*');
+        }
         // Video: record the canvas with MediaRecorder (MP4 when the browser can, else WebM)
         if (data.type === 'recordStart' && !window.__recorder) {
           const canvas = document.querySelector('canvas');
@@ -211,11 +225,13 @@ interface PreviewProps {
   // Control positions are stored with the project
   onControlsChange?: (values: Record<string, unknown>) => void;
   onCanvasSizeChange?: (id: string) => void;
+  // Average canvas colour, about twice a second (for tinting the panels)
+  onAmbientColor?: (rgb: [number, number, number]) => void;
   // Dock layout: render the canvas toolbar into this element instead of on the canvas
   toolbarTarget?: HTMLElement | null;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor }: PreviewProps) => {
   const size = getCanvasSize(project.canvasSize);
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
@@ -328,6 +344,16 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     return () => clearTimeout(timer);
   }, [filesKey, isRunning, size.id, postToSketch]);
 
+  // Ambient tint: ask the sketch for its average colour twice a second
+  const onAmbientRef = useRef(onAmbientColor);
+  onAmbientRef.current = onAmbientColor;
+  const wantsAmbient = !!onAmbientColor;
+  useEffect(() => {
+    if (!isRunning || !wantsAmbient) return;
+    const timer = setInterval(() => postToSketch({ type: 'ambientSample' }), 500);
+    return () => clearInterval(timer);
+  }, [isRunning, wantsAmbient, postToSketch]);
+
   // Save asks for a fresh thumbnail too
   useEffect(() => {
     const capture = () => postToSketch({ type: 'snapshot', purpose: 'thumbnail' });
@@ -365,6 +391,9 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         }).catch(() => {});
       } else if (data.type === 'snapshot' && data.dataUrl) {
         downloadFile(data.dataUrl, 'png');
+      }
+      if (data.type === 'ambient') {
+        onAmbientRef.current?.([data.r, data.g, data.b]);
       }
       if (data.type === 'recordStarted') {
         setRecordNote('');

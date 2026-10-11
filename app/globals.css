@@ -152,8 +152,19 @@
 
 /* Every panel uses DialKit's panel recipe: #212121, 10% border, 14px corners,
    soft deep shadow, light blur */
+/* Ambient tint: the canvas's average colour, set on :root by the editor and
+   faded smoothly. Surfaces mix 18% of it into their grey. */
+@property --ambient {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #212121;
+}
+:root {
+  transition: --ambient 1s ease;
+}
+
 @utility panel {
-  background-color: var(--card);
+  background-color: color-mix(in srgb, var(--card) 82%, var(--ambient) 18%);
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
@@ -163,7 +174,7 @@
 
 /* DialKit's floating chrome (dock, pills, popups): same surface as panels */
 @utility dial-surface {
-  background-color: rgb(33 33 33 / 92%);
+  background-color: color-mix(in srgb, rgb(33 33 33 / 92%) 82%, var(--ambient) 18%);
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 14px;
   box-shadow: 0 8px 32px rgb(0 0 0 / 50%);
@@ -194,4 +205,10 @@ html, body {
 .dialkit-root[data-mode="inline"] .dialkit-toolbar-primary:hover {
   background: var(--dial-surface-hover);
   color: var(--dial-text-primary);
+}
+
+/* Let the panel's tint show through DialKit's own panel background */
+.dialkit-root[data-mode="inline"] .dialkit-panel-inner,
+.dialkit-root[data-mode="inline"] .dialkit-folder-header {
+  background: transparent;
 }

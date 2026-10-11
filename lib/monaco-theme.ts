@@ -19,7 +19,10 @@ export const defineStudioTheme = (monaco: Monaco) => {
       { token: 'comment.doc', foreground: '6a6a6a', fontStyle: 'italic' },
     ],
     colors: {
-      'editor.background': '#212121',
+      'editor.background': '#00000000',
+      // Transparent so the panel's tint shows through; no blue focus outline
+      'focusBorder': '#00000000',
+      'editorGutter.background': '#00000000',
       'editor.foreground': '#d4d4d4',
       'editorLineNumber.foreground': '#4a4a4a',
       'editorLineNumber.activeForeground': '#a6a6a6',

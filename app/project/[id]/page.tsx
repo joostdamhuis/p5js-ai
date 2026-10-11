@@ -47,6 +47,8 @@ export default function ProjectPage() {
   const [showCode, setShowCode] = useState(true);
   const [showConsole, setShowConsole] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  // Panels take on a tint of the canvas's colour
+  const [tintPanels, setTintPanels] = useState(true);
   const [dockToolsEl, setDockToolsEl] = useState<HTMLElement | null>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
   // Height of the code itself, so the floating code panel can fit it
@@ -87,14 +89,15 @@ export default function ProjectPage() {
       if (typeof saved.showCode === 'boolean') setShowCode(saved.showCode);
       if (typeof saved.showConsole === 'boolean') setShowConsole(saved.showConsole);
       if (typeof saved.showControls === 'boolean') setShowControls(saved.showControls);
+      if (typeof saved.tintPanels === 'boolean') setTintPanels(saved.tintPanels);
     } catch {}
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, codeWidth, controlsWidth, layout: layoutMode, showCode, showConsole, showControls }));
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, codeWidth, controlsWidth, layout: layoutMode, showCode, showConsole, showControls, tintPanels }));
     } catch {}
-  }, [consoleHeight, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls]);
+  }, [consoleHeight, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls, tintPanels]);
 
   // Load the project from the sketches folder (falls back to this browser's copy)
   useEffect(() => {
@@ -145,6 +148,15 @@ export default function ProjectPage() {
     // Use as textFont('<name without extension>')
     fonts: project.fonts ?? [],
   } : {};
+
+  // Ambient tint: the canvas colour as --ambient on :root (CSS fades it)
+  const setAmbient = useCallback(([r, g, b]: [number, number, number]) => {
+    document.documentElement.style.setProperty('--ambient', `rgb(${r} ${g} ${b})`);
+  }, []);
+  useEffect(() => {
+    if (!tintPanels) document.documentElement.style.removeProperty('--ambient');
+    return () => { document.documentElement.style.removeProperty('--ambient'); };
+  }, [tintPanels]);
 
   const createNewSketch = async () => {
     const count = (await fetchProjects()).length;
@@ -480,6 +492,7 @@ export default function ProjectPage() {
       onControlsChange={handleControlsChange}
       onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
       toolbarTarget={layoutMode === 'dock' ? dockToolsEl : undefined}
+      onAmbientColor={tintPanels ? setAmbient : undefined}
     />
   );
 
@@ -520,7 +533,7 @@ export default function ProjectPage() {
   // ---- Dock layout: the canvas fills the window, panels float, one dock ----
 
   if (layoutMode === 'dock') {
-    const floating = 'panel !bg-[#212121]/92 flex flex-col';
+    const floating = 'panel flex flex-col';
     const dockToggle = (on: boolean, toggle: () => void, label: string, icon: React.ReactNode) => (
       <button
         onClick={toggle}
@@ -629,6 +642,9 @@ export default function ProjectPage() {
             <DropdownMenuContent side="top" align="end" sideOffset={10} className="w-52">
               <DropdownMenuCheckboxItem checked={showConsole} onCheckedChange={(v) => setShowConsole(!!v)}>
                 Console
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem checked={tintPanels} onCheckedChange={(v) => setTintPanels(!!v)}>
+                Tint panels with canvas
               </DropdownMenuCheckboxItem>
               <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
               <DropdownMenuSeparator />
