@@ -56,7 +56,7 @@ const Console = ({ messages, onClear, sketchName, className }: ConsoleProps) => 
             title="Copy a request to paste into Claude. Claude reads the error and code and sends the fix."
             className="flex items-center gap-1.5 h-7 px-2 rounded-md text-[12px] font-medium text-foreground bg-[rgb(var(--ink)/0.05)] hover:bg-[rgb(var(--ink)/0.1)] shrink-0 transition-colors"
           >
-            {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Sparkles className="h-3 w-3" />}
+            {copied ? <Check className="h-3 w-3 text-foreground" /> : <Sparkles className="h-3 w-3" />}
             {copied ? 'Copied, paste in Claude' : 'Fix with Claude'}
           </button>
         )}

@@ -85,7 +85,7 @@ const ProjectManager = ({ currentProject, onProjectChange, compact }: ProjectMan
         )}
       >
         {saveState === 'saving' ? <Loader2 className="h-4 w-4 animate-spin" />
-          : saveState === 'pushed' ? <Check className="h-4 w-4 text-emerald-400" />
+          : saveState === 'pushed' ? <Check className="h-4 w-4 text-foreground" />
             : saveState === 'local' ? <CloudOff className="h-4 w-4" />
               : <Save className="h-4 w-4" />}
       </button>
@@ -110,7 +110,7 @@ const ProjectManager = ({ currentProject, onProjectChange, compact }: ProjectMan
         )}
       >
         {saveState === 'saving' ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          : saveState === 'pushed' ? <Check className="h-3.5 w-3.5 text-emerald-400" />
+          : saveState === 'pushed' ? <Check className="h-3.5 w-3.5 text-foreground" />
             : saveState === 'local' ? <CloudOff className="h-3.5 w-3.5" />
               : <Save className="h-3.5 w-3.5" />}
         {saveState === 'saving' ? 'Saving…'
