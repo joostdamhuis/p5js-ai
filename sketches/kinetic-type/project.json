@@ -1,7 +1,7 @@
 {
   "id": "project-1791712683983",
   "name": "Kinetic Type",
-  "lastModified": 1791728587526,
+  "lastModified": 1791730293827,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -9,7 +9,7 @@
     "style"
   ],
   "controls": {
-    "word": "KINETIC",
+    "word": "joost damhuis",
     "animation": "wave",
     "motion": {
       "shape": "sine",
@@ -23,12 +23,12 @@
           0.61
         ]
       },
-      "speed": 3.44,
-      "amount": 1.39,
-      "bob": 117,
+      "speed": 1,
+      "amount": 0.4,
+      "bob": 120,
       "sway": 0,
-      "letterOffset": 1.72,
-      "rowOffset": 0.6,
+      "letterOffset": 0.33,
+      "rowOffset": 1.7,
       "reverse": false
     },
     "Size": 73,

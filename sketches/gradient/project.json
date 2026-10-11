@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
-  "name": "Untitled Project 4",
-  "lastModified": 1791729480755,
+  "name": "gradient",
+  "lastModified": 1791729517294,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -24,19 +24,19 @@
       "fill": 0.8
     },
     "motion": {
-      "speed": 3,
-      "slide": 174,
-      "rowOffset": 0.04,
+      "speed": 0.85,
+      "slide": 400,
+      "rowOffset": 0.16,
       "repeats": 0.8
     },
     "bars": {
-      "rows": 42,
-      "minWidth": 330,
+      "rows": 13,
+      "minWidth": 134,
       "maxWidth": 813,
       "gap": 0,
       "radius": 0,
       "margin": 0,
-      "seed": 396
+      "seed": 780
     },
     "Stops": 1
   },
