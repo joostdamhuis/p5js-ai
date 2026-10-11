@@ -306,3 +306,13 @@ html, body {
 .dialkit-shortcuts-dropdown {
   background: var(--chrome-raised) !important;
 }
+
+/* DialKit uses the editor's exact fills and borders (light and dark), so its
+   controls match the tabs, buttons and rows around it */
+.dialkit-root[data-mode="inline"][data-theme] {
+  --dial-surface: rgb(var(--ink) / 5%);
+  --dial-surface-hover: rgb(var(--ink) / 10%);
+  --dial-surface-active: rgb(var(--ink) / 11%);
+  --dial-surface-subtle: rgb(var(--ink) / 5%);
+  --dial-border: rgb(var(--ink) / 10%);
+}

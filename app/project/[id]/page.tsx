@@ -572,7 +572,7 @@ export default function ProjectPage() {
         <div className="absolute inset-0">{preview}</div>
 
         {/* Top corners */}
-        <div className="dial-surface absolute top-3 left-3 z-20 flex items-center p-1 pr-1.5">
+        <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-10 px-1 pr-1.5">
           <button
             onClick={handleBackToDashboard}
             title="All projects"
