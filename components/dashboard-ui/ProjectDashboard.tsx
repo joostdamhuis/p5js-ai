@@ -114,14 +114,14 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
             {projects.map((project) => (
               <div
                 key={project.id}
                 onClick={() => handleOpenProject(project)}
                 className="panel group cursor-pointer p-1.5 transition-colors hover:bg-[#262626]"
               >
-                <div className="rounded-lg bg-black/40 px-3 py-2.5 h-24 overflow-hidden">
+                <div className="rounded-lg bg-black/40 px-3 py-2.5 aspect-square overflow-hidden">
                   <pre className="text-[11px] leading-[1.6] text-muted-foreground/70 font-mono overflow-hidden">
                     {getProjectPreview(project)}
                   </pre>
