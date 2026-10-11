@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Download, ChevronDown, Square } from 'lucide-react';
 import { CANVAS_SIZES, getCanvasSize } from '@/lib/canvas-sizes';
 import { fontFamily, fontUrl } from '@/lib/projects';
+import { buildFramerComponent } from '@/lib/framer-export';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -653,6 +654,23 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        <button
+          onClick={async () => {
+            const code = buildFramerComponent(project, dialConfig, fontData);
+            try {
+              await navigator.clipboard.writeText(code);
+              setRecordNote('Copied. In Framer: Assets → Code → New code file, then paste');
+            } catch {
+              setRecordNote('Couldn’t copy. Click the canvas once and try again');
+            }
+            setTimeout(() => setRecordNote(''), 6000);
+          }}
+          title="Copy this sketch as a Framer code component, with its controls as Framer properties"
+          className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-[#212121]/80 backdrop-blur text-[13px] font-medium text-foreground hover:bg-[#2a2a2a]"
+        >
+          <svg viewBox="0 0 14 21" className="h-3 w-3 fill-current" aria-hidden><path d="M0 0h14v7H7zM0 7h7l7 7H7v7l-7-7z" /></svg>
+          Framer
+        </button>
         <button
           onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}
           title="Download this frame as a PNG"

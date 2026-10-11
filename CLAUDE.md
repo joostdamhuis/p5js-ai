@@ -62,6 +62,11 @@ const dial = dials({
 - Only the editor tab used last obeys Claude's commands and answers get_sketch (`p5_active_editor_tab` in localStorage)
 - Saving keeps controls/canvasSize/fonts already on disk when a client doesn't send them
 
+## Export to Framer
+- Canvas toolbar "Framer" copies a code component (`lib/framer-export.ts`): sketch JS + fonts embedded, runs in an iframe (p5 1.9 from cdnjs), fills its Framer frame
+- dials() keys become property controls `d_<key>` (folders → ControlType.Object, select → Enum, hex → Color, text → String; actions/springs skipped); smart toggles become `c_<NAME>`. Defaults = current editor values
+- In Framer: Assets → Code → New code file, paste, drag onto the canvas
+
 ## Fixing errors (get_sketch)
 - MCP tool `get_sketch` returns every file, the last 50 console lines, control values and canvas size. Flow: MCP emits `requestSketchState` → hub → editors answer `sketchState` (visible tab preferred)
 - Console "Fix with Claude" (shown when there's an error) copies `Fix the error in my p5.js sketch "<name>": <error>` for Joost to paste. When asked to fix: call get_sketch first, then update_code with the whole file
