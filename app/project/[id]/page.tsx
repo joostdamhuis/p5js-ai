@@ -44,7 +44,7 @@ const contrast = (a: RGB, b: RGB) => {
   return (l1 + 0.05) / (l2 + 0.05);
 };
 function surfaceAlphaFor(canvas: RGB, light: boolean) {
-  const base: RGB = light ? [250, 250, 250] : [33, 33, 33];
+  const base: RGB = light ? [250, 250, 250] : [40, 40, 40];
   const ink: RGB = light ? [0, 0, 0] : [255, 255, 255];
   const tinted = base;
   // Whole-percent steps (adding 0.02 repeatedly drifts past the maximum)
