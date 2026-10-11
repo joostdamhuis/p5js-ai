@@ -619,7 +619,7 @@ export default function ProjectPage() {
           />
         </div>
         <div className="absolute top-3 right-3 z-20">
-          <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill />
+          <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill popupWidth={controlsWidth} />
         </div>
 
         {/* Side panels stay mounted and slide in/out from their edge */}

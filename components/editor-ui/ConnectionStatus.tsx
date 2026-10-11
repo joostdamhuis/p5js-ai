@@ -8,6 +8,8 @@ interface ConnectionStatusProps {
   status: McpStatus;
   // Dock layout: a round, translucent pill like the rest of the floating chrome
   pill?: boolean;
+  // Popup width, so it can match the panel below it (default 320px)
+  popupWidth?: number;
 }
 
 const LABELS: Record<McpStatus | 'off', { text: string; dot: string }> = {
@@ -22,7 +24,7 @@ type Check = { label: string; ok: boolean | null; detail: string };
 
 // Header pill showing whether Claude can control the editor. Click it for a
 // checklist of the three parts (editor, hub, Claude) with plain-language fixes.
-const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: ConnectionStatusProps) => {
+const ConnectionStatus = ({ enabled, onEnabledChange, status, pill, popupWidth = 320 }: ConnectionStatusProps) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +84,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: Connection
       </button>
 
       {open && (
-        <div className="dial-surface absolute right-0 top-12 z-50 w-80 !bg-[var(--chrome)] p-3">
+        <div className="dial-surface absolute right-0 top-12 z-50 !bg-[var(--chrome)] p-3" style={{ width: popupWidth }}>
           <div className="flex items-center justify-between gap-3 pb-3">
             <div>
               <div className="text-[13px] font-semibold">Let Claude control the editor</div>
