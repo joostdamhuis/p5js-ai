@@ -1,13 +1,31 @@
 {
   "id": "project-1791712683983",
   "name": "Kinetic Type",
-  "lastModified": 1791715869788,
+  "lastModified": 1791716180239,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
     "index",
     "style"
   ],
+  "controls": {
+    "word": "KINETIC",
+    "animation": "wave",
+    "motion": {
+      "shape": "sine",
+      "speed": 0.95,
+      "amount": 0.45,
+      "bob": 42,
+      "sway": 0,
+      "letterOffset": 1.23,
+      "rowOffset": 0.86,
+      "reverse": false
+    },
+    "Size": 96,
+    "Rows": 7,
+    "Ink": "#ffffff",
+    "Paper": "#000000"
+  },
   "files": [
     {
       "id": "sketch",
