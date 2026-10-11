@@ -2,11 +2,11 @@
 // sliding sideways. Move the cursor to swell the bars and drag the rows along.
 // Press R (or change seed) for a new arrangement.
 const dial = dials({
-  blues: {
-    from: '#1e90ff',
-    via: '#0a1f5c',
-    to: '#b8e0ff',
-    background: '#050a14',
+  reds: {
+    from: '#00ff55',
+    via: '#00cc44',
+    to: '#66ff99',
+    background: '#031209',
   },
   bars: {
     rows: [12, 2, 60, 1],
@@ -75,7 +75,7 @@ function buildLayout() {
 
 function draw() {
   buildLayout();
-  background(dial.blues.background);
+  background(dial.reds.background);
   const b = dial.bars;
   const m = dial.motion;
   const k = dial.cursor;
@@ -83,9 +83,9 @@ function draw() {
   const dt = min(deltaTime, 50) / 1000;
   const secs = millis() / 1000;
   const t = secs * m.speed * 0.1;
-  const c1 = color(dial.blues.from);
-  const c2 = color(dial.blues.via);
-  const c3 = color(dial.blues.to);
+  const c1 = color(dial.reds.from);
+  const c2 = color(dial.reds.via);
+  const c3 = color(dial.reds.to);
   const ctx = drawingContext;
 
   // Smoothed cursor, fading in when it's over the canvas
@@ -156,7 +156,7 @@ function draw() {
 
   // Vignette to pull the eye to the centre
   if (f.vignette > 0) {
-    const bg = color(dial.blues.background);
+    const bg = color(dial.reds.background);
     const v = ctx.createRadialGradient(width / 2, height / 2, min(width, height) * 0.25, width / 2, height / 2, max(width, height) * 0.75);
     v.addColorStop(0, `rgba(${red(bg)},${green(bg)},${blue(bg)},0)`);
     v.addColorStop(1, `rgba(${red(bg)},${green(bg)},${blue(bg)},${f.vignette})`);

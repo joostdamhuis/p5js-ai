@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
-  "name": "gradient",
-  "lastModified": 1791733409652,
+  "name": "Gradient",
+  "lastModified": 1791734185790,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -41,17 +41,17 @@
     },
     "Stops": 29,
     "reds": {
-      "from": "#ff2a2a",
-      "via": "#9e0016",
-      "to": "#ff7a5c",
+      "from": "#522520",
+      "via": "#e8ba0f",
+      "to": "#4b1205",
       "background": "#120203"
     },
     "cursor": {
-      "reach": 20,
-      "swell": 0,
-      "drag": 0,
+      "reach": 478,
+      "swell": 1.58,
+      "drag": 1.57,
       "shift": 0.17,
-      "ease": 0.01
+      "ease": 0.62
     },
     "greens": {
       "from": "#1fd655",
@@ -77,14 +77,14 @@
       "vignette": 0.55
     }
   },
-  "canvasSize": "1080x1080",
+  "canvasSize": "fit",
   "fonts": [],
   "files": [
     {
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791732106647
+      "lastModified": 1791734130135
     },
     {
       "id": "index",
