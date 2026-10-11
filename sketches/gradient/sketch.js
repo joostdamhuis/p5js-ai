@@ -1,11 +1,11 @@
 // Gradient Pattern: rows of randomly sized rectangles, each with a horizontal gradient,
 // sliding sideways. Press R (or change seed) for a new arrangement.
 const dial = dials({
-  colors: {
-    from: '#ff4f6d',
-    via: '#7b5cff',
-    to: '#21d4c4',
-    background: '#0d0d0d',
+  reds: {
+    from: '#ff2a2a',
+    via: '#9e0016',
+    to: '#ff7a5c',
+    background: '#120203',
   },
   bars: {
     rows: [12, 2, 60, 1],
@@ -56,14 +56,14 @@ function buildLayout() {
 
 function draw() {
   buildLayout();
-  background(dial.colors.background);
+  background(dial.reds.background);
   const b = dial.bars;
   const m = dial.motion;
   const secs = millis() / 1000;
   const t = secs * m.speed * 0.1;
-  const c1 = color(dial.colors.from);
-  const c2 = color(dial.colors.via);
-  const c3 = color(dial.colors.to);
+  const c1 = color(dial.reds.from);
+  const c2 = color(dial.reds.via);
+  const c3 = color(dial.reds.to);
   const ctx = drawingContext;
 
   const h = (height - b.margin * 2 - b.gap * (b.rows - 1)) / b.rows;
