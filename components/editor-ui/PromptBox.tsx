@@ -193,7 +193,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
       className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-[min(620px,calc(100vw-1.5rem))] flex flex-col gap-2"
     >
       {(showLatest || showRecent) && (
-        <div ref={cardRef} className="dial-surface rounded-[20px] p-1.5 flex flex-col">
+        <div ref={cardRef} className="dial-surface p-1.5 flex flex-col">
           {showLatest && (
             <div className="px-3 py-2 text-[13px] leading-5">
               {pending ? (
@@ -226,7 +226,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
               {recent.map(prompt => (
                 <div
                   key={prompt}
-                  className="group flex items-center h-9 rounded-[14px] hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
+                  className="group flex items-center h-9 rounded-[8px] hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
                 >
                   <button
                     onClick={() => { setText(prompt); inputRef.current?.focus(); }}
@@ -248,7 +248,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
         </div>
       )}
 
-      <div className="dial-surface rounded-full flex items-end gap-0.5 p-[3px]">
+      <div className="dial-surface flex items-end gap-0.5 p-[3px]">
         {tools && (
           <>
             <div className="flex items-center gap-0.5 shrink-0">{tools}</div>
@@ -267,14 +267,14 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           title="Attach an image"
           onClick={() => fileRef.current?.click()}
           disabled={working}
-          className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:opacity-40 transition-colors"
+          className="h-9 w-9 shrink-0 flex items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:opacity-40 transition-colors"
         >
           <Paperclip className="h-4 w-4" />
         </button>
         {attachments.map((a, i) => (
-          <span key={i} className="h-9 shrink-0 flex items-center gap-1 pl-0.5 pr-1 rounded-full bg-[rgb(var(--ink)/0.1)]">
+          <span key={i} className="h-9 shrink-0 flex items-center gap-1 pl-0.5 pr-1 rounded-[10px] bg-[rgb(var(--ink)/0.1)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={a.dataUrl} alt={a.name} className="h-8 w-8 rounded-full object-cover" />
+            <img src={a.dataUrl} alt={a.name} className="h-8 w-8 rounded-[8px] object-cover" />
             <button
               title="Remove"
               onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
@@ -302,7 +302,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
             <button
               title="Model"
               disabled={working}
-              className="h-9 shrink-0 flex items-center gap-1 px-3 rounded-full text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
+              className="h-9 shrink-0 flex items-center gap-1 px-3 rounded-[10px] text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
             >
               {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
               <ChevronDown className="h-3 w-3" />
@@ -322,7 +322,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           title={working ? 'Stop (Esc)' : 'Send (Enter)'}
           onClick={working ? () => abortRef.current?.abort() : send}
           disabled={!working && !text.trim()}
-          className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
+          className="h-9 w-9 shrink-0 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
         >
           {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
         </button>
