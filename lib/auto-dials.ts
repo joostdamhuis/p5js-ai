@@ -71,7 +71,8 @@ export function autoDialConfig(dials: AutoDial[]): DialConfig {
     if (typeof value === 'number') {
       const isInt = Number.isInteger(value);
       const span = roundNice(Math.max(Math.abs(value) * 3, isInt ? 10 : 1));
-      const min = value < 0 ? -span : 0;
+      // Whole-number settings starting at 1+ (counts like ROWS) never go to 0
+      const min = value < 0 ? -span : isInt && value >= 1 ? 1 : 0;
       config[label] = [value, min, span, isInt ? 1 : span / 100];
     } else {
       config[label] = value;
