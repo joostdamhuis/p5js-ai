@@ -172,3 +172,14 @@
 html, body {
   overscroll-behavior: none;
 }
+
+/* DialKit's "Copy parameters" button: quiet like its other toolbar buttons,
+   so it doesn't compete with the editor's Save */
+.dialkit-root[data-mode="inline"] .dialkit-toolbar-primary {
+  background: var(--dial-surface);
+  color: var(--dial-text-label);
+}
+.dialkit-root[data-mode="inline"] .dialkit-toolbar-primary:hover {
+  background: var(--dial-surface-hover);
+  color: var(--dial-text-primary);
+}
