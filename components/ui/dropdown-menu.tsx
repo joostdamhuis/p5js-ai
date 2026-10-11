@@ -38,29 +38,41 @@ const DropdownMenuSubTrigger = React.forwardRef<
 DropdownMenuSubTrigger.displayName =
   DropdownMenuPrimitive.SubTrigger.displayName
 
+// Height of a menu row (h-8): the sub-menu is centred on the row it opens from
+const MENU_ROW_HEIGHT = 32
+
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
->(({ className, sideOffset = 6, alignOffset = -5, collisionPadding = 12, ...props }, ref) => (
-  // Portaled: inside the parent menu it was clipped by the parent's rounded,
-  // overflow-hidden box and its blur.
-  // Opens beside its row (first item level with the hovered row: -5px = the
-  // menu's padding + border); near an edge it shifts back inside, keeping a
-  // margin, so near the bottom it grows upward from the hovered row.
-  <DropdownMenuPrimitive.Portal>
-  <DropdownMenuPrimitive.SubContent
-    ref={ref}
-    sideOffset={sideOffset}
-    alignOffset={alignOffset}
-    collisionPadding={collisionPadding}
-    className={cn(
-      "z-50 min-w-[8rem] overflow-hidden rounded-[10px] border border-[rgb(var(--ink)/0.1)] bg-[color-mix(in_srgb,var(--chrome)_var(--surface-alpha),transparent)] [backdrop-filter:var(--glass-blur)] p-1 text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-      className
-    )}
-    {...props}
-  />
-  </DropdownMenuPrimitive.Portal>
-))
+>(({ className, sideOffset = 6, collisionPadding = 12, ...props }, ref) => {
+  // Centred on the hovered row: shift up by half the difference in height.
+  // Radix can't centre sub-menus, so measure once it has rendered.
+  const [alignOffset, setAlignOffset] = React.useState(0)
+  const measure = React.useCallback((node: HTMLDivElement | null) => {
+    if (typeof ref === "function") ref(node)
+    else if (ref) ref.current = node
+    if (node) setAlignOffset((MENU_ROW_HEIGHT - node.offsetHeight) / 2)
+  }, [ref])
+
+  return (
+    // Portaled: inside the parent menu it was clipped by the parent's rounded,
+    // overflow-hidden box and its blur. Near an edge it shifts back inside,
+    // keeping a margin (dock menus reserve the dock).
+    <DropdownMenuPrimitive.Portal>
+      <DropdownMenuPrimitive.SubContent
+        ref={measure}
+        sideOffset={sideOffset}
+        alignOffset={alignOffset}
+        collisionPadding={collisionPadding}
+        className={cn(
+          "z-50 min-w-[8rem] overflow-hidden rounded-[10px] border border-[rgb(var(--ink)/0.1)] bg-[color-mix(in_srgb,var(--chrome)_var(--surface-alpha),transparent)] [backdrop-filter:var(--glass-blur)] p-1 text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          className
+        )}
+        {...props}
+      />
+    </DropdownMenuPrimitive.Portal>
+  )
+})
 DropdownMenuSubContent.displayName =
   DropdownMenuPrimitive.SubContent.displayName
 
