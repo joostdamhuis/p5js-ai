@@ -9,12 +9,16 @@ import ProjectManager from '@/components/editor-ui/ProjectManager';
 import WebSocketListener, { McpStatus } from '@/components/editor-ui/WebSocketListener';
 import Tabs from '@/components/editor-ui/Tabs';
 import Console, { LogMessage } from '@/components/editor-ui/Console';
+import ResizeHandle from '@/components/editor-ui/ResizeHandle';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, saveProject, cacheProject } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, PanelLeft } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
+
+const LAYOUT_KEY = 'p5_layout';
+const LAYOUT_DEFAULTS = { consoleHeight: 200, sidebarWidth: 224, codeWidth: 400, controlsWidth: 280 };
 
 export default function ProjectPage() {
   const params = useParams();
@@ -25,11 +29,31 @@ export default function ProjectPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [enableWsListener, setEnableWsListener] = useState(false);
   const [consoleMessages, setConsoleMessages] = useState<LogMessage[]>([]);
-  const [consoleHeight, setConsoleHeight] = useState(200);
+  const [consoleHeight, setConsoleHeight] = useState(LAYOUT_DEFAULTS.consoleHeight);
+  const [sidebarWidth, setSidebarWidth] = useState(LAYOUT_DEFAULTS.sidebarWidth);
+  const [codeWidth, setCodeWidth] = useState(LAYOUT_DEFAULTS.codeWidth);
+  const [controlsWidth, setControlsWidth] = useState(LAYOUT_DEFAULTS.controlsWidth);
   const [isRunning, setIsRunning] = useState(true);
   const [loading, setLoading] = useState(true);
   const [hasDials, setHasDials] = useState(false);
   const [mcpStatus, setMcpStatus] = useState<McpStatus>('connecting');
+
+  // Panel sizes are remembered per browser
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}');
+      if (saved.consoleHeight) setConsoleHeight(saved.consoleHeight);
+      if (saved.sidebarWidth) setSidebarWidth(saved.sidebarWidth);
+      if (saved.codeWidth) setCodeWidth(saved.codeWidth);
+      if (saved.controlsWidth) setControlsWidth(saved.controlsWidth);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, sidebarWidth, codeWidth, controlsWidth }));
+    } catch {}
+  }, [consoleHeight, sidebarWidth, codeWidth, controlsWidth]);
 
   // Load the project from the sketches folder (falls back to this browser's copy)
   useEffect(() => {
@@ -361,22 +385,36 @@ export default function ProjectPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 gap-2 min-h-0">
+      <div className="flex flex-1 min-h-0">
         {/* File Explorer Sidebar */}
         {sidebarOpen && (
-          <aside className="panel w-56 shrink-0 hidden md:flex flex-col">
-            <FileExplorer
-              project={project}
-              onProjectChange={setProject}
-              onFileSelect={handleFileSelect}
+          <>
+            <aside className="panel shrink-0 hidden md:flex flex-col" style={{ width: sidebarWidth }}>
+              <FileExplorer
+                project={project}
+                onProjectChange={setProject}
+                onFileSelect={handleFileSelect}
+              />
+            </aside>
+            <ResizeHandle
+              axis="x"
+              value={sidebarWidth}
+              onChange={setSidebarWidth}
+              min={160}
+              max={420}
+              onReset={() => setSidebarWidth(LAYOUT_DEFAULTS.sidebarWidth)}
+              className="hidden md:flex"
             />
-          </aside>
+          </>
         )}
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col md:flex-row gap-2 min-w-0 min-h-0">
+        <div className="flex-1 flex flex-col md:flex-row gap-2 md:gap-0 min-w-0 min-h-0">
           {/* Editor Section with Console */}
-          <div className="w-full h-1/2 md:h-full md:w-1/2 md:max-w-[400px] md:shrink-0 flex flex-col min-w-0 min-h-0">
+          <div
+            className="w-full h-1/2 md:h-full md:w-[var(--code-w)] md:shrink-0 flex flex-col min-w-0 min-h-0"
+            style={{ '--code-w': `${codeWidth}px` } as React.CSSProperties}
+          >
             <div className="panel flex-1 flex flex-col min-h-0">
               <Tabs
                 project={project}
@@ -400,30 +438,16 @@ export default function ProjectPage() {
               )}
             </div>
 
-            {/* Resize handle: the gap between the two panels */}
-            <div
-              className="group h-2 shrink-0 cursor-row-resize flex items-center justify-center"
-              onMouseDown={(e) => {
-                const startY = e.clientY;
-                const startHeight = consoleHeight;
-
-                const handleMouseMove = (e: MouseEvent) => {
-                  const deltaY = startY - e.clientY;
-                  const newHeight = Math.max(50, Math.min(500, startHeight + deltaY));
-                  setConsoleHeight(newHeight);
-                };
-
-                const handleMouseUp = () => {
-                  document.removeEventListener('mousemove', handleMouseMove);
-                  document.removeEventListener('mouseup', handleMouseUp);
-                };
-
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-              }}
-            >
-              <div className="h-0.5 w-8 rounded-full bg-white/0 group-hover:bg-white/20 transition-colors" />
-            </div>
+            {/* Resize handle: the gap between code and console */}
+            <ResizeHandle
+              axis="y"
+              value={consoleHeight}
+              onChange={setConsoleHeight}
+              min={50}
+              max={600}
+              invert
+              onReset={() => setConsoleHeight(LAYOUT_DEFAULTS.consoleHeight)}
+            />
 
             {/* Console */}
             <div style={{ height: `${consoleHeight}px` }} className="panel shrink-0 min-w-0">
@@ -433,6 +457,16 @@ export default function ProjectPage() {
               />
             </div>
           </div>
+
+          <ResizeHandle
+            axis="x"
+            value={codeWidth}
+            onChange={setCodeWidth}
+            min={260}
+            max={960}
+            onReset={() => setCodeWidth(LAYOUT_DEFAULTS.codeWidth)}
+            className="hidden md:flex"
+          />
 
           {/* Preview Section */}
           <div className="panel w-full h-1/2 md:h-full md:flex-1 min-w-0 bg-black">
@@ -444,8 +478,19 @@ export default function ProjectPage() {
             />
           </div>
 
+          <ResizeHandle
+            axis="x"
+            value={controlsWidth}
+            onChange={setControlsWidth}
+            min={220}
+            max={520}
+            invert
+            onReset={() => setControlsWidth(LAYOUT_DEFAULTS.controlsWidth)}
+            className="hidden lg:flex"
+          />
+
           {/* Controls: the sketch's dials, docked */}
-          <aside className="panel w-[280px] shrink-0 hidden lg:flex flex-col">
+          <aside className="panel shrink-0 hidden lg:flex flex-col" style={{ width: controlsWidth }}>
             <div className="flex-1 overflow-y-auto min-h-0 p-1">
               <DialRoot mode="inline" theme="dark" productionEnabled />
               {!hasDials && (

@@ -23,7 +23,7 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 - Visual language uses DialKit's exact dark tokens: page #141414, panels #212121 (= --dial-glass-bg), menus #2a2a2a, borders 10% white, text 95% / secondary 60% white, fills 5% (rest) / 10% (hover) / 11% (active), 13px/500 type, 8px control radius, almost no divider lines. White is the accent, as in DialKit (primary = #fff on #212121 text): Run and New buttons. Status dots are emerald (sketch running, MCP connected). No amber
 - Layout: floating rounded `panel`s (custom `@utility panel` in globals.css: #212121, 12px radius, 10% white border) with 8px gaps on the near-black page. Header is borderless; editable project name lives there
 - Preview should be fully black (sketch style.css is black; panel bg-white → bg-black)
-- Columns: Files (collapsed by default) | code ≤400px | preview (flex) | Controls 280px
+- Columns: Files (collapsed by default, 224px) | code (400px) | preview (flex) | Controls (280px); all resizable via `ResizeHandle` in the 8px gaps (double-click resets), sizes kept in localStorage `p5_layout`
 - Preview centres every sketch: `frameFit` in Preview.tsx (body flex-centre, canvas max 100% + object-fit contain, auto resizeCanvas for full-window sketches without windowResized). Prefer createCanvas(windowWidth, windowHeight)
 - MCP connection status lives in the header MCP button (connected / Connecting… / offline); WebSocketListener renders nothing
 
