@@ -91,7 +91,8 @@ const Editor = ({
           lightbulb: { enabled: 'off' as never },
           unicodeHighlight: { ambiguousCharacters: false },
           renderValidationDecorations: 'off',
-          lineNumbersMinChars: 3,
+          // Room for three-digit line numbers without touching the panel edge
+          lineNumbersMinChars: 4,
           scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8, useShadows: false },
           lineNumbers: 'on',
           roundedSelection: true,
