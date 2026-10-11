@@ -8,7 +8,9 @@ const dial = dials({
     default: 'wave',
   },
   motion: {
-    shape: { type: 'select', options: ['sine', 'triangle', 'square'], default: 'sine' },
+    shape: { type: 'select', options: ['sine', 'triangle', 'square', 'eased'], default: 'sine' },
+    // Curve for the 'eased' shape: how each letter travels through its swing
+    ease: { type: 'easing', duration: 1, ease: [0.65, 0, 0.35, 1] },
     speed: [1.2, 0, 5, 0.01],
     amount: [0.6, 0, 2, 0.01],
     bob: [12, 0, 120, 1],
@@ -19,7 +21,7 @@ const dial = dials({
   },
 });
 
-const SIZE = 76;
+const SIZE = 73;
 const ROWS = 7;
 const INK = '#ffffff';
 const PAPER = '#000000';
@@ -28,7 +30,25 @@ const PAPER = '#000000';
 function waveAt(p, shape) {
   if (shape === 'triangle') return (2 / PI) * asin(sin(p));
   if (shape === 'square') return sin(p) >= 0 ? 1 : -1;
+  if (shape === 'eased') {
+    // Up and back down once per cycle, each half following the Ease curve
+    const f = ((p / TWO_PI) % 1 + 1) % 1;
+    const [x1, y1, x2, y2] = dial.motion.ease.ease;
+    const half = f < 0.5 ? f * 2 : (1 - f) * 2;
+    return cubicBezier(half, x1, y1, x2, y2) * 2 - 1;
+  }
   return sin(p);
+}
+
+// CSS-style cubic-bezier(x1, y1, x2, y2): progress 0..1 in, eased 0..1 out
+function cubicBezier(x, x1, y1, x2, y2) {
+  const bez = (t, a, b) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
+  let lo = 0, hi = 1, t = x;
+  for (let i = 0; i < 20; i++) {
+    t = (lo + hi) / 2;
+    if (bez(t, x1, x2) < x) lo = t; else hi = t;
+  }
+  return bez(t, y1, y2);
 }
 
 function setup() {
