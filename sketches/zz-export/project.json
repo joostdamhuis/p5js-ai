@@ -1,0 +1,21 @@
+{
+  "id": "zz-export",
+  "name": "zz export",
+  "lastModified": 1791716715576,
+  "activeFile": "s",
+  "openTabs": [
+    "s"
+  ],
+  "controls": {
+    "Size": 200
+  },
+  "canvasSize": "1080x1080",
+  "files": [
+    {
+      "id": "s",
+      "name": "sketch.js",
+      "type": "js",
+      "lastModified": 1
+    }
+  ]
+}
