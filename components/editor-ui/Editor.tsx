@@ -62,6 +62,7 @@ const Editor = ({
           wordWrap: 'on',
           padding: { top: 8, bottom: 8 },
           overviewRulerBorder: false,
+          bracketPairColorization: { enabled: false },
           overviewRulerLanes: 0,
           hideCursorInOverviewRuler: true,
           renderLineHighlight: 'line',

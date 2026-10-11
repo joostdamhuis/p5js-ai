@@ -58,7 +58,7 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
         })}
       </div>
 
-      {/* Run toggle: amber dot while the sketch runs */}
+      {/* Run toggle: green dot while the sketch runs */}
       {onStart && onStop && (
         <button
           onClick={isRunning ? onStop : onStart}
@@ -72,7 +72,7 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
         >
           {isRunning ? (
             <>
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Stop
             </>
           ) : (

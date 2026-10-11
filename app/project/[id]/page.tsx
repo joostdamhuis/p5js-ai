@@ -379,11 +379,11 @@ export default function ProjectPage() {
             onClick={() => setEnableWsListener(!enableWsListener)}
             title={enableWsListener ? 'Disconnect Claude (MCP)' : 'Let Claude control the editor (MCP)'}
             className={`flex items-center gap-2 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${enableWsListener
-              ? 'bg-primary/[0.12] text-primary hover:bg-primary/[0.18]'
+              ? 'bg-white/[0.11] text-foreground hover:bg-white/[0.15]'
               : 'bg-white/[0.05] text-foreground hover:bg-white/[0.1]'
               }`}
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${enableWsListener ? 'bg-primary' : 'bg-muted-foreground/60'}`} />
+            <span className={`h-1.5 w-1.5 rounded-full ${enableWsListener ? 'bg-emerald-400' : 'bg-white/30'}`} />
             {enableWsListener ? 'MCP connected' : 'Enable MCP'}
           </button>
         </div>

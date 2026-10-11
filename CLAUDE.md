@@ -14,17 +14,17 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 
 ## Structure
 - `app/globals.css`: Tailwind v4 + shadcn color tokens; one file controls the whole theme
-- `app/layout.tsx`: fonts (Space Grotesk UI, JetBrains Mono code) and dark mode on `<html>`
+- `app/layout.tsx`: fonts (system font / SF Pro for UI like DialKit, JetBrains Mono code) and dark mode on `<html>`
 - `app/project/[id]/page.tsx`: the editor page layout (sidebar, code column, preview)
 - `components/editor-ui/`: Editor.tsx (Monaco, the one in use), CodeEditor.tsx (older unused Monaco wrapper), Preview.tsx, CodePreview.tsx, Console.tsx, WebSocketListener.tsx
 - `lib/monaco-theme.ts`: “studio” Monaco theme; hex values mirror the dark studio tokens
 
 ## Design so far
-- Visual language uses DialKit's exact dark tokens: page #141414, panels #212121 (= --dial-glass-bg), menus #2a2a2a, borders 10% white, text 95% / secondary 60% white, fills 5% (rest) / 10% (hover) / 11% (active), 13px/500 type, 8px control radius, almost no divider lines. Amber (#f5a524) is the only accent: running dot, MCP-connected state, Run button, code keywords
+- Visual language uses DialKit's exact dark tokens: page #141414, panels #212121 (= --dial-glass-bg), menus #2a2a2a, borders 10% white, text 95% / secondary 60% white, fills 5% (rest) / 10% (hover) / 11% (active), 13px/500 type, 8px control radius, almost no divider lines. White is the accent, as in DialKit (primary = #fff on #212121 text): Run and New buttons. Status dots are emerald (sketch running, MCP connected). No amber
 - Layout: floating rounded `panel`s (custom `@utility panel` in globals.css: #212121, 12px radius, 10% white border) with 8px gaps on the near-black page. Header is borderless; editable project name lives there
 - Preview should be fully black (sketch style.css is black; panel bg-white → bg-black)
 - Code column is half width, capped at 400px (md:max-w-[400px]); preview takes the rest
-- Code colors: amber keywords, warm sand strings, muted italic comments; Monaco bg matches panel (#212121)
+- Code colors: soft lavender keywords, sage strings, sand numbers, light blue types, gray italic comments; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
 
 ## Sketch dials (DialKit)
