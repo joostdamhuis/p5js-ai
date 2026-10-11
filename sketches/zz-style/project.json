@@ -1,21 +1,24 @@
 {
-  "id": "zz-dock3",
-  "name": "zz dock3",
+  "id": "zz-style",
+  "name": "zz style",
   "lastModified": 1,
   "activeFile": "s",
   "openTabs": [
-    "s"
+    "s",
+    "h"
   ],
-  "controls": {
-    "Size": 160,
-    "Ink": "#c6f000"
-  },
   "fonts": [],
   "files": [
     {
       "id": "s",
       "name": "sketch.js",
       "type": "js",
+      "lastModified": 1
+    },
+    {
+      "id": "h",
+      "name": "index.html",
+      "type": "html",
       "lastModified": 1
     }
   ]
