@@ -511,6 +511,41 @@ export default function ProjectPage() {
     />
   );
 
+  // Under the export items in the dock's More menu
+  const moreMenuItems = (
+    <>
+          {/* Same layout as the other rows: icon, label, and a check on the right when on */}
+          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowConsole(!showConsole); }}>
+            <SquareTerminal className="mr-2 h-4 w-4" />
+            Console
+            {showConsole && <Check className="ml-auto h-4 w-4" />}
+          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <SunMoon className="mr-2 h-4 w-4" />
+              Appearance: {appearance === 'auto' ? 'Auto' : appearance === 'dark' ? 'Dark' : 'Light'}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="w-56">
+              <DropdownMenuRadioGroup value={appearance} onValueChange={(v) => chooseAppearance(v as Appearance)}>
+                <DropdownMenuRadioItem value="auto">Auto · follows the canvas</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={createNewSketch}>
+            <Plus className="mr-2 h-4 w-4" />
+            New sketch
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setLayoutMode('columns')}>
+            <Columns3 className="mr-2 h-4 w-4" />
+            Columns layout
+          </DropdownMenuItem>
+    </>
+  );
+
   const preview = (
     <Preview
       project={project}
@@ -521,6 +556,7 @@ export default function ProjectPage() {
       onControlsChange={handleControlsChange}
       onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
       toolbarTarget={layoutMode === 'dock' ? dockToolsEl : undefined}
+      menuItems={layoutMode === 'dock' ? moreMenuItems : undefined}
       onAmbientColor={appearance === 'auto' ? setAmbient : undefined}
     />
   );
@@ -675,49 +711,9 @@ export default function ProjectPage() {
                 'panels',
                 <PanelsLeftRight className="w-4 h-4" />
               )}
-              <span ref={setDockToolsEl} className="flex items-center" />
               <ProjectManager currentProject={project} onProjectChange={setProject} compact />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    title="More"
-                    className="h-9 w-9 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="top" align="start" sideOffset={10} className="w-52">
-                  {/* Same layout as the other rows: icon, label, and a check on the right when on */}
-                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowConsole(!showConsole); }}>
-                    <SquareTerminal className="mr-2 h-4 w-4" />
-                    Console
-                    {showConsole && <Check className="ml-auto h-4 w-4" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <SunMoon className="mr-2 h-4 w-4" />
-                      Appearance: {appearance === 'auto' ? 'Auto' : appearance === 'dark' ? 'Dark' : 'Light'}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="w-56">
-                      <DropdownMenuRadioGroup value={appearance} onValueChange={(v) => chooseAppearance(v as Appearance)}>
-                        <DropdownMenuRadioItem value="auto">Auto · follows the canvas</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                  <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={createNewSketch}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New sketch
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setLayoutMode('columns')}>
-                    <Columns3 className="mr-2 h-4 w-4" />
-                    Columns layout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* More menu (export + the items below), rendered by Preview */}
+              <span ref={setDockToolsEl} className="flex items-center" />
             </>
           }
         />

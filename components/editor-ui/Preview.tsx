@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
-import { Download, ChevronDown, Square, Share, Image as ImageIcon, Video, Crop } from 'lucide-react';
+import { Download, ChevronDown, Square, Share, MoreHorizontal, Image as ImageIcon, Video, Crop } from 'lucide-react';
 import { CANVAS_SIZES, getCanvasSize } from '@/lib/canvas-sizes';
 import { fontFamily, fontUrl } from '@/lib/projects';
 import { buildFramerComponent } from '@/lib/framer-export';
@@ -248,9 +248,11 @@ interface PreviewProps {
   onAmbientColor?: (rgb: [number, number, number]) => void;
   // Dock layout: render the canvas toolbar into this element instead of on the canvas
   toolbarTarget?: HTMLElement | null;
+  // Dock: the page's own menu items (Console, Appearance…), shown under the export items
+  menuItems?: React.ReactNode;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, isPaused = false, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, isPaused = false, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor, menuItems }: PreviewProps) => {
   const size = getCanvasSize(project.canvasSize);
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
@@ -663,8 +665,9 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     setTimeout(() => setRecordNote(''), 6000);
   };
 
-  // Dock: one Export button (a red timer while recording) holding everything
-  const dockExport = recording ? (
+  // Dock: one More menu with the export items and the page's items, plus a red
+  // timer next to it while recording
+  const recordTimer = recording && (
     <button
       onClick={() => postToSketch({ type: 'recordStop' })}
       title="Stop and download the video"
@@ -674,24 +677,28 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       {formatElapsed(now - recording.since)}
       {recording.seconds ? ` / ${formatElapsed(recording.seconds * 1000)}` : ''}
     </button>
-  ) : (
+  );
+
+  const dockExport = (
+    <>
+    {recordTimer}
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          title="Export"
-          aria-label="Export"
+          title="More"
+          aria-label="More"
           className="h-9 w-9 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
         >
-          <Share className="h-4 w-4" />
+          <MoreHorizontal className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="start" sideOffset={10} className="w-56">
+      <DropdownMenuContent side="top" align="end" sideOffset={10} className="w-56">
         <DropdownMenuItem onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}>
           <ImageIcon className="mr-2 h-4 w-4" />
           Image (PNG)
         </DropdownMenuItem>
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
+          <DropdownMenuSubTrigger disabled={!!recording}>
             <Video className="mr-2 h-4 w-4" />
             Video
           </DropdownMenuSubTrigger>
@@ -722,8 +729,11 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
+        {menuItems && <DropdownMenuSeparator />}
+        {menuItems}
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 
   // Toolbar buttons: dark chips on the canvas, plain buttons inside the dock
