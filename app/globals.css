@@ -154,10 +154,10 @@
    white on dark panels, black on light ones. */
 .dark {
   --ink: 255 255 255;
-  /* DialKit's colours, a tad lighter: #282828 panels, #313131 menus */
-  --chrome: #282828;
-  --chrome-raised: #313131;
-  --card: #282828;
+  /* DialKit's colours, a tad darker: #1a1a1a panels, #232323 menus */
+  --chrome: #1a1a1a;
+  --chrome-raised: #232323;
+  --card: #1a1a1a;
 }
 
 /* Light panels: switched on automatically over light canvases
