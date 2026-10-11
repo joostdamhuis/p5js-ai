@@ -3,42 +3,42 @@
 // Press R (or change seed) for a new arrangement.
 const dial = dials({
   reds: {
-    from: '#00ff55',
-    via: '#00cc44',
-    to: '#66ff99',
-    background: '#031209',
+    from: '#ff3355',
+    via: '#cc1133',
+    to: '#ff7a99',
+    background: '#120305',
   },
   bars: {
-    rows: [12, 2, 60, 1],
-    minWidth: [40, 4, 600, 1],
-    maxWidth: [320, 4, 1200, 1],
-    gap: [6, 0, 40, 1],
-    radius: [6, 0, 60, 1],
-    margin: [24, 0, 200, 1], // top and bottom only
-    seed: [1, 1, 999, 1],
+    rows: [24, 2, 60, 1],
+    minWidth: [356, 4, 600, 1],
+    maxWidth: [4, 4, 1200, 1],
+    gap: [0, 0, 40, 1],
+    radius: [0, 0, 60, 1],
+    margin: [8, 0, 200, 1], // top and bottom only
+    seed: [50, 1, 999, 1],
   },
   motion: {
-    speed: [0.3, 0, 3, 0.01],
-    slide: [40, 0, 400, 1], // pixels per second the rows drift
-    rowOffset: [0.08, 0, 0.5, 0.01],
-    repeats: [1, 0.25, 4, 0.05],
-    breathe: [0.25, 0, 1, 0.01], // gentle height pulse per bar
+    speed: [1.33, 0, 3, 0.01],
+    slide: [237, 0, 400, 1], // pixels per second the rows drift
+    rowOffset: [0.18, 0, 0.5, 0.01],
+    repeats: [0.25, 0.25, 4, 0.05],
+    breathe: [0, 0, 1, 0.01], // gentle height pulse per bar
   },
   cursor: {
-    reach: [240, 20, 900, 1], // how far the cursor's influence spreads
-    swell: [0.9, 0, 2.5, 0.01], // extra height for bars under the cursor
-    drag: [1, 0, 4, 0.01], // how much moving the cursor pushes rows
-    shift: [0.25, 0, 1, 0.01], // colour shift near the cursor
-    ease: [0.15, 0.01, 1, 0.01], // how quickly the effect follows the cursor
+    reach: [20, 20, 900, 1], // how far the cursor's influence spreads
+    swell: [0, 0, 2.5, 0.01], // extra height for bars under the cursor
+    drag: [0, 0, 4, 0.01], // how much moving the cursor pushes rows
+    shift: [0, 0, 1, 0.01], // colour shift near the cursor
+    ease: [0.01, 0.01, 1, 0.01], // how quickly the effect follows the cursor
   },
   finish: {
-    sheen: [0.22, 0, 1, 0.01], // light on top, shade underneath
-    glow: [18, 0, 80, 1], // soft light around bars near the cursor
-    vignette: [0.55, 0, 1, 0.01],
+    sheen: [0, 0, 1, 0.01], // light on top, shade underneath
+    glow: [0, 0, 80, 1], // soft light around bars near the cursor
+    vignette: [0, 0, 1, 0.01],
   },
 });
 
-const STOPS = 12; // colour samples per rectangle
+const STOPS = 1; // colour samples per rectangle
 let layout = [];
 let layoutKey = '';
 let offsets = []; // per row: { pos, push }

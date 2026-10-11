@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "Gradient",
-  "lastModified": 1791734368458,
+  "lastModified": 1791734980376,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -26,32 +26,32 @@
     "motion": {
       "speed": 1.33,
       "slide": 237,
-      "rowOffset": 0.25,
-      "repeats": 1.7,
-      "breathe": 0.25
+      "rowOffset": 0.18,
+      "repeats": 0.25,
+      "breathe": 0
     },
     "bars": {
-      "rows": 17,
+      "rows": 24,
       "minWidth": 356,
-      "maxWidth": 380,
-      "gap": 3,
-      "radius": 24,
-      "margin": 0,
-      "seed": 780
+      "maxWidth": 4,
+      "gap": 0,
+      "radius": 0,
+      "margin": 8,
+      "seed": 50
     },
-    "Stops": 29,
+    "Stops": 1,
     "reds": {
-      "from": "#522520",
-      "via": "#e8ba0f",
-      "to": "#4b1205",
-      "background": "#120203"
+      "from": "#ff3355",
+      "via": "#cc1133",
+      "to": "#ff7a99",
+      "background": "#120305"
     },
     "cursor": {
-      "reach": 478,
-      "swell": 1.58,
-      "drag": 1.57,
-      "shift": 0.17,
-      "ease": 0.62
+      "reach": 20,
+      "swell": 0,
+      "drag": 0,
+      "shift": 0,
+      "ease": 0.01
     },
     "greens": {
       "from": "#1fd655",
@@ -72,9 +72,9 @@
       "background": "#000000"
     },
     "finish": {
-      "sheen": 0.22,
-      "glow": 18,
-      "vignette": 0.55
+      "sheen": 0,
+      "glow": 0,
+      "vignette": 0
     }
   },
   "canvasSize": "fit",
@@ -84,7 +84,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791734312285
+      "lastModified": 1791734969901
     },
     {
       "id": "index",

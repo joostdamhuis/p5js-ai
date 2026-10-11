@@ -1,7 +1,7 @@
 // Kinetic Type: rows of a word brought to life by different animations.
 // Pick an animation, type your own word and shape the motion in the Controls panel.
 const dial = dials({
-  word: 'KINETIC',
+  word: 'joost damhuis',
   animation: {
     type: 'select',
     options: ['wave', 'ripple', 'bounce', 'spin', 'breathe', 'scatter'],
@@ -11,19 +11,19 @@ const dial = dials({
     shape: { type: 'select', options: ['sine', 'triangle', 'square', 'eased'], default: 'sine' },
     // Curve for the 'eased' shape: how each letter travels through its swing
     ease: { type: 'easing', duration: 1, ease: [0.65, 0, 0.35, 1] },
-    speed: [1.2, 0, 5, 0.01],
-    amount: [0.6, 0, 2, 0.01],
-    bob: [12, 0, 120, 1],
+    speed: [1, 0, 5, 0.01],
+    amount: [0.4, 0, 2, 0.01],
+    bob: [120, 0, 120, 1],
     sway: [0, 0, 45, 1],
-    letterOffset: [0.45, 0, 2, 0.01],
-    rowOffset: [0.6, 0, 2, 0.01],
+    letterOffset: [0.33, 0, 2, 0.01],
+    rowOffset: [1.7, 0, 2, 0.01],
     reverse: false,
   },
 });
 
 const SIZE = 73;
-const ROWS = 7;
-const INK = '#ffffff';
+const ROWS = 3;
+const INK = '#f0efef';
 const PAPER = '#000000';
 
 // One cycle as a value from -1 to 1
