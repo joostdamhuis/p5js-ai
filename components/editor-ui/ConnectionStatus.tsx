@@ -6,7 +6,8 @@ interface ConnectionStatusProps {
   enabled: boolean;
   onEnabledChange: (enabled: boolean) => void;
   status: McpStatus;
-  // Dock layout: a round, translucent pill like the rest of the floating chrome
+  // Inside the name pill: just the status dot as a 40px button; the popup opens
+  // under the pill (whose box it positions against)
   pill?: boolean;
   // Popup width, so it can match the panel below it (default 320px)
   popupWidth?: number;
@@ -66,25 +67,26 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill, popupWidth =
   ];
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className={pill ? undefined : 'relative'}>
       <button
         onClick={() => setOpen(!open)}
-        title="Claude connection"
+        title={pill ? label.text : 'Claude connection'}
+        aria-label="Claude connection"
         aria-expanded={open}
         className={cn(
           'flex items-center gap-2 text-[13px] font-medium transition-colors',
           pill
-            ? 'dial-surface h-12 px-4 ' + (open ? '!bg-[var(--chrome-raised)]' : 'hover:!bg-[var(--chrome-raised)]')
+            ? 'h-10 w-10 justify-center rounded-[10px] ' + (open ? 'bg-[rgb(var(--ink)/0.11)]' : 'hover:bg-[rgb(var(--ink)/0.1)]')
             : 'h-8 px-3 rounded-lg ' + (open ? 'bg-[rgb(var(--ink)/0.11)]' : 'bg-[rgb(var(--ink)/0.05)] hover:bg-[rgb(var(--ink)/0.1)]'),
           'text-foreground'
         )}
       >
         <span className={cn('h-1.5 w-1.5 rounded-full', label.dot)} />
-        {label.text}
+        {pill ? <span className="sr-only">{label.text}</span> : label.text}
       </button>
 
       {open && (
-        <div className="dial-surface absolute right-0 top-12 z-50 !bg-[var(--chrome)] p-3" style={{ width: popupWidth }}>
+        <div className={cn('dial-surface absolute z-50 !bg-[var(--chrome)] p-3', pill ? '-left-px top-[calc(100%+12px)]' : 'right-0 top-12')} style={{ width: popupWidth }}>
           <div className="flex items-center justify-between gap-3 pb-3">
             <div>
               <div className="text-[13px] font-semibold">Let Claude control the editor</div>

@@ -592,7 +592,7 @@ export default function ProjectPage() {
     <div className="h-screen relative bg-black overflow-hidden">
       <div className="absolute inset-0">{preview}</div>
 
-      {/* Top corners */}
+      {/* Top left: back, name and Claude's connection */}
       <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-12 px-1">
         <button
           onClick={handleBackToDashboard}
@@ -608,8 +608,8 @@ export default function ProjectPage() {
           title="Rename project"
           spellCheck={false}
         />
-      </div>
-      <div className="absolute top-3 right-3 z-20">
+        {/* Claude connection: a status dot; click for details */}
+        <div className="mx-1 h-5 w-px bg-[rgb(var(--ink)/0.12)]" />
         <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill popupWidth={controlsWidth} />
       </div>
 
