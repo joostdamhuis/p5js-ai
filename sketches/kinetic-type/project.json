@@ -1,7 +1,7 @@
 {
   "id": "project-1791712683983",
   "name": "Kinetic Type",
-  "lastModified": 1791718193321,
+  "lastModified": 1791722668993,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -9,30 +9,31 @@
     "style"
   ],
   "controls": {
-    "word": "joost damhuis",
+    "word": "joost",
     "animation": "wave",
     "motion": {
-      "shape": "square",
-      "speed": 1,
-      "amount": 0,
-      "bob": 53,
+      "shape": "sine",
+      "speed": 0.8,
+      "amount": 2,
+      "bob": 0,
       "sway": 0,
-      "letterOffset": 0.51,
-      "rowOffset": 0,
-      "reverse": false
+      "letterOffset": 0.45,
+      "rowOffset": 0.6,
+      "reverse": true
     },
-    "Size": 87,
+    "Size": 162,
     "Rows": 1,
-    "Ink": "#000000",
-    "Paper": "#46cc00"
+    "Ink": "#bbec00",
+    "Paper": "#000000"
   },
   "canvasSize": "1080x1080",
+  "fonts": [],
   "files": [
     {
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791714605606
+      "lastModified": 1791722536265
     },
     {
       "id": "index",

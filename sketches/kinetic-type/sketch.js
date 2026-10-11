@@ -100,3 +100,9 @@ function draw() {
     }
   }
 }
+
+// One full cycle of the wave, in seconds: Record → One perfect loop uses this.
+// (spin and scatter never repeat exactly, so they won't loop seamlessly.)
+function loopLength() {
+  return 2 / max(0.01, dial.motion.speed);
+}
