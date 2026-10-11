@@ -4,23 +4,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Editor from '@/components/editor-ui/Editor';
 import Preview from '@/components/editor-ui/Preview';
-import FileExplorer from '@/components/editor-ui/FileExplorer';
 import ProjectManager from '@/components/editor-ui/ProjectManager';
 import WebSocketListener, { McpStatus } from '@/components/editor-ui/WebSocketListener';
 import Tabs from '@/components/editor-ui/Tabs';
 import Console, { LogMessage } from '@/components/editor-ui/Console';
 import ResizeHandle from '@/components/editor-ui/ResizeHandle';
 import ConnectionStatus from '@/components/editor-ui/ConnectionStatus';
+import FontsMenu from '@/components/editor-ui/FontsMenu';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, saveProject, cacheProject } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelLeft, PanelBottom, Columns3, Folder, Code2, SquareTerminal, SlidersHorizontal, Play } from 'lucide-react';
+import { ArrowLeft, PanelBottom, Columns3, Code2, SquareTerminal, SlidersHorizontal, Play } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
 const LAYOUT_KEY = 'p5_layout';
 const MCP_KEY = 'p5_mcp';
-const LAYOUT_DEFAULTS = { consoleHeight: 200, sidebarWidth: 224, codeWidth: 400, controlsWidth: 280 };
+const LAYOUT_DEFAULTS = { consoleHeight: 200, codeWidth: 400, controlsWidth: 280 };
 
 export default function ProjectPage() {
   const params = useParams();
@@ -28,16 +28,14 @@ export default function ProjectPage() {
   const projectId = params.id as string;
 
   const [project, setProject] = useState<Project | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   // Claude (MCP) is on by default; turning it off is remembered
   const [enableWsListener, setEnableWsListener] = useState(true);
   const [consoleMessages, setConsoleMessages] = useState<LogMessage[]>([]);
   const [consoleHeight, setConsoleHeight] = useState(LAYOUT_DEFAULTS.consoleHeight);
-  const [sidebarWidth, setSidebarWidth] = useState(LAYOUT_DEFAULTS.sidebarWidth);
   const [codeWidth, setCodeWidth] = useState(LAYOUT_DEFAULTS.codeWidth);
   const [controlsWidth, setControlsWidth] = useState(LAYOUT_DEFAULTS.controlsWidth);
   // Layout: 'columns' (panels side by side) or 'dock' (full canvas, floating panels, one dock)
-  const [layoutMode, setLayoutMode] = useState<'columns' | 'dock'>('columns');
+  const [layoutMode, setLayoutMode] = useState<'columns' | 'dock'>('dock');
   const [showCode, setShowCode] = useState(true);
   const [showConsole, setShowConsole] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -72,10 +70,9 @@ export default function ProjectPage() {
     try {
       const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || '{}');
       if (saved.consoleHeight) setConsoleHeight(saved.consoleHeight);
-      if (saved.sidebarWidth) setSidebarWidth(saved.sidebarWidth);
       if (saved.codeWidth) setCodeWidth(saved.codeWidth);
       if (saved.controlsWidth) setControlsWidth(saved.controlsWidth);
-      if (saved.layoutMode === 'dock' || saved.layoutMode === 'columns') setLayoutMode(saved.layoutMode);
+      if (saved.layout === 'dock' || saved.layout === 'columns') setLayoutMode(saved.layout);
       if (typeof saved.showCode === 'boolean') setShowCode(saved.showCode);
       if (typeof saved.showConsole === 'boolean') setShowConsole(saved.showConsole);
       if (typeof saved.showControls === 'boolean') setShowControls(saved.showControls);
@@ -84,9 +81,9 @@ export default function ProjectPage() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, sidebarWidth, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls }));
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, codeWidth, controlsWidth, layout: layoutMode, showCode, showConsole, showControls }));
     } catch {}
-  }, [consoleHeight, sidebarWidth, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls]);
+  }, [consoleHeight, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls]);
 
   // Load the project from the sketches folder (falls back to this browser's copy)
   useEffect(() => {
@@ -320,7 +317,7 @@ export default function ProjectPage() {
   const handleLayoutControl = (action: 'sidebar' | 'projectName', data?: any) => {
     switch (action) {
       case 'sidebar':
-        setSidebarOpen(!sidebarOpen);
+        setShowCode(prev => !prev);
         break;
       case 'projectName':
         if (typeof data === 'string' && project) {
@@ -417,10 +414,6 @@ export default function ProjectPage() {
     </Button>
   );
 
-  const filesPanel = (
-    <FileExplorer project={project} onProjectChange={setProject} onFileSelect={handleFileSelect} />
-  );
-
   const codePanel = (
     <>
       <Tabs
@@ -438,7 +431,7 @@ export default function ProjectPage() {
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground/60">
-          Open a file from the sidebar
+          Open a file
         </div>
       )}
     </>
@@ -535,9 +528,6 @@ export default function ProjectPage() {
 
         {/* Left: files and code + console */}
         <div className="absolute left-2 top-14 bottom-20 z-10 flex gap-2 pointer-events-none">
-          {sidebarOpen && (
-            <aside className={`${floating} pointer-events-auto`} style={{ width: sidebarWidth }}>{filesPanel}</aside>
-          )}
           {(showCode || showConsole) && (
             <div className="flex flex-col min-h-0 pointer-events-auto" style={{ width: codeWidth }}>
               {showCode && <div className={`${floating} flex-1 min-h-0`}>{codePanel}</div>}
@@ -558,10 +548,10 @@ export default function ProjectPage() {
 
         {/* The dock */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-1.5 rounded-2xl bg-[#212121]/90 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          {dockToggle(sidebarOpen, () => setSidebarOpen(!sidebarOpen), 'files', <Folder className="w-4 h-4" />)}
           {dockToggle(showCode, () => setShowCode(!showCode), 'code', <Code2 className="w-4 h-4" />)}
           {dockToggle(showConsole, () => setShowConsole(!showConsole), 'console', <SquareTerminal className="w-4 h-4" />)}
           {dockToggle(showControls, () => setShowControls(!showControls), 'controls', <SlidersHorizontal className="w-4 h-4" />)}
+          <FontsMenu project={project} onProjectChange={setProject} />
           {divider}
           <button
             onClick={isRunning ? handleStop : handleStart}
@@ -590,19 +580,11 @@ export default function ProjectPage() {
       <header className="h-12 flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-0.5 min-w-0">
           {backButton}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            title={sidebarOpen ? 'Hide files' : 'Show files'}
-            className={sidebarOpen ? 'text-foreground' : undefined}
-          >
-            <PanelLeft className="w-4 h-4" />
-          </Button>
           <div className="ml-1.5">{nameInput}</div>
         </div>
 
         <div className="flex items-center gap-1.5">
+          <FontsMenu project={project} onProjectChange={setProject} />
           <ProjectManager currentProject={project} onProjectChange={setProject} />
           {layoutSwitch}
           {connection}
@@ -610,24 +592,6 @@ export default function ProjectPage() {
       </header>
 
       <div className="flex flex-1 min-h-0">
-        {/* File Explorer Sidebar */}
-        {sidebarOpen && (
-          <>
-            <aside className="panel shrink-0 hidden md:flex flex-col" style={{ width: sidebarWidth }}>
-              {filesPanel}
-            </aside>
-            <ResizeHandle
-              axis="x"
-              value={sidebarWidth}
-              onChange={setSidebarWidth}
-              min={160}
-              max={420}
-              onReset={() => setSidebarWidth(LAYOUT_DEFAULTS.sidebarWidth)}
-              className="hidden md:flex"
-            />
-          </>
-        )}
-
         {/* Main content */}
         <div className="flex-1 flex flex-col md:flex-row gap-2 md:gap-0 min-w-0 min-h-0">
           {/* Editor Section with Console */}

@@ -19,8 +19,9 @@ Local Next.js app for live p5.js sketching, controlled by Claude through an MCP.
 - Visual language uses DialKit's exact dark tokens: page #141414, panels #212121 (= --dial-glass-bg), menus #2a2a2a, borders 10% white, text 95% / secondary 60% white, fills 5% (rest) / 10% (hover) / 11% (active), 13px/500 type, 8px control radius, almost no divider lines. White is the accent, as in DialKit (primary = #fff on #212121 text): Run and New buttons. Status dots are emerald (sketch running, MCP connected). No amber
 - Layout: floating rounded `panel`s (custom `@utility panel` in globals.css: #212121, 12px radius, 10% white border) with 8px gaps on the near-black page. Header is borderless; editable project name lives there
 - Preview should be fully black (sketch style.css is black; panel bg-white → bg-black)
-- Two layouts, switched with the layout button (saved in `p5_layout`): `columns` (below) and `dock` (canvas fills the window; Files, Code, Console, Controls float as translucent panels toggled from a bottom-centre dock that also holds Run/Stop, the canvas toolbar via a portal (`toolbarTarget`), Save/New and the layout switch). Both layouts render the same panel pieces from page.tsx
-- Columns: Files (collapsed by default, 224px) | code (400px) | preview (flex) | Controls (280px); all resizable via `ResizeHandle` in the 8px gaps (double-click resets), sizes kept in localStorage `p5_layout`
+- Two layouts, switched with the layout button (saved as `layout` in `p5_layout`); `dock` is the default. `dock`: canvas fills the window; Code, Console, Controls float as translucent panels toggled from a bottom-centre dock that also holds Run/Stop, the canvas toolbar via a portal (`toolbarTarget`), Save/New and the layout switch). Both layouts render the same panel pieces from page.tsx
+- No Files panel (removed). Fonts live in the "Aa" menu (FontsMenu.tsx) in the dock / top bar
+- Columns layout: code (400px) | preview (flex) | Controls (280px); resizable via `ResizeHandle` in the 8px gaps (double-click resets), sizes kept in localStorage `p5_layout`
 - Preview centres every sketch: `frameFit` in Preview.tsx (body flex-centre, canvas max 100% + object-fit contain, auto resizeCanvas for full-window sketches without windowResized). Prefer createCanvas(windowWidth, windowHeight)
 - MCP connection status lives in the header MCP button (connected / Connecting… / offline); WebSocketListener renders nothing
 
@@ -58,7 +59,7 @@ const dial = dials({
 - Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 
 ## Fonts and loops
-- Fonts: upload .ttf/.otf/.woff/.woff2 in the Files panel; stored in the sketch folder (committed), listed in project.json `fonts`, served by `/api/sketches/[id]/fonts/[name]`. Preview embeds them as data: URLs in @font-face (the sandboxed frame can't fetch them). Use `textFont('<file name without extension>')`; get_sketch lists them
+- Fonts: upload .ttf/.otf/.woff/.woff2 via the "Aa" menu; stored in the sketch folder (committed), listed in project.json `fonts`, served by `/api/sketches/[id]/fonts/[name]`. Preview embeds them as data: URLs in @font-face (the sandboxed frame can't fetch them). Use `textFont('<file name without extension>')`; get_sketch lists them
 - Perfect loops: animated sketches should define `function loopLength()` returning one cycle in seconds (e.g. `2 / speed` when the phase is `millis()/1000 * speed * PI`). Record → One perfect loop records exactly that long; also Until I stop, 3/5/10 seconds
 - Only the editor tab used last obeys Claude's commands and answers get_sketch (`p5_active_editor_tab` in localStorage)
 - Saving keeps controls/canvasSize/fonts already on disk when a client doesn't send them
