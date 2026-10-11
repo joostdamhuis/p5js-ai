@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "Untitled Project 4",
-  "lastModified": 1791729398216,
+  "lastModified": 1791729480755,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -35,7 +35,7 @@
       "maxWidth": 813,
       "gap": 0,
       "radius": 0,
-      "margin": 200,
+      "margin": 0,
       "seed": 396
     },
     "Stops": 1
