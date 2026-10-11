@@ -13,7 +13,6 @@ import ConnectionStatus from '@/components/editor-ui/ConnectionStatus';
 import FontsMenu, { FontsSubmenu } from '@/components/editor-ui/FontsMenu';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuRadioGroup,
@@ -28,7 +27,7 @@ import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Square, MoreHorizontal, Plus, SunMoon } from 'lucide-react';
+import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Square, MoreHorizontal, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
@@ -674,9 +673,12 @@ export default function ProjectPage() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="end" sideOffset={10} className="w-52">
-              <DropdownMenuCheckboxItem checked={showConsole} onCheckedChange={(v) => setShowConsole(!!v)}>
+              {/* Same layout as the other rows: icon, label, and a check on the right when on */}
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowConsole(!showConsole); }}>
+                <SquareTerminal className="mr-2 h-4 w-4" />
                 Console
-              </DropdownMenuCheckboxItem>
+                {showConsole && <Check className="ml-auto h-4 w-4" />}
+              </DropdownMenuItem>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <SunMoon className="mr-2 h-4 w-4" />

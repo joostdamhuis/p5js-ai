@@ -139,7 +139,7 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
                     <img
                       src={`/api/sketches/${encodeURIComponent(project.id)}/thumbnail?v=${project.lastModified}`}
                       alt=""
-                      className="absolute inset-0 h-full w-full object-contain bg-black"
+                      className="absolute inset-0 h-full w-full object-cover"
                       onError={() => setMissingThumbs(prev => new Set(prev).add(project.id))}
                     />
                   )}

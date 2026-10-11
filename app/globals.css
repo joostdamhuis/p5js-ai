@@ -203,12 +203,11 @@ html.dark[data-surface="light"] .dial-surface {
 }
 /* Light/dark switches fade along with the tint */
 .panel, .dial-surface {
-  transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease,
-    /* tiny bounce: a small overshoot that settles back */
-    transform 0.35s cubic-bezier(0.34, 1.25, 0.64, 1);
+  /* colours switch instantly; only the slide animates, with a tiny bounce */
+  transition: transform 0.35s cubic-bezier(0.34, 1.25, 0.64, 1);
 }
 :root {
-  transition: --ambient 0.1s ease;
+  transition: none;
   /* Apple-style glass: the colour comes from what's behind, blurred and
      slightly saturated, never mixed into the panel itself */
   --glass-blur: blur(30px);
@@ -275,12 +274,7 @@ html, body {
   --dial-glass-bg: transparent;
 }
 
-/* Fade DialKit's pinned header with the panel when light/dark or the tint changes */
-.dialkit-root[data-mode="inline"] .dialkit-panel-header,
-.dialkit-root[data-mode="inline"] .dialkit-panel-header::before,
-.dialkit-root[data-mode="inline"] .dialkit-folder-header::before {
-  transition: background-color 0.1s ease;
-}
+
 
 /* No shadows on DialKit's own surfaces either */
 .dialkit-root {

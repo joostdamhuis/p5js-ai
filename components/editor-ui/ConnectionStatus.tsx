@@ -88,7 +88,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill, popupWidth =
           <div className="flex items-center justify-between gap-3 pb-3">
             <div>
               <div className="text-[13px] font-semibold">Let Claude control the editor</div>
-              <div className="text-[12px] text-muted-foreground mt-0.5">Claude can write and run sketches here</div>
+              <div className="text-[12px] text-muted-foreground mt-0.5">Claude writes and runs your sketches</div>
             </div>
             <button
               role="switch"
