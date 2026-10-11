@@ -152,6 +152,10 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     iframeRef.current?.contentWindow?.postMessage({ source: 'p5js-editor-dials', ...message }, '*');
   }, []);
 
+  // Only the files' names and contents matter for the running sketch, so
+  // switching tabs or renaming the project doesn't restart the animation
+  const filesKey = JSON.stringify(project.files.map(f => [f.name, f.content]));
+
   useEffect(() => {
     if (iframeRef.current && isRunning) {
       updateIframe();
@@ -161,7 +165,8 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       dialConfigJson.current = null;
       setDialConfig(null);
     }
-  }, [project, isRunning]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filesKey, isRunning]);
 
   // Show the dials panel for whatever controls the running sketch declares
   useEffect(() => {
