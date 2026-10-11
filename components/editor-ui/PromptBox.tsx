@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Square, Undo2, X } from 'lucide-react';
+import { ArrowUp, Check, ChevronDown, Square, Undo2, X } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Project, ProjectFile } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +18,13 @@ type State =
   | { kind: 'done'; text: string; before: ProjectFile[] }
   | { kind: 'error'; text: string };
 
+const MODELS = [
+  { id: 'claude-opus-5-5', name: 'Opus 5.5', hint: 'Most capable' },
+  { id: 'claude-sonnet-5-5', name: 'Sonnet 5.5', hint: 'Fast and smart' },
+  { id: 'claude-haiku-5-5', name: 'Haiku 5.5', hint: 'Quickest' },
+];
+const MODEL_KEY = 'p5_prompt_model';
+
 const historyKey = (id: string) => `p5_prompts_${id}`;
 const readHistory = (id: string): Turn[] => {
   try { return JSON.parse(localStorage.getItem(historyKey(id)) || '[]'); } catch { return []; }
@@ -33,6 +41,14 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
   const abortRef = useRef<AbortController | null>(null);
   const historyIndex = useRef(-1);
   const working = state.kind === 'working';
+  const [model, setModel] = useState(MODELS[0].id);
+  useEffect(() => {
+    try { const saved = localStorage.getItem(MODEL_KEY); if (saved && MODELS.some(m => m.id === saved)) setModel(saved); } catch {}
+  }, []);
+  const chooseModel = (id: string) => {
+    setModel(id);
+    try { localStorage.setItem(MODEL_KEY, id); } catch {}
+  };
 
   // ⌘K jumps to the box
   useEffect(() => {
@@ -65,6 +81,7 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
           files: project.files.map(f => ({ name: f.name, content: f.content })),
           errors: errors.slice(-10),
           history,
+          model,
         }),
       });
       if (!res.body) throw new Error('No response');
@@ -147,6 +164,27 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
           disabled={working}
           className="flex-1 min-w-0 h-9 px-2.5 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              title="Model"
+              disabled={working}
+              className="h-9 shrink-0 flex items-center gap-1 px-2 rounded-[9px] text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
+            >
+              {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
+              <ChevronDown className="h-3 w-3" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="end" sideOffset={10} className="w-52">
+            {MODELS.map(m => (
+              <DropdownMenuItem key={m.id} onSelect={() => chooseModel(m.id)} className="flex items-center gap-2">
+                <span className="flex-1">{m.name}</span>
+                <span className="text-[12px] text-muted-foreground">{m.hint}</span>
+                <Check className={cn('h-3.5 w-3.5', m.id === model ? 'opacity-100' : 'opacity-0')} />
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <button
           title={working ? 'Stop (Esc)' : 'Send (Enter)'}
           onClick={working ? () => abortRef.current?.abort() : send}

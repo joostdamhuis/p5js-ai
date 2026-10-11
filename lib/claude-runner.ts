@@ -36,7 +36,11 @@ export interface PromptContext {
   files: { name: string; content: string }[];
   errors: string[];
   history: { prompt: string; reply: string }[];
+  model?: string;
 }
+
+// Models the prompt box can pick (anything else falls back to Claude Code's default)
+export const MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'];
 
 const MCP_SERVER = path.join(process.cwd(), 'p5js-mcp-server-ts/dist/index.js');
 
@@ -91,6 +95,7 @@ export function runPrompt(ctx: PromptContext, onEvent: (e: RunEvent) => void): C
     '--allowedTools', 'mcp__p5js-editor',
     '--disallowedTools', 'Bash,Edit,Write,NotebookEdit,WebFetch,WebSearch,Task',
     '--append-system-prompt', systemPrompt(ctx),
+    ...(ctx.model && MODELS.includes(ctx.model) ? ['--model', ctx.model] : []),
   ];
 
   const child = spawn(bin, args, { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'], env: process.env });
