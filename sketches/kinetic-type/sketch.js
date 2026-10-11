@@ -19,7 +19,7 @@ const dial = dials({
   },
 });
 
-const SIZE = 96;
+const SIZE = 76;
 const ROWS = 7;
 const INK = '#ffffff';
 const PAPER = '#000000';
