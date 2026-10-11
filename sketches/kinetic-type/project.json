@@ -1,7 +1,7 @@
 {
   "id": "project-1791712683983",
-  "name": "test1",
-  "lastModified": 1791713575037,
+  "name": "Kinetic Type",
+  "lastModified": 1791714628861,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -13,7 +13,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791712573448
+      "lastModified": 1791714605606
     },
     {
       "id": "index",
