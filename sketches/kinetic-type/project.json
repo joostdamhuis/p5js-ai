@@ -1,7 +1,7 @@
 {
   "id": "project-1791712683983",
   "name": "Kinetic Type",
-  "lastModified": 1791728203791,
+  "lastModified": 1791728587526,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -17,24 +17,24 @@
         "type": "easing",
         "duration": 1,
         "ease": [
-          0.65,
+          0.62,
+          0.03,
           0,
-          0.35,
-          1
+          0.61
         ]
       },
-      "speed": 1.2,
-      "amount": 0.6,
-      "bob": 12,
+      "speed": 3.44,
+      "amount": 1.39,
+      "bob": 117,
       "sway": 0,
-      "letterOffset": 0.45,
+      "letterOffset": 1.72,
       "rowOffset": 0.6,
       "reverse": false
     },
     "Size": 73,
     "Rows": 3,
     "Ink": "#f0efef",
-    "Paper": "#d1d1d1"
+    "Paper": "#000000"
   },
   "canvasSize": "fit",
   "fonts": [],
