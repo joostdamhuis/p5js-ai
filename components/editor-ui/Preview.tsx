@@ -1,7 +1,75 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
 import { Project } from '@/lib/types';
 import { LogMessage } from './Console';
+import SketchDials from './SketchDials';
+
+// Gives sketches a global dials(config) that returns a live values object.
+// The config is sent to the editor, which shows a DialKit panel and posts
+// slider values back into the sketch.
+const dialsBridge = `
+  <script>
+    (function() {
+      let dial = null;
+      let onAction = null;
+
+      function defaults(config) {
+        const out = {};
+        for (const key in config) {
+          if (key === '_collapsed') continue;
+          const c = config[key];
+          if (Array.isArray(c)) out[key] = c[0];
+          else if (c && typeof c === 'object') {
+            if (c.type === 'action') continue;
+            if (c.type === 'select') {
+              const first = c.options && c.options[0];
+              out[key] = c.default !== undefined ? c.default : (first && first.value !== undefined ? first.value : first);
+            }
+            else if (c.type === 'color' || c.type === 'text' || c.type === 'image') out[key] = c.default !== undefined ? c.default : '';
+            else if (c.type) out[key] = c;
+            else out[key] = defaults(c);
+          }
+          else out[key] = c;
+        }
+        return out;
+      }
+
+      // Update in place so the sketch's reference to dial stays valid
+      function assign(target, source) {
+        for (const key in source) {
+          if (!(key in target)) continue;
+          const t = target[key];
+          const s = source[key];
+          const isFolder = t && typeof t === 'object' && !t.type && s && typeof s === 'object';
+          if (isFolder) assign(t, s);
+          else target[key] = s;
+        }
+      }
+
+      window.dials = function(config, options) {
+        dial = defaults(config);
+        onAction = options && options.onAction;
+        window.parent.postMessage({ source: 'p5js-dials', type: 'config', config: JSON.parse(JSON.stringify(config)) }, '*');
+        return dial;
+      };
+
+      window.addEventListener('message', function(event) {
+        const data = event.data;
+        if (!data || data.source !== 'p5js-editor-dials') return;
+        if (data.type === 'values' && dial) assign(dial, data.values);
+        if (data.type === 'action') {
+          if (onAction) onAction(data.action);
+          else if (typeof window.dialAction === 'function') window.dialAction(data.action);
+        }
+      });
+
+      window.addEventListener('load', function() {
+        if (!dial) window.parent.postMessage({ source: 'p5js-dials', type: 'none' }, '*');
+      });
+    })();
+  </script>
+`;
 
 interface PreviewProps {
   project: Project;
@@ -13,6 +81,13 @@ interface PreviewProps {
 
 const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true }: PreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [dialConfig, setDialConfig] = useState<DialConfig | null>(null);
+  const dialConfigJson = useRef<string | null>(null);
+  const latestDialValues = useRef<unknown>(null);
+
+  const postToSketch = useCallback((message: Record<string, unknown>) => {
+    iframeRef.current?.contentWindow?.postMessage({ source: 'p5js-editor-dials', ...message }, '*');
+  }, []);
 
   useEffect(() => {
     if (iframeRef.current && isRunning) {
@@ -20,8 +95,38 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     } else if (iframeRef.current && !isRunning) {
       // Clear the iframe when stopped
       iframeRef.current.src = 'about:blank';
+      dialConfigJson.current = null;
+      setDialConfig(null);
     }
   }, [project, isRunning]);
+
+  // Show the dials panel for whatever controls the running sketch declares
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      const data = event.data;
+      if (!data || data.source !== 'p5js-dials') return;
+
+      if (data.type === 'none') {
+        dialConfigJson.current = null;
+        setDialConfig(null);
+      }
+      if (data.type === 'config') {
+        const json = JSON.stringify(data.config);
+        if (json !== dialConfigJson.current) {
+          dialConfigJson.current = json;
+          setDialConfig(data.config);
+        }
+        // The sketch just reloaded: hand it the current slider positions
+        if (latestDialValues.current) {
+          postToSketch({ type: 'values', values: latestDialValues.current });
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [postToSketch]);
 
   const updateIframe = () => {
     if (!iframeRef.current || !isRunning) return;
@@ -172,6 +277,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       htmlContent =
         htmlContent.slice(0, headStartIndex) +
         consoleInterceptor +
+        dialsBridge +
         htmlContent.slice(headStartIndex);
     }
 
@@ -234,6 +340,13 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         title="Preview"
         sandbox="allow-scripts allow-same-origin"
       />
+      {dialConfig && (
+        <SketchDials
+          config={dialConfig}
+          postToSketch={postToSketch}
+          latestValues={latestDialValues}
+        />
+      )}
     </div>
   );
 };
