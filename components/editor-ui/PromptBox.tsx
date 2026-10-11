@@ -40,6 +40,8 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   // Files from before the latest reply, for Undo
   const [undo, setUndo] = useState<ProjectFile[] | null>(null);
   const [focused, setFocused] = useState(false);
+  // The latest reply (or error) is from this visit, so it's worth showing
+  const [fresh, setFresh] = useState(false);
   const [model, setModel] = useState(MODELS[0].id);
   // Reference images for the next prompt
   const [attachments, setAttachments] = useState<{ name: string; dataUrl: string }[]>([]);
@@ -62,6 +64,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   useEffect(() => {
     setTurns(readHistory(project.id));
     setUndo(null);
+    setFresh(false);
   }, [project.id]);
 
   useEffect(() => {
@@ -106,6 +109,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
     setAttachments([]);
     historyIndex.current = -1;
     setUndo(null);
+    setFresh(false);
     setPending({ prompt, status: 'Thinking…' });
 
     const controller = new AbortController();
@@ -150,6 +154,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
     } finally {
       abortRef.current = null;
       setPending(null);
+      setFresh(true);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   };
@@ -178,7 +183,8 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   };
   const clearHistory = () => { setTurns([]); writeHistory(project.id, []); };
   // The card above the bar: what Claude is doing, its latest reply, and recent prompts
-  const showLatest = working || (focused && latest && undo);
+  // While Claude works, the bar itself shows it (thinking icon + status); the card is for results
+  const showLatest = !working && focused && latest && fresh;
   const showRecent = focused && !working && !text && recent.length > 0;
 
   return (
@@ -206,12 +212,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
             <div ref={cardRef} className="dial-surface absolute bottom-[calc(100%+12px)] -left-1 -right-1 p-1 flex flex-col">
               {showLatest && (
                 <div className="min-h-9 px-3 py-2 flex items-center text-[13px] leading-5">
-                  {pending ? (
-                    <span className="flex items-center gap-2.5 text-muted-foreground">
-                      <Typing />
-                      <span className="truncate">{pending.status}</span>
-                    </span>
-                  ) : latest && (
+                  {latest && (
                     <div className="flex flex-1 items-start gap-3">
                       <span className={cn('flex-1 min-w-0', latest.error ? 'text-red-400' : 'text-foreground')}>{latest.reply}</span>
                       {undo && (
@@ -266,12 +267,12 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; inputRef.current?.focus(); }}
         />
         <button
-          title="Attach an image"
+          title={working ? 'Claude is working' : 'Attach an image'}
           onClick={() => fileRef.current?.click()}
           disabled={working}
-          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:opacity-40 transition-colors"
+          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:hover:bg-transparent transition-colors"
         >
-          <Paperclip className="h-4 w-4" />
+          {working ? <Typing /> : <Paperclip className="h-4 w-4" />}
         </button>
         {attachments.map((a, i) => (
           <span key={i} className="h-10 shrink-0 flex items-center gap-1 pl-0.5 pr-1 rounded-[10px] bg-[rgb(var(--ink)/0.1)]">
@@ -295,7 +296,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           onFocus={() => setFocused(true)}
           // Pasting an image attaches it
           onPaste={(e) => { const imgs = Array.from(e.clipboardData.files).filter(f => f.type.startsWith('image/')); if (imgs.length) { e.preventDefault(); addFiles(imgs); } }}
-          placeholder={working ? 'Claude is working…' : 'Ask Claude  ⌘K'}
+          placeholder={pending ? pending.status : 'Ask Claude  ⌘K'}
           disabled={working}
           className="flex-1 min-w-0 ml-1 resize-none self-center py-2.5 bg-transparent placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
