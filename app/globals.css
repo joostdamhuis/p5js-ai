@@ -217,11 +217,12 @@ html.dark[data-surface="light"] .dial-surface {
   --surface-alpha: 70%;
 }
 
+/* Side panels are solid: black over dark canvases, white over light ones.
+   Only the floating chrome (dock, pills, menus) is see-through glass. */
 @utility panel {
-  background-color: color-mix(in srgb, var(--card) var(--surface-alpha), transparent);
+  background-color: var(--card);
   border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
-  backdrop-filter: var(--glass-blur);
   overflow: hidden;
 }
 
