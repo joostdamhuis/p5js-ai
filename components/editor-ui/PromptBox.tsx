@@ -190,7 +190,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
         const to = e.relatedTarget as Node | null;
         if (!to || !(to === inputRef.current || cardRef.current?.contains(to))) setFocused(false);
       }}
-      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(620px,calc(100vw-1.5rem))] flex flex-col gap-2"
+      className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-[min(620px,calc(100vw-1.5rem))] flex flex-col gap-2"
     >
       {(showLatest || showRecent) && (
         <div ref={cardRef} className="dial-surface rounded-[20px] p-1.5 flex flex-col">
