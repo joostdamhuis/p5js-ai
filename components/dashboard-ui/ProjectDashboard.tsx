@@ -73,7 +73,7 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
   const getProjectPreview = (project: Project) => {
     const jsFile = project.files.find(f => f.type === 'js');
     if (jsFile) {
-      const lines = jsFile.content.split('\n').slice(0, 3);
+      const lines = jsFile.content.split('\n').slice(0, 18);
       return lines.join('\n');
     }
     return 'No JavaScript files';
