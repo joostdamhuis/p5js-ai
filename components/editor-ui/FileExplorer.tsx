@@ -11,7 +11,7 @@ import {
   Trash2,
   Download,
   Upload,
-  MoreVertical,
+  MoreHorizontal,
   Edit,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,22 +33,22 @@ interface FileExplorerProps {
 const FileTypeIcon = ({ type }: { type: FileType }) => {
   switch (type) {
     case 'js':
-      return <FileCode className="w-4 h-4 mr-2 text-amber-500" />;
+      return <FileCode className="w-3.5 h-3.5 mr-2 shrink-0 opacity-60" />;
     case 'html':
-      return <FileCode className="w-4 h-4 mr-2 text-blue-500" />;
+      return <FileCode className="w-3.5 h-3.5 mr-2 shrink-0 opacity-60" />;
     case 'css':
-      return <File className="w-4 h-4 mr-2 text-purple-500" />;
+      return <File className="w-3.5 h-3.5 mr-2 shrink-0 opacity-60" />;
     case 'jpg':
     case 'png':
     case 'gif':
-      return <FileImage className="w-4 h-4 mr-2 text-green-500" />;
+      return <FileImage className="w-3.5 h-3.5 mr-2 shrink-0 opacity-60" />;
     case 'mp3':
     case 'wav':
-      return <FileAudio className="w-4 h-4 mr-2 text-orange-500" />;
+      return <FileAudio className="w-3.5 h-3.5 mr-2 shrink-0 opacity-60" />;
     case 'json':
-      return <File className="w-4 h-4 mr-2 text-yellow-500" />;
+      return <File className="w-3.5 h-3.5 mr-2 shrink-0 opacity-60" />;
     default:
-      return <FileText className="w-4 h-4 mr-2 text-gray-500" />;
+      return <FileText className="w-3.5 h-3.5 mr-2 shrink-0 opacity-60" />;
   }
 };
 
@@ -60,14 +60,6 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
 
   const handleFileSelect = (fileId: string) => {
     onFileSelect(fileId);
-  };
-
-  const handleRenameProject = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onProjectChange({
-      ...project,
-      name: e.target.value,
-      lastModified: Date.now()
-    });
   };
 
   const handleAddFile = () => {
@@ -261,12 +253,8 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-3 border-b flex items-center justify-between">
-        <Input
-          value={project.name}
-          onChange={handleRenameProject}
-          className="h-7 text-sm font-medium bg-transparent border-none focus-visible:ring-1"
-        />
+      <div className="flex items-center justify-between h-10 pl-3.5 pr-1.5 shrink-0">
+        <h3 className="text-[13px] font-medium text-muted-foreground">Files</h3>
         <div className="flex items-center">
           <Button
             variant="ghost"
@@ -275,7 +263,7 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
             className="h-7 w-7"
             title="Upload file"
           >
-            <Upload className="h-4 w-4" />
+            <Upload className="h-3.5 w-3.5" />
             <input
               id="file-upload"
               type="file"
@@ -291,31 +279,27 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
             className="h-7 w-7"
             title="Download project"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowNewFileInput(true)}
+            className="h-7 w-7"
+            title="Add new file"
+          >
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="p-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase text-muted-foreground">Files</h3>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowNewFileInput(true)}
-          className="h-6 w-6"
-          title="Add new file"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
-
       {showNewFileInput && (
-        <div className="px-2 pb-2 flex items-center">
+        <div className="px-1.5 pb-1 flex items-center">
           <Input
             value={newFileName}
             onChange={(e) => setNewFileName(e.target.value)}
             placeholder="filename.ext"
-            className="h-7 text-xs"
+            className="h-8 text-[13px] rounded-lg bg-white/[0.05] border-none"
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleAddFile()}
             onBlur={() => {
@@ -326,16 +310,16 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
         </div>
       )}
 
-      <div className="overflow-y-auto flex-1">
+      <div className="overflow-y-auto flex-1 px-1.5 pb-1.5 space-y-px">
         {project.files.map((file) => (
           <div
             key={file.id}
             onClick={() => handleFileSelect(file.id)}
             className={cn(
-              "flex items-center justify-between px-3 py-1.5 cursor-pointer text-sm relative",
+              "group flex items-center justify-between h-8 pl-2.5 pr-1 rounded-lg cursor-pointer text-[13px] font-medium relative transition-colors",
               project.activeFile === file.id
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-accent hover:text-accent-foreground"
+                ? "bg-white/[0.08] text-foreground"
+                : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
             )}
           >
             <div className="flex items-center overflow-hidden">
@@ -344,7 +328,7 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
             </div>
 
             {fileToRename === file.id ? (
-              <div className="absolute inset-0 flex items-center bg-background z-10 px-2">
+              <div className="absolute inset-0 flex items-center bg-card z-10">
                 <Input
                   autoFocus
                   value={renameValue}
@@ -354,7 +338,7 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
                     else if (e.key === 'Escape') setFileToRename(null);
                   }}
                   onBlur={completeRename}
-                  className="h-7 text-xs"
+                  className="h-8 text-[13px] rounded-lg bg-white/[0.08] border-none"
                 />
               </div>
             ) : (
@@ -363,10 +347,10 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 opacity-50 hover:opacity-100"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-70 hover:!opacity-100 data-[state=open]:opacity-100"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="h-3 w-3" />
+                    <MoreHorizontal className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[160px]">

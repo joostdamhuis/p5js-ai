@@ -10,7 +10,7 @@ Three parts, all must run:
 
 `start-p5.command` starts the hub and editor (it frees ports 3000-3002 first). After launch, click “Enable MCP” in the editor.
 If the editor lands on 3001, something held port 3000: kill ports and restart.
-`test-websocket-server.js` is a manual test tool, not the hub.
+`test-websocket-server.js` is a manual test tool, not the hub. It also binds 3001, so if MCP commands don't reach the editor, check `ps -p $(lsof -ti tcp:3001 -sTCP:LISTEN)`: it must be `websocket-bridge-server.js`, and the browser (Google/Safari) must show up in `lsof -iTCP:3001`.
 
 ## Structure
 - `app/globals.css`: Tailwind v4 + shadcn color tokens; one file controls the whole theme
@@ -20,10 +20,12 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 - `lib/monaco-theme.ts`: “studio” Monaco theme; hex values mirror the dark studio tokens
 
 ## Design so far
-- “Dark studio” theme: deep blue-black, soft text, one warm amber accent (`.dark` override block at end of globals.css)
+- Visual language follows DialKit: neutral graphite (bg #0a0a0a, panels #151515, menus #212121), white-alpha fills (hover 4%, active 8%, buttons 5%/10%), 13px/500 type, 8px control radius, almost no divider lines. Amber (#f5a524) is the only accent: running dot, MCP-connected state, Run button, code keywords
+- Layout: floating rounded `panel`s (custom `@utility panel` in globals.css: #151515, 12px radius, 6% white border) with 8px gaps on the near-black page. Header is borderless; editable project name lives there
 - Preview should be fully black (sketch style.css is black; panel bg-white → bg-black)
 - Code column is half width, capped at 400px (md:max-w-[400px]); preview takes the rest
-- Code colors: amber keywords, warm sand strings, muted italic comments
+- Code colors: amber keywords, warm sand strings, muted italic comments; Monaco bg matches panel (#151515)
+- Icons are monochrome (no per-file-type colors); secondary actions appear on hover
 
 ## Sketch dials (DialKit)
 Sketches can declare live controls; the editor shows a DialKit panel (bottom right of the preview) and pushes values into the running sketch. Use this in sketches Joost asks for whenever there are values worth tweaking.

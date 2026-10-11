@@ -11,7 +11,7 @@ import Tabs from '@/components/editor-ui/Tabs';
 import Console, { LogMessage } from '@/components/editor-ui/Console';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Palette, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, PanelLeft } from 'lucide-react';
 
 export default function ProjectPage() {
   const params = useParams();
@@ -340,74 +340,72 @@ export default function ProjectPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b bg-card/40 px-4 py-3 sticky top-0 z-10">
-        <div className="mx-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBackToDashboard}
-              className="p-1"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center">
-              <Palette className="w-5 h-5 mr-2" />
-              <div>
-                <h1 className="text-xl font-bold">{project.name}</h1>
-                <p className="text-xs text-muted-foreground">p5.js AI Editor</p>
-              </div>
-            </div>
-          </div>
+    <div className="h-screen bg-background flex flex-col p-2 pt-0 overflow-hidden">
+      <header className="h-12 flex items-center justify-between gap-3 px-1 shrink-0">
+        <div className="flex items-center gap-0.5 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBackToDashboard}
+            title="All projects"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title={sidebarOpen ? 'Hide files' : 'Show files'}
+            className={sidebarOpen ? 'text-foreground' : undefined}
+          >
+            <PanelLeft className="w-4 h-4" />
+          </Button>
+          <input
+            value={project.name}
+            onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
+            className="ml-1.5 h-8 px-2 -mx-0 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-white/[0.04] focus:bg-white/[0.06] min-w-0 w-64 truncate transition-colors"
+            title="Rename project"
+            spellCheck={false}
+          />
+        </div>
 
-          <div className="flex items-center gap-2">
-            <ProjectManager
-              currentProject={project}
-              onProjectChange={setProject}
-            />
+        <div className="flex items-center gap-1.5">
+          <ProjectManager
+            currentProject={project}
+            onProjectChange={setProject}
+          />
 
-            <Button
-              variant={enableWsListener ? "default" : "outline"}
-              onClick={() => setEnableWsListener(!enableWsListener)}
-              className="transition-all"
-              size="sm"
-            >
-              {enableWsListener ? 'Disable MCP' : 'Enable MCP'}
-            </Button>
-          </div>
+          <button
+            onClick={() => setEnableWsListener(!enableWsListener)}
+            title={enableWsListener ? 'Disconnect Claude (MCP)' : 'Let Claude control the editor (MCP)'}
+            className={`flex items-center gap-2 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${enableWsListener
+              ? 'bg-primary/[0.12] text-primary hover:bg-primary/[0.18]'
+              : 'bg-white/[0.05] text-foreground hover:bg-white/[0.1]'
+              }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${enableWsListener ? 'bg-primary' : 'bg-muted-foreground/60'}`} />
+            {enableWsListener ? 'MCP connected' : 'Enable MCP'}
+          </button>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 gap-2 min-h-0">
         {/* File Explorer Sidebar */}
-        <div
-          className={`bg-card/20 border-r flex flex-col transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-0'
-            }`}
-        >
-          {sidebarOpen && (
+        {sidebarOpen && (
+          <aside className="panel w-56 shrink-0 hidden md:flex flex-col">
             <FileExplorer
               project={project}
               onProjectChange={setProject}
               onFileSelect={handleFileSelect}
             />
-          )}
-        </div>
-
-        {/* Toggle sidebar button */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-primary text-primary-foreground p-1.5 rounded-r-md shadow-md z-20"
-          style={{ marginLeft: sidebarOpen ? '16rem' : '4px' }}
-        >
-          {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-        </button>
+          </aside>
+        )}
 
         {/* Main content */}
-        <div className="flex-1 overflow-hidden min-w-0">
-          <div className="h-full flex flex-col md:flex-row mx-4 min-w-0">
-            {/* Editor Section with Console */}
-            <div className="w-full h-1/2 md:h-full md:w-1/2 md:max-w-[400px] md:shrink-0 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col md:flex-row gap-2 min-w-0 min-h-0">
+          {/* Editor Section with Console */}
+          <div className="w-full h-1/2 md:h-full md:w-1/2 md:max-w-[400px] md:shrink-0 flex flex-col min-w-0 min-h-0">
+            <div className="panel flex-1 flex flex-col min-h-0">
               <Tabs
                 project={project}
                 onFileSelect={handleFileSelect}
@@ -416,67 +414,61 @@ export default function ProjectPage() {
                 onStart={handleStart}
                 onStop={handleStop}
               />
-
-              {activeFile && (
-                <div className="flex-1 overflow-hidden flex flex-col min-w-0">
-                  {/* Editor with resizable height */}
-                  <div
-                    className="flex-1 overflow-hidden min-w-0"
-                    style={{ height: `calc(100% - ${consoleHeight}px)` }}
-                  >
-                    <Editor
-                      file={activeFile}
-                      onChange={handleFileChange}
-                    />
-                  </div>
-
-                  {/* Resize handle */}
-                  <div
-                    className="h-1 bg-border hover:bg-primary/60 cursor-row-resize shrink-0"
-                    onMouseDown={(e) => {
-                      const startY = e.clientY;
-                      const startHeight = consoleHeight;
-
-                      const handleMouseMove = (e: MouseEvent) => {
-                        const deltaY = startY - e.clientY;
-                        const newHeight = Math.max(50, Math.min(500, startHeight + deltaY));
-                        setConsoleHeight(newHeight);
-                      };
-
-                      const handleMouseUp = () => {
-                        document.removeEventListener('mousemove', handleMouseMove);
-                        document.removeEventListener('mouseup', handleMouseUp);
-                      };
-
-                      document.addEventListener('mousemove', handleMouseMove);
-                      document.addEventListener('mouseup', handleMouseUp);
-                    }}
+              {activeFile ? (
+                <div className="flex-1 overflow-hidden min-w-0">
+                  <Editor
+                    file={activeFile}
+                    onChange={handleFileChange}
                   />
-
-                  {/* Console */}
-                  <div style={{ height: `${consoleHeight}px` }} className="min-w-0 overflow-hidden">
-                    <Console
-                      messages={consoleMessages}
-                      onClear={clearConsole}
-                    />
-                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground/60">
+                  Open a file from the sidebar
                 </div>
               )}
             </div>
 
-            {/* Preview Section */}
-            <div className="w-full h-1/2 md:h-full md:flex-1 border-t md:border-t-0 md:border-l flex flex-col min-w-0">
-              <div className="bg-muted/40 py-2 px-3 border-b shrink-0">
-                <h2 className="text-sm font-medium">Preview</h2>
-              </div>
-              <div className="flex-1 overflow-auto min-w-0">
-                <Preview
-                  project={project}
-                  onConsoleMessage={handleConsoleMessage}
-                  isRunning={isRunning}
-                />
-              </div>
+            {/* Resize handle: the gap between the two panels */}
+            <div
+              className="group h-2 shrink-0 cursor-row-resize flex items-center justify-center"
+              onMouseDown={(e) => {
+                const startY = e.clientY;
+                const startHeight = consoleHeight;
+
+                const handleMouseMove = (e: MouseEvent) => {
+                  const deltaY = startY - e.clientY;
+                  const newHeight = Math.max(50, Math.min(500, startHeight + deltaY));
+                  setConsoleHeight(newHeight);
+                };
+
+                const handleMouseUp = () => {
+                  document.removeEventListener('mousemove', handleMouseMove);
+                  document.removeEventListener('mouseup', handleMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+              }}
+            >
+              <div className="h-0.5 w-8 rounded-full bg-white/0 group-hover:bg-white/20 transition-colors" />
             </div>
+
+            {/* Console */}
+            <div style={{ height: `${consoleHeight}px` }} className="panel shrink-0 min-w-0">
+              <Console
+                messages={consoleMessages}
+                onClear={clearConsole}
+              />
+            </div>
+          </div>
+
+          {/* Preview Section */}
+          <div className="panel w-full h-1/2 md:h-full md:flex-1 min-w-0 bg-black">
+            <Preview
+              project={project}
+              onConsoleMessage={handleConsoleMessage}
+              isRunning={isRunning}
+            />
           </div>
         </div>
       </div>

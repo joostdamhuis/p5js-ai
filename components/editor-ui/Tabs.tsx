@@ -1,14 +1,6 @@
-import { Project, ProjectFile, FileType } from '@/lib/types';
+import { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { X, Play, Square } from 'lucide-react';
-import {
-  FileText,
-  FileCode,
-  File,
-  FileImage,
-  FileAudio
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { X, Play } from 'lucide-react';
 
 interface TabsProps {
   project: Project;
@@ -19,26 +11,6 @@ interface TabsProps {
   onStop?: () => void;
 }
 
-const FileIcon = ({ type }: { type: FileType }) => {
-  switch (type) {
-    case 'js':
-      return <FileCode className="w-3.5 h-3.5 mr-1.5 text-amber-500" />;
-    case 'html':
-      return <FileCode className="w-3.5 h-3.5 mr-1.5 text-blue-500" />;
-    case 'css':
-      return <File className="w-3.5 h-3.5 mr-1.5 text-purple-500" />;
-    case 'jpg':
-    case 'png':
-    case 'gif':
-      return <FileImage className="w-3.5 h-3.5 mr-1.5 text-green-500" />;
-    case 'mp3':
-    case 'wav':
-      return <FileAudio className="w-3.5 h-3.5 mr-1.5 text-orange-500" />;
-    default:
-      return <FileText className="w-3.5 h-3.5 mr-1.5 text-gray-500" />;
-  }
-};
-
 const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, onStop }: TabsProps) => {
   const activeFileId = project.activeFile;
 
@@ -48,80 +20,71 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
   );
 
   return (
-    <div className="flex flex-col">
-      {/* Control buttons */}
-      <div className="flex items-center gap-1 px-2 py-1 bg-muted/20 border-b">
-        {onStart && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onStart}
-            disabled={isRunning}
-            className="h-7 px-2"
-            title="Start execution"
-          >
-            <Play className="h-3.5 w-3.5 mr-1" />
-            Start
-          </Button>
-        )}
-
-        {onStop && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onStop}
-            disabled={!isRunning}
-            className="h-7 px-2"
-            title="Stop execution"
-          >
-            <Square className="h-3.5 w-3.5 mr-1" />
-            Stop
-          </Button>
-        )}
-
-        {isRunning && (
-          <div className="flex items-center ml-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></div>
-            <span className="text-xs text-muted-foreground">Running</span>
-          </div>
-        )}
-      </div>
-
+    <div className="flex items-center gap-2 h-11 px-1.5 shrink-0">
       {/* File tabs */}
-      <div className="flex items-center overflow-x-auto bg-muted/40 border-b">
-        {openFiles.map((file) => (
-          <div
-            key={file.id}
-            onClick={() => onFileSelect(file.id)}
-            className={cn(
-              "flex items-center px-3 py-2 text-xs cursor-pointer max-w-[180px] min-w-[120px] whitespace-nowrap border-r",
-              activeFileId === file.id
-                ? "bg-background border-b-2 border-b-primary"
-                : "border-b-transparent hover:bg-background/60"
-            )}
-          >
-            <div className="flex items-center overflow-hidden flex-1">
-              <FileIcon type={file.type} />
-              <span className="truncate">{file.name}</span>
-            </div>
+      <div className="flex items-center gap-0.5 overflow-x-auto flex-1 min-w-0">
+        {openFiles.map((file) => {
+          const isActive = activeFileId === file.id;
+          return (
+            <div
+              key={file.id}
+              onClick={() => onFileSelect(file.id)}
+              className={cn(
+                "group flex items-center gap-1 h-8 pl-2.5 pr-1 rounded-lg text-[13px] font-medium cursor-pointer whitespace-nowrap transition-colors",
+                isActive
+                  ? "bg-white/[0.08] text-foreground"
+                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+              )}
+            >
+              <span className="truncate max-w-[120px]">{file.name}</span>
 
-            {onCloseTab && (
-              <button
-                className="ml-2 opacity-50 hover:opacity-100 p-0.5 rounded-sm hover:bg-muted"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCloseTab(file.id);
-                }}
-                title="Close tab"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </div>
-        ))}
+              {onCloseTab && (
+                <button
+                  className={cn(
+                    "p-0.5 rounded hover:bg-white/10 transition-opacity",
+                    isActive ? "opacity-60 hover:opacity-100" : "opacity-0 group-hover:opacity-60 hover:!opacity-100"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCloseTab(file.id);
+                  }}
+                  title="Close tab"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
+
+      {/* Run toggle: amber dot while the sketch runs */}
+      {onStart && onStop && (
+        <button
+          onClick={isRunning ? onStop : onStart}
+          title={isRunning ? 'Stop sketch' : 'Run sketch'}
+          className={cn(
+            "flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-medium shrink-0 transition-colors",
+            isRunning
+              ? "bg-white/[0.05] text-foreground hover:bg-white/[0.1]"
+              : "bg-primary text-primary-foreground hover:bg-primary/90"
+          )}
+        >
+          {isRunning ? (
+            <>
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              Stop
+            </>
+          ) : (
+            <>
+              <Play className="h-3.5 w-3.5" />
+              Run
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 };
 
-export default Tabs; 
+export default Tabs;

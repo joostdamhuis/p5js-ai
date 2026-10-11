@@ -121,31 +121,39 @@
   }
 }
 
-/* Dark studio: deep blue-black, soft text, one warm amber accent */
+/* Dark studio: neutral graphite like DialKit, soft white text, one warm amber accent */
 .dark {
-  --background: #0c0f17;
-  --foreground: #e6e8ef;
-  --card: #121623;
-  --card-foreground: #e6e8ef;
-  --popover: #121623;
-  --popover-foreground: #e6e8ef;
+  --background: #0a0a0a;
+  --foreground: #f2f2f2;
+  --card: #151515;
+  --card-foreground: #f2f2f2;
+  --popover: #212121;
+  --popover-foreground: #f2f2f2;
   --primary: #f5a524;
   --primary-foreground: #1a1206;
-  --secondary: #1a1f2e;
-  --secondary-foreground: #e6e8ef;
-  --muted: #1a1f2e;
-  --muted-foreground: #8b92a6;
-  --accent: #1a1f2e;
-  --accent-foreground: #e6e8ef;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #f2f2f2;
+  --muted: #1f1f1f;
+  --muted-foreground: #8f8f8f;
+  --accent: rgb(255 255 255 / 6%);
+  --accent-foreground: #f2f2f2;
   --border: rgb(255 255 255 / 7%);
   --input: rgb(255 255 255 / 10%);
-  --ring: #f5a524;
-  --sidebar: #0f1320;
-  --sidebar-foreground: #e6e8ef;
+  --ring: rgb(255 255 255 / 30%);
+  --sidebar: #151515;
+  --sidebar-foreground: #f2f2f2;
   --sidebar-primary: #f5a524;
   --sidebar-primary-foreground: #1a1206;
-  --sidebar-accent: #1a1f2e;
-  --sidebar-accent-foreground: #e6e8ef;
+  --sidebar-accent: rgb(255 255 255 / 6%);
+  --sidebar-accent-foreground: #f2f2f2;
   --sidebar-border: rgb(255 255 255 / 7%);
-  --sidebar-ring: #f5a524;
+  --sidebar-ring: rgb(255 255 255 / 30%);
+}
+
+/* Floating rounded surface, like the DialKit panel */
+@utility panel {
+  background-color: var(--card);
+  border: 1px solid rgb(255 255 255 / 6%);
+  border-radius: 12px;
+  overflow: hidden;
 }

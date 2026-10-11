@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Project, DEFAULT_PROJECT } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  PlusCircle,
+  Plus,
   FolderOpen,
   Trash2,
-  Calendar,
   FileCode,
-  Play,
-  MoreVertical
+  Copy,
+  MoreHorizontal
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -90,11 +88,8 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
-      year: 'numeric',
       month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     });
   };
 
@@ -109,108 +104,92 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/40 px-6 py-4">
-        <div className="flex items-center">
-          <div className="ml-8">
-            <h1 className="text-3xl font-bold">p5.js AI Editor</h1>
-            <p className="text-muted-foreground mt-1">Create and manage your p5.js projects</p>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-8">
-        {projects.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted/50 flex items-center justify-center">
-              <FileCode className="w-12 h-12 text-muted-foreground" />
-            </div>
-            <h2 className="text-2xl font-semibold mb-2">No projects yet</h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Create your first p5.js project to start coding interactive art and animations.
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        <header className="flex items-end justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-[15px] font-semibold">p5.js AI Editor</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">
+              {projects.length === 0
+                ? 'Sketches you make will show up here'
+                : `${projects.length} ${projects.length === 1 ? 'sketch' : 'sketches'}`}
             </p>
-            <Button onClick={handleCreateProject} size="lg">
-              <PlusCircle className="h-5 w-5 mr-2" />
-              Create Your First Project
+          </div>
+          {projects.length > 0 && (
+            <Button onClick={handleCreateProject} size="sm">
+              <Plus className="h-3.5 w-3.5" />
+              New sketch
+            </Button>
+          )}
+        </header>
+
+        {projects.length === 0 ? (
+          <div className="panel flex flex-col items-center text-center py-20 px-6">
+            <div className="w-10 h-10 mb-4 rounded-xl bg-white/[0.05] flex items-center justify-center">
+              <FileCode className="w-4 h-4 text-muted-foreground" />
+            </div>
+            <h2 className="text-[13px] font-semibold">No sketches yet</h2>
+            <p className="text-[13px] text-muted-foreground mt-1 mb-5 max-w-xs">
+              Start one and draw with code, or ask Claude to make one for you.
+            </p>
+            <Button onClick={handleCreateProject} size="sm">
+              <Plus className="h-3.5 w-3.5" />
+              New sketch
             </Button>
           </div>
         ) : (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">Your Projects ({projects.length})</h2>
-              <Button variant="outline" onClick={handleCreateProject}>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                New Project
-              </Button>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                onClick={() => handleOpenProject(project)}
+                className="panel group cursor-pointer p-1.5 transition-colors hover:bg-[#1a1a1a]"
+              >
+                <div className="rounded-lg bg-black/40 px-3 py-2.5 h-24 overflow-hidden">
+                  <pre className="text-[11px] leading-[1.6] text-muted-foreground/70 font-mono overflow-hidden">
+                    {getProjectPreview(project)}
+                  </pre>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {projects.map((project) => (
-                <Card key={project.id} className="group hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">{project.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(project.lastModified)}
-                        </CardDescription>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenProject(project)}>
-                            <FolderOpen className="h-4 w-4 mr-2" />
-                            Open
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
-                            <FileCode className="h-4 w-4 mr-2" />
-                            Duplicate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteProject(project.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                <div className="flex items-center justify-between gap-2 pl-2 pr-0.5 pt-2 pb-0.5">
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-medium truncate">{project.name}</div>
+                    <div className="text-[12px] text-muted-foreground mt-0.5">
+                      {formatDate(project.lastModified)} · {project.files.length} files
                     </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-0">
-                    <div className="bg-muted/50 rounded-md p-3 mb-4 min-h-[80px]">
-                      <pre className="text-xs text-muted-foreground font-mono overflow-hidden">
-                        {getProjectPreview(project)}
-                      </pre>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <FileCode className="h-4 w-4" />
-                        {project.files.length} files
-                      </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
-                        size="sm"
-                        onClick={() => handleOpenProject(project)}
-                        className="group-hover:bg-primary group-hover:text-primary-foreground"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                        title="More"
                       >
-                        <Play className="h-3 w-3 mr-1" />
-                        Open
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={() => handleOpenProject(project)}>
+                        <FolderOpen className="h-4 w-4 mr-2" />
+                        Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteProject(project.id)}
+                        className="text-red-400 focus:text-red-400"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </main>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Project, DEFAULT_PROJECT } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Save, FolderOpen, PlusCircle, Home } from 'lucide-react';
+import { Save, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface ProjectManagerProps {
@@ -66,28 +66,15 @@ const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps
     router.push(`/project/${newProject.id}`);
   };
 
-  const handleGoToDashboard = () => {
-    router.push('/');
-  };
-
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleGoToDashboard}
-        title="Go to dashboard"
-      >
-        <Home className="h-4 w-4 mr-1" />
-        Dashboard
-      </Button>
+    <div className="flex items-center gap-0.5">
       <Button
         variant="ghost"
         size="sm"
         onClick={handleSaveProject}
         title="Save project"
       >
-        <Save className="h-4 w-4 mr-1" />
+        <Save className="h-3.5 w-3.5" />
         Save
       </Button>
       <Button
@@ -96,7 +83,7 @@ const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps
         onClick={handleNewProject}
         title="New project"
       >
-        <PlusCircle className="h-4 w-4 mr-1" />
+        <Plus className="h-3.5 w-3.5" />
         New
       </Button>
     </div>

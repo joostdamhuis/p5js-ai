@@ -26,34 +26,41 @@ const Console = ({ messages, onClear, className }: ConsoleProps) => {
   }, [messages]);
 
   return (
-    <div className={cn("flex flex-col h-full bg-card/10 min-w-0", className)}>
-      <div className="flex justify-between items-center p-2 border-b bg-muted/40 shrink-0">
-        <h3 className="text-sm font-medium">Console</h3>
-        <button
-          onClick={onClear}
-          className="text-xs text-muted-foreground hover:text-foreground shrink-0"
-        >
-          Clear
-        </button>
+    <div className={cn("flex flex-col h-full min-w-0", className)}>
+      <div className="flex justify-between items-center h-10 pl-3.5 pr-1.5 shrink-0">
+        <h3 className="text-[13px] font-medium text-muted-foreground">
+          Console
+          {messages.length > 0 && (
+            <span className="ml-1.5 text-[11px] tabular-nums opacity-60">{messages.length}</span>
+          )}
+        </h3>
+        {messages.length > 0 && (
+          <button
+            onClick={onClear}
+            className="h-7 px-2 rounded-md text-[12px] font-medium text-muted-foreground hover:bg-white/[0.06] hover:text-foreground shrink-0 transition-colors"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
-      <div className="flex-1 overflow-auto text-sm font-mono p-1 min-w-0">
+      <div className="flex-1 overflow-auto font-mono px-1.5 pb-1.5 min-w-0">
         {messages.length === 0 ? (
-          <div className="text-muted-foreground italic p-2 text-xs">No console output</div>
+          <div className="text-muted-foreground/60 px-2 text-[12px]">Nothing logged yet</div>
         ) : (
           messages.map((msg) => (
             <div
               key={msg.id}
               className={cn(
-                "px-2 py-1 border-b border-muted flex items-start gap-2 min-w-0",
-                msg.type === 'error' && "text-red-500 bg-red-500/5",
-                msg.type === 'warning' && "text-amber-500 bg-amber-500/5",
-                msg.type === 'info' && "text-blue-500 bg-blue-500/5",
+                "px-2 py-1 rounded-md flex items-start gap-2 min-w-0 text-foreground/80",
+                msg.type === 'error' && "text-red-400 bg-red-500/[0.08]",
+                msg.type === 'warning' && "text-amber-400 bg-amber-500/[0.06]",
+                msg.type === 'info' && "text-sky-300",
               )}
             >
-              {msg.type === 'error' && <XCircle className="w-4 h-4 mt-0.5 shrink-0" />}
-              {msg.type === 'warning' && <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />}
-              {msg.type === 'info' && <Info className="w-4 h-4 mt-0.5 shrink-0" />}
+              {msg.type === 'error' && <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
+              {msg.type === 'warning' && <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
+              {msg.type === 'info' && <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
               <div className="min-w-0 flex-1 overflow-hidden">
                 <pre className="whitespace-pre-wrap break-words break-all text-xs leading-relaxed overflow-wrap-anywhere">
                   {msg.content}

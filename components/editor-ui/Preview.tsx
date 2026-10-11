@@ -313,10 +313,9 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           className
         )}
       >
-        <div className="text-center text-muted-foreground">
-          <div className="text-lg mb-2">⏸️</div>
-          <div className="text-sm">Code execution stopped</div>
-          <div className="text-xs mt-1">Click Start to run your sketch</div>
+        <div className="text-center">
+          <div className="text-[13px] font-medium text-muted-foreground">Sketch stopped</div>
+          <div className="text-[12px] text-muted-foreground/60 mt-1">Press Run to start it again</div>
         </div>
       </div>
     );
