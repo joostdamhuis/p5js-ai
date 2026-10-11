@@ -296,7 +296,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           onFocus={() => setFocused(true)}
           // Pasting an image attaches it
           onPaste={(e) => { const imgs = Array.from(e.clipboardData.files).filter(f => f.type.startsWith('image/')); if (imgs.length) { e.preventDefault(); addFiles(imgs); } }}
-          placeholder={pending ? pending.status : 'Ask Claude  ⌘K'}
+          placeholder={pending ? pending.status : 'Ask Claude'}
           disabled={working}
           className="flex-1 min-w-0 ml-1 resize-none self-center py-2.5 bg-transparent placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
