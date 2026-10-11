@@ -74,7 +74,7 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status, pill, popupWidth =
         className={cn(
           'flex items-center gap-2 text-[13px] font-medium transition-colors',
           pill
-            ? 'dial-surface h-11 px-4 ' + (open ? '!bg-[var(--chrome-raised)]' : 'hover:!bg-[var(--chrome-raised)]')
+            ? 'dial-surface h-12 px-4 ' + (open ? '!bg-[var(--chrome-raised)]' : 'hover:!bg-[var(--chrome-raised)]')
             : 'h-8 px-3 rounded-lg ' + (open ? 'bg-[rgb(var(--ink)/0.11)]' : 'bg-[rgb(var(--ink)/0.05)] hover:bg-[rgb(var(--ink)/0.1)]'),
           'text-foreground'
         )}

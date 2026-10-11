@@ -55,6 +55,28 @@ const SketchControls = ({ dialConfig, autoDials, postToSketch, latestDialValues,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, values]);
 
+  // When the code changes a control's default (e.g. Claude picks new colours),
+  // move that control to the new default; otherwise the old slider/colour value
+  // would keep overriding the edit
+  const prevDialConfig = useRef<DialConfig | null>(null);
+  useEffect(() => {
+    const before = prevDialConfig.current;
+    prevDialConfig.current = dialConfig;
+    if (!before || !dialConfig) return;
+    const current = values as Record<string, unknown>;
+    const patch: Record<string, unknown> = {};
+    for (const key of Object.keys(dialConfig)) {
+      if (!(key in before)) continue;
+      const merged = applyChangedDefaults(before[key], dialConfig[key], current[key]);
+      if (merged.changed) {
+        patch[key] = merged.value;
+        attempts.current.set(key, 5); // don't restore the old saved value over it
+      }
+    }
+    if (Object.keys(patch).length) setValues(patch as never);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialKey]);
+
   useEffect(() => {
     onValuesChange?.(values as Record<string, unknown>);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,5 +111,39 @@ const SketchControls = ({ dialConfig, autoDials, postToSketch, latestDialValues,
 
   return null;
 };
+
+// A control's default as written in dials(): [default, min, max], a plain value,
+// or { type, default }. Folders (plain objects without a type) return undefined.
+function defaultOf(c: unknown): unknown {
+  if (Array.isArray(c)) return c[0];
+  if (c && typeof c === 'object') {
+    const o = c as Record<string, unknown>;
+    if (!o.type) return undefined;
+    return 'default' in o ? o.default : JSON.stringify(o); // e.g. easing: compare the whole spec
+  }
+  return c;
+}
+
+const isFolder = (c: unknown) => !!c && typeof c === 'object' && !Array.isArray(c) && !(c as Record<string, unknown>).type;
+
+// Walks old and new config side by side; where a default changed, takes the new
+// default, otherwise keeps the current value
+function applyChangedDefaults(before: unknown, after: unknown, current: unknown): { changed: boolean; value: unknown } {
+  if (isFolder(after) && isFolder(before)) {
+    const cur = (current && typeof current === 'object' ? { ...(current as Record<string, unknown>) } : {}) as Record<string, unknown>;
+    let changed = false;
+    for (const k of Object.keys(after as object)) {
+      const r = applyChangedDefaults((before as Record<string, unknown>)[k], (after as Record<string, unknown>)[k], cur[k]);
+      if (r.changed) { cur[k] = r.value; changed = true; }
+    }
+    return { changed, value: cur };
+  }
+  const a = defaultOf(after), b = defaultOf(before);
+  if (a === undefined || JSON.stringify(a) === JSON.stringify(b)) return { changed: false, value: current };
+  const o = after as Record<string, unknown>;
+  // easing and other objects without a plain default take the spec's own value
+  const value = o && typeof o === 'object' && !Array.isArray(o) && !('default' in o) ? o : a;
+  return { changed: true, value };
+}
 
 export default SketchControls;

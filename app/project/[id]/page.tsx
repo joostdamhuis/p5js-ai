@@ -557,7 +557,7 @@ export default function ProjectPage() {
       onClick={toggle}
       title={`${on ? 'Hide' : 'Show'} ${label}`}
       aria-pressed={on}
-      className={`h-9 w-9 flex items-center justify-center rounded-[10px] transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
+      className={`h-10 w-10 flex items-center justify-center rounded-[10px] transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
     >
       {icon}
     </button>
@@ -568,18 +568,18 @@ export default function ProjectPage() {
       <div className="absolute inset-0">{preview}</div>
 
       {/* Top corners */}
-      <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-11 px-1">
+      <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-12 px-1">
         <button
           onClick={handleBackToDashboard}
           title="All projects"
-          className="h-9 w-9 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
+          className="h-10 w-10 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
         </button>
         <input
           value={project.name}
           onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-          className="h-9 px-2.5 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+          className="h-10 px-2.5 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
           title="Rename project"
           spellCheck={false}
         />
@@ -591,7 +591,7 @@ export default function ProjectPage() {
       {/* Side panels stay mounted and slide in/out from their edge */}
       {/* Left: code + console, top-aligned with Controls, as tall as their content */}
       <div
-        className="absolute left-3 top-[68px] z-10 flex flex-col max-h-[calc(100vh-136px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
+        className="absolute left-3 top-[72px] z-10 flex flex-col max-h-[calc(100vh-144px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
         style={{
           width: codeWidth,
           transform: `translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
@@ -615,7 +615,7 @@ export default function ProjectPage() {
 
       {/* Right: controls */}
       <aside
-        className={`${floating} absolute right-3 top-[68px] z-10 max-h-[calc(100vh-136px)]`}
+        className={`${floating} absolute right-3 top-[72px] z-10 max-h-[calc(100vh-144px)]`}
         style={{
           width: controlsWidth,
           transform: `translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
@@ -654,7 +654,7 @@ export default function ProjectPage() {
             <button
               onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
               title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
-              className="mr-1 h-9 w-9 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
+              className="mr-1 h-10 w-10 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
             >
               {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
             </button>

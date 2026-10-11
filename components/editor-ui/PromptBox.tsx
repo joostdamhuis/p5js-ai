@@ -87,7 +87,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
     if (!el) return;
     el.style.height = '0px';
     // Empty: always one line, even if the placeholder would wrap in a narrow bar
-    el.style.height = text ? `${Math.min(el.scrollHeight, 120)}px` : '36px';
+    el.style.height = text ? `${Math.min(el.scrollHeight, 120)}px` : '40px';
   }, [text]);
 
   const addTurn = (turn: Turn) => {
@@ -269,14 +269,14 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           title="Attach an image"
           onClick={() => fileRef.current?.click()}
           disabled={working}
-          className="h-9 w-9 shrink-0 flex items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:opacity-40 transition-colors"
+          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:opacity-40 transition-colors"
         >
           <Paperclip className="h-4 w-4" />
         </button>
         {attachments.map((a, i) => (
-          <span key={i} className="h-9 shrink-0 flex items-center gap-1 pl-0.5 pr-1 rounded-[10px] bg-[rgb(var(--ink)/0.1)]">
+          <span key={i} className="h-10 shrink-0 flex items-center gap-1 pl-0.5 pr-1 rounded-[10px] bg-[rgb(var(--ink)/0.1)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={a.dataUrl} alt={a.name} className="h-8 w-8 rounded-[8px] object-cover" />
+            <img src={a.dataUrl} alt={a.name} className="h-9 w-9 rounded-[8px] object-cover" />
             <button
               title="Remove"
               onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
@@ -297,14 +297,14 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           onPaste={(e) => { const imgs = Array.from(e.clipboardData.files).filter(f => f.type.startsWith('image/')); if (imgs.length) { e.preventDefault(); addFiles(imgs); } }}
           placeholder={working ? 'Claude is working…' : 'Ask Claude  ⌘K'}
           disabled={working}
-          className="flex-1 min-w-0 ml-1 resize-none self-center py-2 bg-transparent placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
+          className="flex-1 min-w-0 ml-1 resize-none self-center py-2.5 bg-transparent placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               title="Model"
               disabled={working}
-              className="h-9 shrink-0 flex items-center gap-1 px-3 rounded-[10px] text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
+              className="h-10 shrink-0 flex items-center gap-1 px-3 rounded-[10px] text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
             >
               {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
               <ChevronDown className="h-3 w-3" />
@@ -324,7 +324,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           title={working ? 'Stop (Esc)' : 'Send (Enter)'}
           onClick={working ? () => abortRef.current?.abort() : send}
           disabled={!working && !text.trim()}
-          className="h-9 w-9 shrink-0 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
+          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
         >
           {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
         </button>
