@@ -181,11 +181,11 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
             <div key={i} className="flex flex-col gap-1.5">
               <Bubble mine>{t.prompt}</Bubble>
               <Bubble error={t.error}>
-                {t.reply}
+                <span>{t.reply}</span>
                 {i === lastIndex && undo && !working && (
                   <button
                     onClick={() => { onRestore(undo); setUndo(null); }}
-                    className="ml-2 inline-flex items-center gap-1 align-middle text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                    className="mt-1 -ml-1.5 flex h-6 items-center gap-1 rounded-[7px] px-1.5 text-[12px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
                   >
                     <Undo2 className="h-3 w-3" /> Undo
                   </button>
