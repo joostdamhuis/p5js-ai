@@ -35,8 +35,11 @@ const Editor = ({
 }: EditorProps) => {
   const editorRef = useRef<any>(null);
 
-  const handleEditorDidMount: OnMount = (editor) => {
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+
+    // Geist Mono may finish loading after Monaco measured its glyphs
+    document.fonts.ready.then(() => monaco.editor.remeasureFonts());
 
     // Add p5.js intellisense (would require p5.d.ts to be loaded)
     // This is a placeholder for future enhancement
@@ -54,7 +57,8 @@ const Editor = ({
         options={{
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
-          fontFamily: 'JetBrains Mono, monospace',
+          fontFamily: "'Geist Mono', monospace",
+          fontWeight: '500',
           fontSize: 13,
           lineHeight: 21,
           tabSize: 2,

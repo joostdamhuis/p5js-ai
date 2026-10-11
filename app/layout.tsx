@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
+// Same mono as DialKit's values, so code and controls match
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   title: "p5.js AI Editor",

@@ -14,7 +14,7 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 
 ## Structure
 - `app/globals.css`: Tailwind v4 + shadcn color tokens; one file controls the whole theme
-- `app/layout.tsx`: fonts (system font / SF Pro for UI like DialKit, JetBrains Mono code) and dark mode on `<html>`
+- `app/layout.tsx`: fonts (system font / SF Pro for UI, Geist Mono 13px/500 for code; both match DialKit) and dark mode on `<html>`
 - `app/project/[id]/page.tsx`: the editor page layout (sidebar, code column, preview)
 - `components/editor-ui/`: Editor.tsx (Monaco, the one in use), CodeEditor.tsx (older unused Monaco wrapper), Preview.tsx, CodePreview.tsx, Console.tsx, WebSocketListener.tsx
 - `lib/monaco-theme.ts`: “studio” Monaco theme; hex values mirror the dark studio tokens
