@@ -38,20 +38,25 @@ const DropdownMenuSubTrigger = React.forwardRef<
 DropdownMenuSubTrigger.displayName =
   DropdownMenuPrimitive.SubTrigger.displayName
 
-// Height of a menu row (h-8): the sub-menu is centred on the row it opens from
-const MENU_ROW_HEIGHT = 32
-
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
->(({ className, sideOffset = 6, collisionPadding = 12, ...props }, ref) => {
-  // Centred on the hovered row: shift up by half the difference in height.
-  // Radix can't centre sub-menus, so measure once it has rendered.
+>(({ className, sideOffset = 6, ...props }, ref) => {
+  // Bottom-aligned with its parent menu: the sub-menu's bottom edge sits level
+  // with the parent's bottom edge (menus open upward from the dock). Radix only
+  // aligns to the trigger's top, so measure once rendered and offset from there.
+  // If it's taller than the room above, it stops 12px from the screen edge.
   const [alignOffset, setAlignOffset] = React.useState(0)
   const measure = React.useCallback((node: HTMLDivElement | null) => {
     if (typeof ref === "function") ref(node)
     else if (ref) ref.current = node
-    if (node) setAlignOffset((MENU_ROW_HEIGHT - node.offsetHeight) / 2)
+    if (!node) return
+    const trigger = node.id ? document.querySelector(`[aria-controls="${node.id}"]`) : null
+    const parent = trigger?.closest('[role="menu"]')
+    if (!trigger || !parent) return
+    const triggerTop = trigger.getBoundingClientRect().top
+    const parentBottom = parent.getBoundingClientRect().bottom
+    setAlignOffset(parentBottom - node.offsetHeight - triggerTop)
   }, [ref])
 
   return (
@@ -63,7 +68,7 @@ const DropdownMenuSubContent = React.forwardRef<
         ref={measure}
         sideOffset={sideOffset}
         alignOffset={alignOffset}
-        collisionPadding={collisionPadding}
+        collisionPadding={12}
         className={cn(
           "z-50 min-w-[8rem] overflow-hidden rounded-[10px] border border-[rgb(var(--ink)/0.1)] bg-[var(--chrome)] p-1 text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           className

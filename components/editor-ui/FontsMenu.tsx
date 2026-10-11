@@ -106,7 +106,7 @@ export const FontsSubmenu = ({ project, onProjectChange, onAdd }: FontsMenuProps
         <Type className="mr-2 h-4 w-4" />
         Fonts{fonts.length ? ` (${fonts.length})` : ''}
       </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent className="w-60" collisionPadding={{ top: 12, right: 12, left: 12, bottom: 72 }}>
+      <DropdownMenuSubContent className="w-60">
         {fonts.length === 0 ? (
           <div className="px-2 py-1.5 text-[12px] text-muted-foreground">
             No fonts yet. Use them with textFont(&apos;Name&apos;).
