@@ -25,7 +25,14 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 - Preview should be fully black (sketch style.css is black; panel bg-white → bg-black)
 - Columns: Files (collapsed by default) | code ≤400px | preview (flex) | Controls 280px
 - Preview centres every sketch: `frameFit` in Preview.tsx (body flex-centre, canvas max 100% + object-fit contain, auto resizeCanvas for full-window sketches without windowResized). Prefer createCanvas(windowWidth, windowHeight)
-- Save/New read p5_projects fresh from localStorage (the page autosaves into it); ⌘S saves
+- MCP connection status lives in the header MCP button (connected / Connecting… / offline); WebSocketListener renders nothing
+
+## Sketch storage
+- Sketches are real files: `sketches/<slug-of-name>/` with sketch.js, index.html, style.css + project.json (id, name, tabs, file list). Committed to git, so pushing backs them up
+- Server: `lib/sketch-store.ts` (fs) behind `app/api/sketches` (GET list) and `app/api/sketches/[id]` (GET/PUT/DELETE); localhost-only (`guard.ts`), file names sanitised, folder renamed with the project
+- Client: `lib/projects.ts` (fetchProjects / fetchProject / saveProject / deleteProject). localStorage is only a cache/fallback; first dashboard load imports browser-only projects once (`p5_imported_to_disk` flag)
+- Editor autosaves to disk 700ms after the last change; Save / ⌘S writes immediately
+- Claude can edit sketches by editing those files, but the open editor won't reload them until the page is refreshed
 - Code colors: soft lavender keywords, sage strings, sand numbers, light blue types, gray italic comments; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
 

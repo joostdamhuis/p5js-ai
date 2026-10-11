@@ -3,41 +3,31 @@ import { Project, DEFAULT_PROJECT } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Save, Plus, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { fetchProjects, saveProject } from '@/lib/projects';
 
 interface ProjectManagerProps {
   currentProject: Project;
   onProjectChange: (project: Project) => void;
 }
 
-// Always read the list fresh: the page autosaves into it while you edit,
-// so a copy kept in state goes stale and would overwrite those edits.
-const readProjects = (): Project[] => {
-  try {
-    return JSON.parse(localStorage.getItem('p5_projects') || '[]');
-  } catch {
-    return [];
-  }
-};
-
 const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps) => {
   const router = useRouter();
-  const [justSaved, setJustSaved] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
   const savedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const handleSaveProject = useCallback(() => {
-    const projects = readProjects();
+  // Writes straight to the sketches folder (autosave also does this after typing)
+  const handleSaveProject = useCallback(async () => {
     const updatedProject = { ...currentProject, lastModified: Date.now() };
-    const existingIndex = projects.findIndex(p => p.id === currentProject.id);
-
-    if (existingIndex >= 0) projects[existingIndex] = updatedProject;
-    else projects.push(updatedProject);
-
-    localStorage.setItem('p5_projects', JSON.stringify(projects));
     onProjectChange(updatedProject);
-
-    setJustSaved(true);
+    try {
+      await saveProject(updatedProject);
+      setSaveState('saved');
+    } catch (error) {
+      console.error(error);
+      setSaveState('failed');
+    }
     clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setJustSaved(false), 1500);
+    savedTimer.current = setTimeout(() => setSaveState('idle'), 1800);
   }, [currentProject, onProjectChange]);
 
   // Cmd/Ctrl + S saves
@@ -54,16 +44,15 @@ const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps
 
   useEffect(() => () => clearTimeout(savedTimer.current), []);
 
-  const handleNewProject = () => {
-    const projects = readProjects();
+  const handleNewProject = async () => {
+    const count = (await fetchProjects()).length;
     const newProject = {
       ...DEFAULT_PROJECT,
       id: `project-${Date.now()}`,
-      name: `Untitled Project ${projects.length + 1}`,
+      name: `Untitled Project ${count + 1}`,
       lastModified: Date.now()
     };
-
-    localStorage.setItem('p5_projects', JSON.stringify([...projects, newProject]));
+    await saveProject(newProject).catch((error) => console.error(error));
     router.push(`/project/${newProject.id}`);
   };
 
@@ -73,11 +62,11 @@ const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps
         variant="ghost"
         size="sm"
         onClick={handleSaveProject}
-        title="Save project (⌘S). Changes also save automatically."
-        className={justSaved ? 'text-foreground' : undefined}
+        title="Save to the sketches folder (⌘S). Changes also save automatically."
+        className={saveState === 'saved' ? 'text-foreground' : saveState === 'failed' ? 'text-red-400' : undefined}
       >
-        {justSaved ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Save className="h-3.5 w-3.5" />}
-        {justSaved ? 'Saved' : 'Save'}
+        {saveState === 'saved' ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Save className="h-3.5 w-3.5" />}
+        {saveState === 'saved' ? 'Saved' : saveState === 'failed' ? 'Save failed' : 'Save'}
       </Button>
       <Button
         variant="ghost"

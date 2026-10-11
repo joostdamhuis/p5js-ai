@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
+import { fetchProjects, saveProject, deleteProject } from '@/lib/projects';
 
 interface ProjectDashboardProps {
   onProjectSelect?: (project: Project) => void;
@@ -25,21 +26,12 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const router = useRouter();
 
-  // Load projects from localStorage
+  // Load projects from the sketches folder
   useEffect(() => {
-    const savedProjects = localStorage.getItem('p5_projects');
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    }
+    fetchProjects().then(setProjects);
   }, []);
 
-  // Save projects to localStorage
-  const saveProjects = (updatedProjects: Project[]) => {
-    setProjects(updatedProjects);
-    localStorage.setItem('p5_projects', JSON.stringify(updatedProjects));
-  };
-
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     const newProject: Project = {
       ...DEFAULT_PROJECT,
       id: `project-${Date.now()}`,
@@ -47,31 +39,17 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
       lastModified: Date.now()
     };
 
-    const updatedProjects = [...projects, newProject];
-    saveProjects(updatedProjects);
-
-    // Navigate to the new project
+    await saveProject(newProject).catch((error) => console.error(error));
     router.push(`/project/${newProject.id}`);
   };
 
   const handleOpenProject = (project: Project) => {
-    // Set as current project and navigate
-    localStorage.setItem('current_project', JSON.stringify(project));
     router.push(`/project/${project.id}`);
   };
 
   const handleDeleteProject = (projectId: string) => {
-    const updatedProjects = projects.filter(p => p.id !== projectId);
-    saveProjects(updatedProjects);
-
-    // Clear current project if it's the one being deleted
-    const currentProject = localStorage.getItem('current_project');
-    if (currentProject) {
-      const parsed = JSON.parse(currentProject);
-      if (parsed.id === projectId) {
-        localStorage.removeItem('current_project');
-      }
-    }
+    setProjects(projects.filter(p => p.id !== projectId));
+    deleteProject(projectId).catch((error) => console.error(error));
   };
 
   const handleDuplicateProject = (project: Project) => {
@@ -81,9 +59,8 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
       name: `${project.name} (Copy)`,
       lastModified: Date.now()
     };
-
-    const updatedProjects = [...projects, duplicatedProject];
-    saveProjects(updatedProjects);
+    setProjects([...projects, duplicatedProject]);
+    saveProject(duplicatedProject).catch((error) => console.error(error));
   };
 
   const formatDate = (timestamp: number) => {

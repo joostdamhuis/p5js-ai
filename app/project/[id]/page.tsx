@@ -6,10 +6,11 @@ import Editor from '@/components/editor-ui/Editor';
 import Preview from '@/components/editor-ui/Preview';
 import FileExplorer from '@/components/editor-ui/FileExplorer';
 import ProjectManager from '@/components/editor-ui/ProjectManager';
-import WebSocketListener from '@/components/editor-ui/WebSocketListener';
+import WebSocketListener, { McpStatus } from '@/components/editor-ui/WebSocketListener';
 import Tabs from '@/components/editor-ui/Tabs';
 import Console, { LogMessage } from '@/components/editor-ui/Console';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
+import { fetchProject, saveProject, cacheProject } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, PanelLeft } from 'lucide-react';
 import { DialRoot } from 'dialkit';
@@ -28,72 +29,33 @@ export default function ProjectPage() {
   const [isRunning, setIsRunning] = useState(true);
   const [loading, setLoading] = useState(true);
   const [hasDials, setHasDials] = useState(false);
+  const [mcpStatus, setMcpStatus] = useState<McpStatus>('connecting');
 
-  // Load project from localStorage
+  // Load the project from the sketches folder (falls back to this browser's copy)
   useEffect(() => {
-    const loadProject = () => {
-      try {
-        // First try to load from saved projects
-        const savedProjects = localStorage.getItem('p5_projects');
-        if (savedProjects) {
-          const projects = JSON.parse(savedProjects);
-          const foundProject = projects.find((p: Project) => p.id === projectId);
-
-          if (foundProject) {
-            // Ensure the project has openTabs property
-            if (!foundProject.openTabs) {
-              foundProject.openTabs = foundProject.files.map((f: ProjectFile) => f.id);
-            }
-            setProject(foundProject);
-            localStorage.setItem('current_project', JSON.stringify(foundProject));
-            setLoading(false);
-            return;
-          }
-        }
-
-        // If not found in saved projects, check current project
-        const currentProject = localStorage.getItem('current_project');
-        if (currentProject) {
-          const parsed = JSON.parse(currentProject);
-          if (parsed.id === projectId) {
-            setProject(parsed);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // If project not found, redirect to dashboard
+    let cancelled = false;
+    fetchProject(projectId).then((found) => {
+      if (cancelled) return;
+      if (!found) {
         console.error('Project not found:', projectId);
         router.push('/');
-      } catch (error) {
-        console.error('Error loading project:', error);
-        router.push('/');
+        return;
       }
-    };
-
-    loadProject();
+      if (!found.openTabs) found.openTabs = found.files.map((f: ProjectFile) => f.id);
+      setProject(found);
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
   }, [projectId, router]);
 
-  // Auto-save project changes
+  // Autosave: browser copy right away, sketches folder shortly after typing stops
   useEffect(() => {
-    if (project) {
-      try {
-        localStorage.setItem('current_project', JSON.stringify(project));
-
-        // Also update in saved projects if it exists there
-        const savedProjects = localStorage.getItem('p5_projects');
-        if (savedProjects) {
-          const projects = JSON.parse(savedProjects);
-          const index = projects.findIndex((p: Project) => p.id === project.id);
-          if (index !== -1) {
-            projects[index] = project;
-            localStorage.setItem('p5_projects', JSON.stringify(projects));
-          }
-        }
-      } catch (error) {
-        console.error('Error saving project:', error);
-      }
-    }
+    if (!project) return;
+    cacheProject(project);
+    const timer = setTimeout(() => {
+      saveProject(project).catch((error) => console.error('Autosave failed:', error));
+    }, 700);
+    return () => clearTimeout(timer);
   }, [project]);
 
   // Handle file selection
@@ -386,8 +348,15 @@ export default function ProjectPage() {
               : 'bg-white/[0.05] text-foreground hover:bg-white/[0.1]'
               }`}
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${enableWsListener ? 'bg-emerald-400' : 'bg-white/30'}`} />
-            {enableWsListener ? 'MCP connected' : 'Enable MCP'}
+            <span className={`h-1.5 w-1.5 rounded-full ${!enableWsListener ? 'bg-white/30'
+              : mcpStatus === 'connected' ? 'bg-emerald-400'
+                : mcpStatus === 'offline' ? 'bg-red-400'
+                  : 'bg-white/50 animate-pulse'
+              }`} />
+            {!enableWsListener ? 'Enable MCP'
+              : mcpStatus === 'connected' ? 'MCP connected'
+                : mcpStatus === 'offline' ? 'MCP offline'
+                  : 'Connecting…'}
           </button>
         </div>
       </header>
@@ -507,6 +476,7 @@ export default function ProjectPage() {
           onFileControl={handleFileControl}
           onLayoutControl={handleLayoutControl}
           onNavigationControl={handleNavigationControl}
+          onStatusChange={setMcpStatus}
         />
       )}
     </div>

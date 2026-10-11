@@ -1,0 +1,31 @@
+{
+  "id": "project-1791712683983",
+  "name": "Untitled Project 2",
+  "lastModified": 1791712901504,
+  "activeFile": "sketch",
+  "openTabs": [
+    "sketch",
+    "index",
+    "style"
+  ],
+  "files": [
+    {
+      "id": "sketch",
+      "name": "sketch.js",
+      "type": "js",
+      "lastModified": 1791712573448
+    },
+    {
+      "id": "index",
+      "name": "index.html",
+      "type": "html",
+      "lastModified": 1791712573448
+    },
+    {
+      "id": "style",
+      "name": "style.css",
+      "type": "css",
+      "lastModified": 1791712573448
+    }
+  ]
+}

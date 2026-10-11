@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { cn } from '@/lib/utils';
 import { LogMessage } from './Console';
 
 interface WebSocketListenerProps {
@@ -10,8 +9,11 @@ interface WebSocketListenerProps {
   onFileControl?: (action: 'select' | 'close' | 'create' | 'delete', data?: any) => void;
   onLayoutControl?: (action: 'sidebar' | 'projectName', data?: any) => void;
   onNavigationControl?: (action: 'dashboard') => void;
+  onStatusChange?: (status: McpStatus) => void;
   serverUrl?: string;
 }
+
+export type McpStatus = 'connecting' | 'connected' | 'offline';
 
 const WebSocketListener = ({
   onCodeUpdate,
@@ -20,6 +22,7 @@ const WebSocketListener = ({
   onFileControl,
   onLayoutControl,
   onNavigationControl,
+  onStatusChange,
   serverUrl = 'http://localhost:3001'
 }: WebSocketListenerProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -244,35 +247,12 @@ const WebSocketListener = ({
     };
   }, [serverUrl]); // Only serverUrl as dependency
 
-  return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <div
-        className={cn(
-          "py-2 px-4 rounded-full shadow-md flex items-center gap-2 text-sm transition-all duration-200",
-          connected
-            ? "bg-green-500/10 text-green-600 border border-green-500/20"
-            : "bg-red-500/10 text-red-600 border border-red-500/20"
-        )}
-      >
-        <div
-          className={cn(
-            "w-2.5 h-2.5 rounded-full",
-            connected
-              ? "bg-green-500 animate-pulse"
-              : "bg-red-500"
-          )}
-        />
-        <span>
-          {connected
-            ? `Connected to MCP server${socket?.id ? ` (${socket.id.slice(-6)})` : ''}`
-            : error ?
-              `${error}${connectionAttempts > 0 ? ` (${connectionAttempts} attempts)` : ''}`
-              : "Disconnected from MCP server"
-          }
-        </span>
-      </div>
-    </div>
-  );
+  // Status is shown in the page header (MCP button), not as an overlay
+  useEffect(() => {
+    onStatusChange?.(connected ? 'connected' : error ? 'offline' : 'connecting');
+  }, [connected, error, onStatusChange]);
+
+  return null;
 };
 
 export default WebSocketListener; 
