@@ -187,7 +187,7 @@ html.dark[data-surface="light"] .dial-surface {
   border-color: rgb(0 0 0 / 10%);
 }
 
-/* Every panel uses DialKit's panel recipe: #212121, 10% border, 14px corners,
+/* Every panel uses DialKit's panel recipe, as Apple-style glass: #212121, 10% border, 14px corners,
    light blur, no shadow */
 /* Ambient tint: the canvas's average colour, set on :root by the editor and
    faded smoothly. Surfaces mix 18% of it into their grey. */
@@ -203,6 +203,9 @@ html.dark[data-surface="light"] .dial-surface {
 }
 :root {
   transition: --ambient 0.3s ease;
+  /* Apple-style glass: the colour comes from what's behind, blurred and
+     slightly saturated, never mixed into the panel itself */
+  --glass-blur: blur(30px) saturate(180%);
 }
 
 /* Surface opacity, shared by every panel, the dock, pills and menus so their
@@ -213,19 +216,19 @@ html.dark[data-surface="light"] .dial-surface {
 }
 
 @utility panel {
-  background-color: color-mix(in srgb, color-mix(in srgb, var(--card) 82%, var(--ambient) 18%) var(--surface-alpha), transparent);
+  background-color: color-mix(in srgb, var(--card) var(--surface-alpha), transparent);
   border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
-  backdrop-filter: blur(20px);
+  backdrop-filter: var(--glass-blur);
   overflow: hidden;
 }
 
 /* DialKit's floating chrome (dock, pills, popups): same surface as panels */
 @utility dial-surface {
-  background-color: color-mix(in srgb, color-mix(in srgb, var(--chrome) 82%, var(--ambient) 18%) var(--surface-alpha), transparent);
+  background-color: color-mix(in srgb, var(--chrome) var(--surface-alpha), transparent);
   border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
-  backdrop-filter: blur(20px);
+  backdrop-filter: var(--glass-blur);
 }
 
 /* DialKit docked in the Controls column: same header height, title style
@@ -281,9 +284,12 @@ html, body {
   --dial-shadow-dropdown: none;
 }
 
-/* DialKit's pinned header is see-through too: blur what scrolls under it */
-.dialkit-root[data-mode="inline"] .dialkit-panel-inner:not([data-collapsed="true"]) > .dialkit-folder-root > .dialkit-panel-header {
-  backdrop-filter: blur(20px);
+/* Inside our panel DialKit adds no glass of its own: a second blur on top of
+   the panel's darkens it, so the Controls panel wouldn't match the code panel */
+.dialkit-root[data-mode="inline"] .dialkit-panel-inner,
+.dialkit-root[data-mode="inline"] .dialkit-folder-header,
+.dialkit-root[data-mode="inline"] .dialkit-panel-header {
+  backdrop-filter: none !important;
 }
 
 /* DialKit's popups (select dropdown, colour and image pickers, presets,
@@ -294,6 +300,6 @@ html, body {
 .dialkit-image-popover,
 .dialkit-preset-dropdown,
 .dialkit-shortcuts-dropdown {
-  background: color-mix(in srgb, color-mix(in srgb, var(--chrome-raised) 82%, var(--ambient) 18%) 92%, transparent) !important;
-  backdrop-filter: blur(20px);
+  background: color-mix(in srgb, var(--chrome-raised) 85%, transparent) !important;
+  backdrop-filter: var(--glass-blur);
 }

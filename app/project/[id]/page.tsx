@@ -28,10 +28,10 @@ import 'dialkit/styles.css';
 
 const LAYOUT_KEY = 'p5_layout';
 
-// How see-through the panels can be over this canvas colour while their dimmer
-// (secondary) text still reaches 4.5:1 contrast. Mirrors the CSS: the panel is
-// its grey mixed 82/18 with the canvas colour, at this opacity over the canvas.
-const SURFACE_ALPHA_MIN = 0.5;
+// How see-through the glass can be over this canvas colour while its dimmer
+// (secondary) text still reaches 4.5:1 contrast. Mirrors the CSS: neutral glass
+// (dark grey or near-white) at this opacity over the blurred canvas.
+const SURFACE_ALPHA_MIN = 0.55;
 const SURFACE_ALPHA_MAX = 0.94;
 type RGB = [number, number, number];
 const mix = (a: RGB, b: RGB, t: number): RGB => [0, 1, 2].map(i => a[i] * t + b[i] * (1 - t)) as RGB;
@@ -46,7 +46,7 @@ const contrast = (a: RGB, b: RGB) => {
 function surfaceAlphaFor(canvas: RGB, light: boolean) {
   const base: RGB = light ? [250, 250, 250] : [33, 33, 33];
   const ink: RGB = light ? [0, 0, 0] : [255, 255, 255];
-  const tinted = mix(base, canvas, 0.82);
+  const tinted = base;
   // Whole-percent steps (adding 0.02 repeatedly drifts past the maximum)
   for (let pct = SURFACE_ALPHA_MIN * 100; pct <= SURFACE_ALPHA_MAX * 100; pct += 2) {
     const alpha = pct / 100;
