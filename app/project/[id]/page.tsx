@@ -662,6 +662,13 @@ export default function ProjectPage() {
           // The toolbar lives in the same bar, left of the prompt
           tools={
             <>
+              <button
+                onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
+                title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
+                className="mr-1 h-8 w-8 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
+              >
+                {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
+              </button>
               {dockToggle(
                 showCode || showControls,
                 () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
@@ -669,13 +676,6 @@ export default function ProjectPage() {
                 <PanelsLeftRight className="w-4 h-4" />
               )}
               <span ref={setDockToolsEl} className="flex items-center" />
-              <button
-                onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
-                title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
-                className="mx-1 h-8 w-8 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
-              >
-                {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
-              </button>
               <ProjectManager currentProject={project} onProjectChange={setProject} compact />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
