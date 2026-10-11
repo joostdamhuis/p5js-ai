@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Editor from '@/components/editor-ui/Editor';
 import Preview from '@/components/editor-ui/Preview';
@@ -10,11 +10,19 @@ import Tabs from '@/components/editor-ui/Tabs';
 import Console, { LogMessage } from '@/components/editor-ui/Console';
 import ResizeHandle from '@/components/editor-ui/ResizeHandle';
 import ConnectionStatus from '@/components/editor-ui/ConnectionStatus';
-import FontsMenu from '@/components/editor-ui/FontsMenu';
+import FontsMenu, { FontsSubmenu } from '@/components/editor-ui/FontsMenu';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
-import { fetchProject, saveProject, cacheProject } from '@/lib/projects';
+import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelBottom, Columns3, Code2, SquareTerminal, SlidersHorizontal, Play } from 'lucide-react';
+import { ArrowLeft, PanelBottom, Columns3, Code2, SlidersHorizontal, Play, Square, MoreHorizontal, Plus } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
@@ -40,6 +48,7 @@ export default function ProjectPage() {
   const [showConsole, setShowConsole] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [dockToolsEl, setDockToolsEl] = useState<HTMLElement | null>(null);
+  const fontInputRef = useRef<HTMLInputElement>(null);
   const [isRunning, setIsRunning] = useState(true);
   const [loading, setLoading] = useState(true);
   const [hasDials, setHasDials] = useState(false);
@@ -134,6 +143,13 @@ export default function ProjectPage() {
     // Use as textFont('<name without extension>')
     fonts: project.fonts ?? [],
   } : {};
+
+  const createNewSketch = async () => {
+    const count = (await fetchProjects()).length;
+    const newProject = { ...DEFAULT_PROJECT, id: `project-${Date.now()}`, name: `Untitled Project ${count + 1}`, lastModified: Date.now() };
+    await saveProject(newProject).catch((error) => console.error(error));
+    router.push(`/project/${newProject.id}`);
+  };
 
   // Handle file selection
   const handleFileSelect = (fileId: string) => {
@@ -508,7 +524,7 @@ export default function ProjectPage() {
         onClick={toggle}
         title={`${on ? 'Hide' : 'Show'} ${label}`}
         aria-pressed={on}
-        className={`h-8 w-8 flex items-center justify-center rounded-lg transition-colors ${on ? 'bg-white/[0.11] text-foreground' : 'text-muted-foreground hover:bg-white/[0.1] hover:text-foreground'}`}
+        className={`h-9 w-9 flex items-center justify-center rounded-full transition-colors ${on ? 'bg-white/[0.11] text-foreground' : 'text-muted-foreground hover:bg-white/[0.1] hover:text-foreground'}`}
       >
         {icon}
       </button>
@@ -546,26 +562,63 @@ export default function ProjectPage() {
           </aside>
         )}
 
-        {/* The dock */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-1.5 rounded-2xl bg-[#212121]/90 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        {/* The dock: panels left, Run/Stop in the middle, Export / Save / More right */}
+        <input
+          ref={fontInputRef}
+          type="file"
+          accept=".ttf,.otf,.woff,.woff2"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (!file) return;
+            try {
+              await uploadFont(project.id, file);
+              setProject(prev => prev ? { ...prev, fonts: Array.from(new Set([...(prev.fonts ?? []), file.name])), lastModified: Date.now() } : prev);
+            } catch (error) {
+              alert(`Couldn't add the font: ${(error as Error).message}`);
+            }
+          }}
+        />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 p-1.5 rounded-full bg-[#212121]/90 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
           {dockToggle(showCode, () => setShowCode(!showCode), 'code', <Code2 className="w-4 h-4" />)}
-          {dockToggle(showConsole, () => setShowConsole(!showConsole), 'console', <SquareTerminal className="w-4 h-4" />)}
           {dockToggle(showControls, () => setShowControls(!showControls), 'controls', <SlidersHorizontal className="w-4 h-4" />)}
-          <FontsMenu project={project} onProjectChange={setProject} />
           {divider}
           <button
             onClick={isRunning ? handleStop : handleStart}
             title={isRunning ? 'Stop sketch' : 'Run sketch'}
-            className={`flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors ${isRunning ? 'bg-white/[0.05] text-foreground hover:bg-white/[0.1]' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
+            className={`h-10 w-10 flex items-center justify-center rounded-full transition-colors ${isRunning ? 'bg-white/[0.11] text-foreground hover:bg-white/[0.16]' : 'bg-white text-[#212121] hover:bg-white/90'}`}
           >
-            {isRunning ? <><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />Stop</> : <><Play className="h-3.5 w-3.5" />Run</>}
+            {isRunning ? <Square className="h-3.5 w-3.5 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
           </button>
           {divider}
           <span ref={setDockToolsEl} className="flex items-center" />
-          {divider}
-          <ProjectManager currentProject={project} onProjectChange={setProject} />
-          {divider}
-          {layoutSwitch}
+          <ProjectManager currentProject={project} onProjectChange={setProject} compact />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                title="More"
+                className="h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-white/[0.1] hover:text-foreground data-[state=open]:bg-white/[0.11] data-[state=open]:text-foreground transition-colors"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="end" sideOffset={10} className="w-52">
+              <DropdownMenuCheckboxItem checked={showConsole} onCheckedChange={(v) => setShowConsole(!!v)}>
+                Console
+              </DropdownMenuCheckboxItem>
+              <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={createNewSketch}>
+                <Plus className="mr-2 h-4 w-4" />
+                New sketch
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setLayoutMode('columns')}>
+                <Columns3 className="mr-2 h-4 w-4" />
+                Columns layout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {listener}

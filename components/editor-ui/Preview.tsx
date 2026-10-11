@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
-import { Download, ChevronDown, Square } from 'lucide-react';
+import { Download, ChevronDown, Square, Share, Image as ImageIcon, Video, Crop } from 'lucide-react';
 import { CANVAS_SIZES, getCanvasSize } from '@/lib/canvas-sizes';
 import { fontFamily, fontUrl } from '@/lib/projects';
 import { buildFramerComponent } from '@/lib/framer-export';
@@ -10,7 +10,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Project } from '@/lib/types';
@@ -595,6 +600,80 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     );
   }
 
+  const copyForFramer = async () => {
+    const code = buildFramerComponent(project, dialConfig, fontData);
+    try {
+      await navigator.clipboard.writeText(code);
+      setRecordNote('Copied. In Framer: Assets → Code → New code file, then paste');
+    } catch {
+      setRecordNote('Couldn’t copy. Click the canvas once and try again');
+    }
+    setTimeout(() => setRecordNote(''), 6000);
+  };
+
+  // Dock: one Export button (a red timer while recording) holding everything
+  const dockExport = recording ? (
+    <button
+      onClick={() => postToSketch({ type: 'recordStop' })}
+      title="Stop and download the video"
+      className="flex items-center gap-1.5 h-9 px-3 rounded-full text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-500/90 transition-colors"
+    >
+      <Square className="h-3 w-3 fill-current" />
+      {formatElapsed(now - recording.since)}
+      {recording.seconds ? ` / ${formatElapsed(recording.seconds * 1000)}` : ''}
+    </button>
+  ) : (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          title="Export"
+          className="flex items-center gap-1.5 h-9 pl-3 pr-2.5 rounded-full text-[13px] font-medium text-foreground hover:bg-white/[0.1] data-[state=open]:bg-white/[0.11] transition-colors"
+        >
+          <Share className="h-4 w-4" />
+          Export
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="center" sideOffset={10} className="w-56">
+        <DropdownMenuItem onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}>
+          <ImageIcon className="mr-2 h-4 w-4" />
+          Image (PNG)
+        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Video className="mr-2 h-4 w-4" />
+            Video
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart', length: 'loop' })}>One perfect loop</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => postToSketch({ type: 'recordStart' })}>Until I stop</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {[3, 5, 10].map(sec => (
+              <DropdownMenuItem key={sec} onClick={() => postToSketch({ type: 'recordStart', length: sec })}>{sec} seconds</DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuItem onClick={copyForFramer}>
+          <svg viewBox="0 0 14 21" className="mr-2 h-3.5 w-4 fill-current" aria-hidden><path d="M0 0h14v7H7zM0 7h7l7 7H7v7l-7-7z" /></svg>
+          Copy for Framer
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Crop className="mr-2 h-4 w-4" />
+            Size: {size.short}
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup value={size.id} onValueChange={(id) => onCanvasSizeChange?.(id)}>
+              {CANVAS_SIZES.map(s => (
+                <DropdownMenuRadioItem key={s.id} value={s.id}>{s.label}</DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   // Toolbar buttons: dark chips on the canvas, plain buttons inside the dock
   const itemBg = toolbarTarget ? 'bg-transparent hover:bg-white/[0.1]' : 'bg-[#212121]/80 backdrop-blur hover:bg-[#2a2a2a]';
   const toolbarItems = (
@@ -650,16 +729,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           </DropdownMenu>
         )}
         <button
-          onClick={async () => {
-            const code = buildFramerComponent(project, dialConfig, fontData);
-            try {
-              await navigator.clipboard.writeText(code);
-              setRecordNote('Copied. In Framer: Assets → Code → New code file, then paste');
-            } catch {
-              setRecordNote('Couldn’t copy. Click the canvas once and try again');
-            }
-            setTimeout(() => setRecordNote(''), 6000);
-          }}
+          onClick={copyForFramer}
           title="Copy this sketch as a Framer code component, with its controls as Framer properties"
           className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg ${itemBg} text-[13px] font-medium text-foreground`}
         >
@@ -686,7 +756,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     >
       {/* Canvas toolbar: on the canvas (on hover, always while recording), or in the dock */}
       {toolbarTarget
-        ? createPortal(<div className="flex items-center gap-0.5">{toolbarItems}</div>, toolbarTarget)
+        ? createPortal(dockExport, toolbarTarget)
         : (
           <div className={cn(
             "absolute top-2 right-2 z-10 flex items-center gap-1 transition-opacity",
@@ -696,7 +766,10 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           </div>
         )}
       {recordNote && (
-        <div className="absolute top-12 right-2 z-10 rounded-lg bg-[#212121]/90 px-2.5 py-1.5 text-[12px] text-muted-foreground">
+        <div className={cn(
+          "absolute z-30 rounded-lg bg-[#212121]/90 px-2.5 py-1.5 text-[12px] text-muted-foreground",
+          toolbarTarget ? "bottom-20 left-1/2 -translate-x-1/2" : "top-12 right-2"
+        )}>
           {recordNote}
         </div>
       )}

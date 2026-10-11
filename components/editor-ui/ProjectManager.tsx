@@ -9,9 +9,11 @@ import { fetchProjects, saveProject, publishSketches } from '@/lib/projects';
 interface ProjectManagerProps {
   currentProject: Project;
   onProjectChange: (project: Project) => void;
+  // Dock: just a round Save icon (New lives in the dock's More menu)
+  compact?: boolean;
 }
 
-const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps) => {
+const ProjectManager = ({ currentProject, onProjectChange, compact }: ProjectManagerProps) => {
   const router = useRouter();
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'pushed' | 'local' | 'failed'>('idle');
   const [saveNote, setSaveNote] = useState('');
@@ -68,6 +70,27 @@ const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps
     await saveProject(newProject).catch((error) => console.error(error));
     router.push(`/project/${newProject.id}`);
   };
+
+  if (compact) {
+    return (
+      <button
+        onClick={handleSaveProject}
+        disabled={saveState === 'saving'}
+        title={saveState === 'local'
+          ? `Saved on this Mac, not on GitHub: ${saveNote}`
+          : saveState === 'pushed' ? 'Saved to GitHub' : 'Save and back up to GitHub (⌘S)'}
+        className={cn(
+          'h-9 w-9 flex items-center justify-center rounded-full transition-colors hover:bg-white/[0.1]',
+          saveState === 'local' ? 'text-amber-300' : saveState === 'failed' ? 'text-red-400' : 'text-muted-foreground hover:text-foreground'
+        )}
+      >
+        {saveState === 'saving' ? <Loader2 className="h-4 w-4 animate-spin" />
+          : saveState === 'pushed' ? <Check className="h-4 w-4 text-emerald-400" />
+            : saveState === 'local' ? <CloudOff className="h-4 w-4" />
+              : <Save className="h-4 w-4" />}
+      </button>
+    );
+  }
 
   return (
     <div className="flex items-center gap-0.5">
