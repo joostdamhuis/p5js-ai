@@ -52,6 +52,12 @@ const dial = dials({
 - Bridge: `dialsBridge` script in Preview.tsx (inside the iframe) ↔ SketchDials.tsx (useDialKit only), via postMessage; Preview reports `onDialsChange` so the page can show an empty state
 - Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 
+## Smart toggles (automatic controls)
+- Any unindented `const NAME = <number | '#hex' | true/false>` in a sketch's JS becomes a control in a "Variables" panel, no dials() needed (`lib/auto-dials.ts`, `AutoDials.tsx`). ALL_CAPS names get friendly labels ("MAX_COUNT" → "Max count")
+- Before running, the code is rewritten in memory only: those consts become `let` plus a setter (`window.__autoDials`); files on disk are untouched. `let`/`var` are ignored (usually state)
+- Editing the value in code moves the control; control tweaks survive reloads
+- When writing sketches for Joost: put tweakable settings as top-level consts (simplest), or use dials() for ranges, dropdowns, folders, buttons
+
 ## Git
 - Remote: github.com/joostdamhuis/p5js-ai-editor (private). Forked from github.com/adilmoujahid/p5js-ai-editor, no upstream remote kept
 - Claude commits code; Joost pushes code with GitHub Desktop (“Push origin”). The editor's Save pushes sketches itself via the deploy key. Claude should not push with the deploy key on its own

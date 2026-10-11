@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import type { DialConfig } from 'dialkit';
 import { cn } from '@/lib/utils';
 import { Project } from '@/lib/types';
 import { LogMessage } from './Console';
 import SketchDials from './SketchDials';
+import AutoDials from './AutoDials';
+import { findAutoDials, instrumentAutoDials } from '@/lib/auto-dials';
 
 // Keeps every sketch centred in the preview and filling it: full-window
 // canvases follow the preview's size, fixed-size ones are centred and scaled
@@ -100,6 +102,12 @@ const dialsBridge = `
         const data = event.data;
         if (!data || data.source !== 'p5js-editor-dials') return;
         if (data.type === 'values' && dial) assign(dial, data.values);
+        // Smart toggles: plain settings found in the code (lib/auto-dials.ts)
+        if (data.type === 'autoValues' && window.__autoDials) {
+          for (const key in data.values) {
+            if (window.__autoDials[key]) window.__autoDials[key](data.values[key]);
+          }
+        }
         if (data.type === 'action') {
           if (onAction) onAction(data.action);
           else if (typeof window.dialAction === 'function') window.dialAction(data.action);
@@ -126,7 +134,13 @@ interface PreviewProps {
 const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange }: PreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [dialConfig, setDialConfig] = useState<DialConfig | null>(null);
-  const hasDials = dialConfig !== null;
+
+  // Plain settings at the top of the sketch's JS files become controls too
+  const jsCode = project.files.filter(f => f.type === 'js').map(f => f.content).join('\n');
+  const autoDials = useMemo(() => findAutoDials(jsCode), [jsCode]);
+  const latestAutoValues = useRef<unknown>(null);
+
+  const hasDials = isRunning && (dialConfig !== null || autoDials.length > 0);
 
   useEffect(() => {
     onDialsChange?.(hasDials);
@@ -171,6 +185,9 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           postToSketch({ type: 'values', values: latestDialValues.current });
         }
       }
+      if (data.type === 'autoReady' && latestAutoValues.current) {
+        postToSketch({ type: 'autoValues', values: latestAutoValues.current });
+      }
     };
 
     window.addEventListener('message', handleMessage);
@@ -199,7 +216,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             // Replace reference with inline script
             htmlContent = htmlContent.replace(
               scriptRegex,
-              `<script>${file.content}</script>`
+              () => `<script>${instrumentAutoDials(file.content, findAutoDials(file.content))}</script>`
             );
           }
         }
@@ -211,7 +228,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
             // Replace reference with inline style
             htmlContent = htmlContent.replace(
               cssRegex,
-              `<style>${file.content}</style>`
+              () => `<style>${file.content}</style>`
             );
           }
         }
@@ -222,7 +239,9 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       const jsFiles = project.files.filter(file => file.type === 'js');
 
       const cssContent = cssFile ? `<style>${cssFile.content}</style>` : '';
-      const jsContent = jsFiles.map(file => `<script>${file.content}</script>`).join('\n');
+      const jsContent = jsFiles
+        .map(file => `<script>${instrumentAutoDials(file.content, findAutoDials(file.content))}</script>`)
+        .join('\n');
 
       htmlContent = `
         <!DOCTYPE html>
@@ -390,6 +409,13 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         title="Preview"
         sandbox="allow-scripts allow-same-origin"
       />
+      {isRunning && autoDials.length > 0 && (
+        <AutoDials
+          dials={autoDials}
+          postToSketch={postToSketch}
+          latestValues={latestAutoValues}
+        />
+      )}
       {dialConfig && (
         <SketchDials
           config={dialConfig}
