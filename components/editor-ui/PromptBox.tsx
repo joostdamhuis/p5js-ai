@@ -7,8 +7,6 @@ interface PromptBoxProps {
   project: Project;
   // Recent console errors, so Claude can fix them
   errors: string[];
-  open: boolean;
-  onClose: () => void;
   onRestore: (files: ProjectFile[]) => void;
 }
 
@@ -27,8 +25,8 @@ const writeHistory = (id: string, turns: Turn[]) => {
   try { localStorage.setItem(historyKey(id), JSON.stringify(turns.slice(-8))); } catch {}
 };
 
-// Floating box above the dock: type a request, Claude Code changes the sketch in place
-const PromptBox = ({ project, errors, open, onClose, onRestore }: PromptBoxProps) => {
+// Floating box at the bottom centre: type a request, Claude Code changes the sketch in place
+const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
   const [text, setText] = useState('');
   const [state, setState] = useState<State>({ kind: 'idle' });
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,9 +34,14 @@ const PromptBox = ({ project, errors, open, onClose, onRestore }: PromptBoxProps
   const historyIndex = useRef(-1);
   const working = state.kind === 'working';
 
+  // ⌘K jumps to the box
   useEffect(() => {
-    if (open) requestAnimationFrame(() => inputRef.current?.focus());
-  }, [open]);
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); inputRef.current?.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const send = async () => {
     const prompt = text.trim();
@@ -97,7 +100,7 @@ const PromptBox = ({ project, errors, open, onClose, onRestore }: PromptBoxProps
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') { e.preventDefault(); send(); }
-    if (e.key === 'Escape') { e.preventDefault(); if (working) abortRef.current?.abort(); else onClose(); }
+    if (e.key === 'Escape') { e.preventDefault(); if (working) abortRef.current?.abort(); else inputRef.current?.blur(); }
     // Up and down step through earlier prompts
     if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !working) {
       const turns = readHistory(project.id);
@@ -110,10 +113,8 @@ const PromptBox = ({ project, errors, open, onClose, onRestore }: PromptBoxProps
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="dial-surface absolute bottom-[4.75rem] left-1/2 -translate-x-1/2 z-20 w-[min(420px,calc(100vw-1.5rem))] p-1">
+    <div className="dial-surface absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(420px,calc(100vw-1.5rem))] p-1">
       {state.kind !== 'idle' && (
         <div className="flex items-center gap-2 px-2.5 pt-1.5 pb-1 text-[12px] min-h-7">
           {working && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-foreground animate-pulse" />}
@@ -142,7 +143,7 @@ const PromptBox = ({ project, errors, open, onClose, onRestore }: PromptBoxProps
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder={working ? 'Claude is working…' : 'Ask Claude to change the sketch'}
+          placeholder={working ? 'Claude is working…' : 'Ask Claude to change the sketch  ⌘K'}
           disabled={working}
           className="flex-1 min-w-0 h-9 px-2.5 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />

@@ -685,7 +685,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
           <Share className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="center" sideOffset={10} className="w-56">
+      <DropdownMenuContent side="bottom" align="center" sideOffset={10} className="w-56">
         <DropdownMenuItem onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}>
           <ImageIcon className="mr-2 h-4 w-4" />
           Image (PNG)

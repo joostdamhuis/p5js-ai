@@ -27,7 +27,7 @@ import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Pause, MoreHorizontal, Plus, SunMoon, SquareTerminal, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Pause, MoreHorizontal, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import PromptBox from '@/components/editor-ui/PromptBox';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
@@ -64,15 +64,6 @@ export default function ProjectPage() {
   const [codeContentHeight, setCodeContentHeight] = useState(320);
   const [isRunning, setIsRunning] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
-  // ⌘K opens the prompt box
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setShowPrompt(v => !v); }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
   // Code changes reload the sketch, so it plays again
   const codeKey = project?.files.map(f => f.content).join('\u0000');
   useEffect(() => setIsPaused(false), [codeKey]);
@@ -667,18 +658,15 @@ export default function ProjectPage() {
         <PromptBox
           project={project}
           errors={consoleMessages.filter(m => m.type === 'error').map(m => String(m.content))}
-          open={showPrompt}
-          onClose={() => setShowPrompt(false)}
           onRestore={(files) => setProject(prev => prev ? { ...prev, files, lastModified: Date.now() } : prev)}
         />
-        <div className="dial-surface absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-1">
+        <div className="dial-surface absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-1">
           {dockToggle(
             showCode || showControls,
             () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
             'panels',
             <PanelsLeftRight className="w-4 h-4" />
           )}
-          {dockToggle(showPrompt, () => setShowPrompt(v => !v), 'Claude (⌘K)', <Sparkles className="w-4 h-4" />)}
           <span ref={setDockToolsEl} className="flex items-center" />
           <button
             onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
@@ -697,7 +685,7 @@ export default function ProjectPage() {
                 <MoreHorizontal className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="end" sideOffset={10} className="w-52">
+            <DropdownMenuContent side="bottom" align="end" sideOffset={10} className="w-52">
               {/* Same layout as the other rows: icon, label, and a check on the right when on */}
               <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowConsole(!showConsole); }}>
                 <SquareTerminal className="mr-2 h-4 w-4" />
