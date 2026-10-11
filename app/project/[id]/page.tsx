@@ -16,46 +16,25 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib/appearance';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Square, MoreHorizontal, Plus } from 'lucide-react';
+import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Square, MoreHorizontal, Plus, SunMoon } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
 const LAYOUT_KEY = 'p5_layout';
 
-// How see-through the glass can be over this canvas colour while its dimmer
-// (secondary) text still reaches 4.5:1 contrast. Mirrors the CSS: neutral glass
-// (dark grey or near-white) at this opacity over the blurred canvas.
-const SURFACE_ALPHA_MIN = 0.55;
-const SURFACE_ALPHA_MAX = 0.94;
-type RGB = [number, number, number];
-const mix = (a: RGB, b: RGB, t: number): RGB => [0, 1, 2].map(i => a[i] * t + b[i] * (1 - t)) as RGB;
-const relLum = ([r, g, b]: RGB) => {
-  const c = [r, g, b].map(v => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; });
-  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-};
-const contrast = (a: RGB, b: RGB) => {
-  const [l1, l2] = [relLum(a), relLum(b)].sort((x, y) => y - x);
-  return (l1 + 0.05) / (l2 + 0.05);
-};
-function surfaceAlphaFor(canvas: RGB, light: boolean) {
-  const base: RGB = light ? [250, 250, 250] : [26, 26, 26];
-  const ink: RGB = light ? [0, 0, 0] : [255, 255, 255];
-  const tinted = base;
-  // Whole-percent steps (adding 0.02 repeatedly drifts past the maximum)
-  for (let pct = SURFACE_ALPHA_MIN * 100; pct <= SURFACE_ALPHA_MAX * 100; pct += 2) {
-    const alpha = pct / 100;
-    const surface = mix(tinted, canvas, alpha);
-    const secondaryText = mix(ink, surface, light ? 0.55 : 0.6);
-    if (contrast(secondaryText, surface) >= 4.5) return alpha;
-  }
-  return SURFACE_ALPHA_MAX;
-}
+
 const MCP_KEY = 'p5_mcp';
 const LAYOUT_DEFAULTS = { consoleHeight: 200, codeWidth: 400, controlsWidth: 280 };
 
@@ -77,7 +56,8 @@ export default function ProjectPage() {
   const [showConsole, setShowConsole] = useState(false);
   const [showControls, setShowControls] = useState(true);
   // Panels take on a tint of the canvas's colour
-  const [tintPanels, setTintPanels] = useState(true);
+  // Appearance: auto (follow the canvas), dark or light
+  const [appearance, setAppearance] = useState<Appearance>('auto');
   const [dockToolsEl, setDockToolsEl] = useState<HTMLElement | null>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
   // Height of the code itself, so the floating code panel can fit it
@@ -118,15 +98,20 @@ export default function ProjectPage() {
       if (typeof saved.showCode === 'boolean') setShowCode(saved.showCode);
       if (typeof saved.showConsole === 'boolean') setShowConsole(saved.showConsole);
       if (typeof saved.showControls === 'boolean') setShowControls(saved.showControls);
-      if (typeof saved.tintPanels === 'boolean') setTintPanels(saved.tintPanels);
     } catch {}
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, codeWidth, controlsWidth, layout: layoutMode, showCode, showConsole, showControls, tintPanels }));
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify({ consoleHeight, codeWidth, controlsWidth, layout: layoutMode, showCode, showConsole, showControls }));
     } catch {}
-  }, [consoleHeight, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls, tintPanels]);
+  }, [consoleHeight, codeWidth, controlsWidth, layoutMode, showCode, showConsole, showControls]);
+
+  useEffect(() => { setAppearance(readAppearance()); }, []);
+  const chooseAppearance = (value: Appearance) => {
+    setAppearance(value);
+    writeAppearance(value);
+  };
 
   // Load the project from the sketches folder (falls back to this browser's copy)
   useEffect(() => {
@@ -178,36 +163,21 @@ export default function ProjectPage() {
     fonts: project.fonts ?? [],
   } : {};
 
-  // Ambient tint: the canvas colour as --ambient on :root (CSS fades it).
-  // Over a light canvas the panels switch to light (with a little hysteresis
-  // so a canvas near the threshold doesn't flip back and forth)
-  const [lightSurface, setLightSurface] = useState(false);
+  // Auto appearance: the canvas colour is sampled and the panels go light over
+  // light canvases (with a little hysteresis so a canvas near the threshold
+  // doesn't flip back and forth). Dark and Light ignore the canvas.
+  const [canvasLight, setCanvasLight] = useState(false);
   const lightRef = useRef(false);
   const setAmbient = useCallback(([r, g, b]: [number, number, number]) => {
-    const root = document.documentElement;
-    root.style.setProperty('--ambient', `rgb(${r} ${g} ${b})`);
     const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
     const light = lightRef.current ? luminance > 0.5 : luminance > 0.62;
     lightRef.current = light;
-    setLightSurface(light);
-    root.style.setProperty('--surface-alpha', `${Math.round(surfaceAlphaFor([r, g, b], light) * 100)}%`);
+    setCanvasLight(light);
   }, []);
+  const lightSurface = appearance === 'light' || (appearance === 'auto' && canvasLight);
   useEffect(() => {
-    if (!tintPanels) {
-      document.documentElement.style.removeProperty('--ambient');
-      document.documentElement.style.removeProperty('--surface-alpha');
-      lightRef.current = false;
-      setLightSurface(false);
-    }
-    return () => {
-      document.documentElement.style.removeProperty('--ambient');
-      document.documentElement.style.removeProperty('--surface-alpha');
-    };
-  }, [tintPanels]);
-  useEffect(() => {
-    if (lightSurface) document.documentElement.dataset.surface = 'light';
-    else delete document.documentElement.dataset.surface;
-    return () => { delete document.documentElement.dataset.surface; };
+    applySurface(lightSurface);
+    return () => applySurface(false);
   }, [lightSurface]);
 
   const createNewSketch = async () => {
@@ -544,7 +514,7 @@ export default function ProjectPage() {
       onControlsChange={handleControlsChange}
       onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
       toolbarTarget={layoutMode === 'dock' ? dockToolsEl : undefined}
-      onAmbientColor={tintPanels ? setAmbient : undefined}
+      onAmbientColor={appearance === 'auto' ? setAmbient : undefined}
     />
   );
 
@@ -707,9 +677,19 @@ export default function ProjectPage() {
               <DropdownMenuCheckboxItem checked={showConsole} onCheckedChange={(v) => setShowConsole(!!v)}>
                 Console
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem checked={tintPanels} onCheckedChange={(v) => setTintPanels(!!v)}>
-                Adapt panels to canvas
-              </DropdownMenuCheckboxItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <SunMoon className="mr-2 h-4 w-4" />
+                  Appearance: {appearance === 'auto' ? 'Auto' : appearance === 'dark' ? 'Dark' : 'Light'}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56">
+                  <DropdownMenuRadioGroup value={appearance} onValueChange={(v) => chooseAppearance(v as Appearance)}>
+                    <DropdownMenuRadioItem value="auto">Auto · follows the canvas</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={createNewSketch}>

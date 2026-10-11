@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { fetchProjects, saveProject, deleteProject } from '@/lib/projects';
+import { readAppearance, applySurface } from '@/lib/appearance';
 
 interface ProjectDashboardProps {
   onProjectSelect?: (project: Project) => void;
@@ -30,6 +31,12 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
   // Load projects from the sketches folder
   useEffect(() => {
     fetchProjects().then(setProjects);
+  }, []);
+
+  // Same appearance as the editor ('auto' has no canvas here, so it's dark)
+  useEffect(() => {
+    applySurface(readAppearance() === 'light');
+    return () => applySurface(false);
   }, []);
 
   const handleCreateProject = async () => {
@@ -120,7 +127,7 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
               <div
                 key={project.id}
                 onClick={() => handleOpenProject(project)}
-                className="panel group cursor-pointer p-1.5 transition-colors hover:bg-[#262626]"
+                className="panel group cursor-pointer p-1.5 transition-colors hover:!bg-[var(--chrome-raised)]"
               >
                 <div className="relative rounded-lg bg-black aspect-square overflow-hidden">
                   {/* Code shows until (or unless) the sketch has a thumbnail */}

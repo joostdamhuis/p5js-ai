@@ -158,6 +158,8 @@
   --chrome: #1a1a1a;
   --chrome-raised: #232323;
   --card: #1a1a1a;
+  /* Page behind the panels (dashboard, columns layout): a step below them */
+  --background: #0d0d0d;
 }
 
 /* Light panels: switched on automatically over light canvases
