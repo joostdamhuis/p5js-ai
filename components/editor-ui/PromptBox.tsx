@@ -54,7 +54,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   };
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
-  const toolsRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const historyIndex = useRef(-1);
   const working = pending !== null;
@@ -183,17 +183,16 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
   return (
     <div
       ref={boxRef}
-      // Focus on the prompt side opens the card; the toolbar buttons don't
-      onFocus={(e) => setFocused(!toolsRef.current?.contains(e.target as Node))}
-      // Stay open while focus moves inside the box (Undo, recent prompts, the model menu)
+      // Only the text field opens the card; focus can then move into the card
+      // (Undo, recent prompts) without closing it
       onBlur={(e) => {
         const to = e.relatedTarget as Node | null;
-        if (!to || !boxRef.current?.contains(to) || toolsRef.current?.contains(to)) setFocused(false);
+        if (!to || !(to === inputRef.current || cardRef.current?.contains(to))) setFocused(false);
       }}
       className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(620px,calc(100vw-1.5rem))] flex flex-col gap-2"
     >
       {(showLatest || showRecent) && (
-        <div className="dial-surface rounded-[20px] p-1.5 flex flex-col">
+        <div ref={cardRef} className="dial-surface rounded-[20px] p-1.5 flex flex-col">
           {showLatest && (
             <div className="px-3 py-2 text-[13px] leading-5">
               {pending ? (
@@ -251,7 +250,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
       <div className="dial-surface rounded-full flex items-end gap-0.5 p-[3px]">
         {tools && (
           <>
-            <div ref={toolsRef} className="flex items-center gap-0.5 shrink-0">{tools}</div>
+            <div className="flex items-center gap-0.5 shrink-0">{tools}</div>
             <div className="self-center mx-1.5 h-5 w-px shrink-0 bg-[rgb(var(--ink)/0.12)]" />
           </>
         )}
@@ -290,6 +289,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
+          onFocus={() => setFocused(true)}
           // Pasting an image attaches it
           onPaste={(e) => { const imgs = Array.from(e.clipboardData.files).filter(f => f.type.startsWith('image/')); if (imgs.length) { e.preventDefault(); addFiles(imgs); } }}
           placeholder={working ? 'Claude is working…' : 'Ask Claude  ⌘K'}
