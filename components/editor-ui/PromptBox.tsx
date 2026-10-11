@@ -169,13 +169,13 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
       onFocus={() => setFocused(true)}
       // Stay open while focus moves inside the box (Undo, the model menu)
       onBlur={(e) => { if (!boxRef.current?.contains(e.relatedTarget as Node)) setFocused(false); }}
-      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(440px,calc(100vw-1.5rem))] flex flex-col gap-2"
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(340px,calc(100vw-1.5rem))] flex flex-col gap-2"
     >
       {showThread && (
         <div
           ref={threadRef}
           tabIndex={-1}
-          className="dial-surface max-h-[45vh] overflow-y-auto p-3 flex flex-col gap-1.5 outline-none"
+          className="dial-surface max-h-[35vh] overflow-y-auto p-3 flex flex-col gap-1.5 outline-none"
         >
           {turns.map((t, i) => (
             <div key={i} className="flex flex-col gap-1.5">
@@ -207,7 +207,7 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
         </div>
       )}
 
-      <div className="dial-surface rounded-[22px] flex items-end gap-1 p-1.5 pl-4">
+      <div className="dial-surface rounded-[18px] flex items-end gap-0.5 p-1 pl-3.5">
         <textarea
           ref={inputRef}
           rows={1}
@@ -216,14 +216,14 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
           onKeyDown={onKeyDown}
           placeholder={working ? 'Claude is working…' : 'Message Claude  ⌘K'}
           disabled={working}
-          className="flex-1 min-w-0 resize-none self-center py-1.5 bg-transparent text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
+          className="flex-1 min-w-0 resize-none self-center py-1 bg-transparent text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               title="Model"
               disabled={working}
-              className="h-8 shrink-0 flex items-center gap-1 px-2.5 rounded-full text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
+              className="h-7 shrink-0 flex items-center gap-1 px-2 rounded-full text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
             >
               {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
               <ChevronDown className="h-3 w-3" />
@@ -243,9 +243,9 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
           title={working ? 'Stop (Esc)' : 'Send (Enter)'}
           onClick={working ? () => abortRef.current?.abort() : send}
           disabled={!working && !text.trim()}
-          className="h-8 w-8 shrink-0 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
+          className="h-7 w-7 shrink-0 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
         >
-          {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-4 w-4" strokeWidth={2.5} />}
+          {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
         </button>
       </div>
     </div>
