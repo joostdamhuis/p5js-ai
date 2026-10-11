@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, ChevronDown, Square, Undo2, X } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ArrowUp, Check, ChevronDown, Square, Undo2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Project, ProjectFile } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -11,12 +11,8 @@ interface PromptBoxProps {
   onRestore: (files: ProjectFile[]) => void;
 }
 
-type Turn = { prompt: string; reply: string };
-type State =
-  | { kind: 'idle' }
-  | { kind: 'working'; status: string }
-  | { kind: 'done'; text: string; before: ProjectFile[] }
-  | { kind: 'error'; text: string };
+type Turn = { prompt: string; reply: string; error?: boolean };
+type Pending = { prompt: string; status: string };
 
 const MODELS = [
   { id: 'claude-opus-5-5', name: 'Opus 5.5', hint: 'Most capable' },
@@ -30,18 +26,32 @@ const readHistory = (id: string): Turn[] => {
   try { return JSON.parse(localStorage.getItem(historyKey(id)) || '[]'); } catch { return []; }
 };
 const writeHistory = (id: string, turns: Turn[]) => {
-  try { localStorage.setItem(historyKey(id), JSON.stringify(turns.slice(-8))); } catch {}
+  try { localStorage.setItem(historyKey(id), JSON.stringify(turns.slice(-20))); } catch {}
 };
 
-// Floating box at the bottom centre: type a request, Claude Code changes the sketch in place
+// Messaging-style box at the bottom centre: your requests on the right, Claude's replies
+// on the left. The thread shows while you're typing or Claude is working.
 const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
   const [text, setText] = useState('');
-  const [state, setState] = useState<State>({ kind: 'idle' });
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [pending, setPending] = useState<Pending | null>(null);
+  // Files from before the latest reply, for Undo
+  const [undo, setUndo] = useState<ProjectFile[] | null>(null);
+  const [focused, setFocused] = useState(false);
+  const [model, setModel] = useState(MODELS[0].id);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const historyIndex = useRef(-1);
-  const working = state.kind === 'working';
-  const [model, setModel] = useState(MODELS[0].id);
+  const working = pending !== null;
+  const showThread = (focused || working) && (turns.length > 0 || working);
+
+  useEffect(() => {
+    setTurns(readHistory(project.id));
+    setUndo(null);
+  }, [project.id]);
+
   useEffect(() => {
     try { const saved = localStorage.getItem(MODEL_KEY); if (saved && MODELS.some(m => m.id === saved)) setModel(saved); } catch {}
   }, []);
@@ -59,14 +69,36 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Grow the input with its text, up to about five lines
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = '0px';
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [text]);
+
+  // Keep the newest message in view
+  useLayoutEffect(() => {
+    const el = threadRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [turns, pending, showThread]);
+
+  const addTurn = (turn: Turn) => {
+    setTurns(prev => {
+      const next = [...prev, turn];
+      writeHistory(project.id, next);
+      return next;
+    });
+  };
+
   const send = async () => {
     const prompt = text.trim();
     if (!prompt || working) return;
     const before = project.files.map(f => ({ ...f }));
-    const history = readHistory(project.id);
     setText('');
     historyIndex.current = -1;
-    setState({ kind: 'working', status: 'Thinking…' });
+    setUndo(null);
+    setPending({ prompt, status: 'Thinking…' });
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -80,7 +112,7 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
           sketchName: project.name,
           files: project.files.map(f => ({ name: f.name, content: f.content })),
           errors: errors.slice(-10),
-          history,
+          history: turns.filter(t => !t.error).slice(-8).map(({ prompt, reply }) => ({ prompt, reply })),
           model,
         }),
       });
@@ -97,79 +129,101 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
         while ((nl = buffer.indexOf('\n')) >= 0) {
           const e = JSON.parse(buffer.slice(0, nl));
           buffer = buffer.slice(nl + 1);
-          if (e.type === 'status') setState({ kind: 'working', status: e.text });
-          if (e.type === 'done') {
-            setState({ kind: 'done', text: e.text, before });
-            writeHistory(project.id, [...history, { prompt, reply: e.text }]);
-            ended = true;
-          }
-          if (e.type === 'error') { setState({ kind: 'error', text: e.text }); ended = true; }
+          if (e.type === 'status') setPending({ prompt, status: e.text });
+          if (e.type === 'done') { addTurn({ prompt, reply: e.text }); setUndo(before); ended = true; }
+          if (e.type === 'error') { addTurn({ prompt, reply: e.text, error: true }); ended = true; }
         }
       }
+      if (!ended) addTurn({ prompt, reply: 'No reply', error: true });
     } catch (err) {
-      if ((err as Error).name === 'AbortError') setState({ kind: 'idle' });
-      else setState({ kind: 'error', text: (err as Error).message });
+      const stopped = (err as Error).name === 'AbortError';
+      addTurn({ prompt, reply: stopped ? 'Stopped' : (err as Error).message, error: true });
     } finally {
       abortRef.current = null;
+      setPending(null);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') { e.preventDefault(); send(); }
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter sends, Shift+Enter adds a line
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
     if (e.key === 'Escape') { e.preventDefault(); if (working) abortRef.current?.abort(); else inputRef.current?.blur(); }
-    // Up and down step through earlier prompts
-    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !working) {
-      const turns = readHistory(project.id);
-      if (!turns.length) return;
+    // Up and down step through earlier prompts while the input is a single line
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !working && !text.includes('\n')) {
+      const sent = turns.map(t => t.prompt);
+      if (!sent.length) return;
       e.preventDefault();
       const i = historyIndex.current;
-      const next = e.key === 'ArrowUp' ? Math.min(turns.length - 1, i + 1) : i - 1;
+      const next = e.key === 'ArrowUp' ? Math.min(sent.length - 1, i + 1) : i - 1;
       historyIndex.current = next;
-      setText(next < 0 ? '' : turns[turns.length - 1 - next].prompt);
+      setText(next < 0 ? '' : sent[sent.length - 1 - next]);
     }
   };
 
+  const lastIndex = turns.length - 1;
+
   return (
-    <div className="dial-surface absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(420px,calc(100vw-1.5rem))] p-1">
-      {state.kind !== 'idle' && (
-        <div className="flex items-center gap-2 px-2.5 pt-1.5 pb-1 text-[12px] min-h-7">
-          {working && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-foreground animate-pulse" />}
-          <span className={cn('flex-1 min-w-0', state.kind === 'error' ? 'text-red-400' : working ? 'text-muted-foreground' : 'text-foreground')}>
-            {state.kind === 'working' ? state.status : state.text}
-          </span>
-          {state.kind === 'done' && (
-            <button
-              title="Undo this change"
-              onClick={() => { onRestore(state.before); setState({ kind: 'idle' }); }}
-              className="shrink-0 h-6 px-2 flex items-center gap-1 rounded-[6px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
-            >
-              <Undo2 className="h-3.5 w-3.5" /> Undo
-            </button>
-          )}
-          {!working && (
-            <button title="Dismiss" onClick={() => setState({ kind: 'idle' })} className="shrink-0 h-6 w-6 flex items-center justify-center rounded-[6px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors">
-              <X className="h-3.5 w-3.5" />
-            </button>
+    <div
+      ref={boxRef}
+      onFocus={() => setFocused(true)}
+      // Stay open while focus moves inside the box (Undo, the model menu)
+      onBlur={(e) => { if (!boxRef.current?.contains(e.relatedTarget as Node)) setFocused(false); }}
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(440px,calc(100vw-1.5rem))] flex flex-col gap-2"
+    >
+      {showThread && (
+        <div
+          ref={threadRef}
+          tabIndex={-1}
+          className="dial-surface max-h-[45vh] overflow-y-auto p-3 flex flex-col gap-1.5 outline-none"
+        >
+          {turns.map((t, i) => (
+            <div key={i} className="flex flex-col gap-1.5">
+              <Bubble mine>{t.prompt}</Bubble>
+              <Bubble error={t.error}>
+                {t.reply}
+                {i === lastIndex && undo && !working && (
+                  <button
+                    onClick={() => { onRestore(undo); setUndo(null); }}
+                    className="ml-2 inline-flex items-center gap-1 align-middle text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Undo2 className="h-3 w-3" /> Undo
+                  </button>
+                )}
+              </Bubble>
+            </div>
+          ))}
+          {pending && (
+            <div className="flex flex-col gap-1.5">
+              <Bubble mine>{pending.prompt}</Bubble>
+              <Bubble>
+                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                  <Typing />
+                  {pending.status}
+                </span>
+              </Bubble>
+            </div>
           )}
         </div>
       )}
-      <div className="flex items-center gap-1">
-        <input
+
+      <div className="dial-surface rounded-[22px] flex items-end gap-1 p-1.5 pl-4">
+        <textarea
           ref={inputRef}
+          rows={1}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder={working ? 'Claude is working…' : 'Ask Claude to change the sketch  ⌘K'}
+          placeholder={working ? 'Claude is working…' : 'Message Claude  ⌘K'}
           disabled={working}
-          className="flex-1 min-w-0 h-9 px-2.5 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
+          className="flex-1 min-w-0 resize-none self-center py-1.5 bg-transparent text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               title="Model"
               disabled={working}
-              className="h-9 shrink-0 flex items-center gap-1 px-2 rounded-[9px] text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
+              className="h-8 shrink-0 flex items-center gap-1 px-2.5 rounded-full text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
             >
               {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
               <ChevronDown className="h-3 w-3" />
@@ -189,13 +243,41 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
           title={working ? 'Stop (Esc)' : 'Send (Enter)'}
           onClick={working ? () => abortRef.current?.abort() : send}
           disabled={!working && !text.trim()}
-          className="h-9 w-9 shrink-0 flex items-center justify-center rounded-[9px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-30 transition-colors"
+          className="h-8 w-8 shrink-0 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
         >
-          {working ? <Square className="h-3 w-3 fill-current" /> : <ArrowUp className="h-4 w-4" />}
+          {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-4 w-4" strokeWidth={2.5} />}
         </button>
       </div>
     </div>
   );
 };
+
+// Your messages: solid, right. Claude's: soft grey, left.
+const Bubble = ({ mine, error, children }: { mine?: boolean; error?: boolean; children: React.ReactNode }) => (
+  <div
+    className={cn(
+      'max-w-[85%] px-3 py-1.5 text-[13px] leading-5 whitespace-pre-wrap break-words',
+      mine
+        ? 'self-end rounded-[16px] rounded-br-[5px] bg-[rgb(var(--ink))] text-[var(--chrome)]'
+        : 'self-start rounded-[16px] rounded-bl-[5px] bg-[rgb(var(--ink)/0.08)] text-foreground',
+      error && 'text-red-400'
+    )}
+  >
+    {children}
+  </div>
+);
+
+// Three bouncing dots
+const Typing = () => (
+  <span className="inline-flex gap-0.5">
+    {[0, 1, 2].map(i => (
+      <span
+        key={i}
+        className="h-1.5 w-1.5 rounded-full bg-current animate-bounce"
+        style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }}
+      />
+    ))}
+  </span>
+);
 
 export default PromptBox;
