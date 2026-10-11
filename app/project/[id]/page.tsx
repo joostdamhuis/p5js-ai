@@ -571,7 +571,10 @@ export default function ProjectPage() {
 
         {/* Right: controls */}
         {showControls && (
-          <aside className={`${floating} absolute right-2 top-14 bottom-20 z-10`} style={{ width: controlsWidth }}>
+          <aside
+            className={`${floating} absolute right-3 top-1/2 -translate-y-1/2 z-10 max-h-[calc(100vh-10rem)]`}
+            style={{ width: controlsWidth }}
+          >
             {controlsPanel}
           </aside>
         )}
