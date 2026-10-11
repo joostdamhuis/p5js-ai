@@ -282,3 +282,15 @@ html, body {
 .dialkit-root[data-mode="inline"] .dialkit-panel-inner:not([data-collapsed="true"]) > .dialkit-folder-root > .dialkit-panel-header {
   backdrop-filter: blur(20px);
 }
+
+/* DialKit's popups (select dropdown, colour and image pickers, presets,
+   shortcuts) used the panel background, which is transparent now: give them
+   the same see-through menu surface as the editor's other menus */
+.dialkit-select-dropdown,
+.dialkit-color-popover,
+.dialkit-image-popover,
+.dialkit-preset-dropdown,
+.dialkit-shortcuts-dropdown {
+  background: color-mix(in srgb, color-mix(in srgb, var(--chrome-raised) 82%, var(--ambient) 18%) 92%, transparent) !important;
+  backdrop-filter: blur(20px);
+}
