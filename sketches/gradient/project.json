@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "Gradient",
-  "lastModified": 1791735041424,
+  "lastModified": 1791736243355,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -24,7 +24,7 @@
       "fill": 0.8
     },
     "motion": {
-      "speed": 1.33,
+      "speed": 2.02,
       "slide": 237,
       "rowOffset": 0.18,
       "repeats": 0.25,
@@ -34,9 +34,9 @@
       "rows": 24,
       "minWidth": 356,
       "maxWidth": 4,
-      "gap": 0,
-      "radius": 0,
-      "margin": 8,
+      "gap": 2,
+      "radius": 30,
+      "margin": 0,
       "seed": 50
     },
     "Stops": 1,
@@ -84,7 +84,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791735041424
+      "lastModified": 1791736243355
     },
     {
       "id": "index",

@@ -12,13 +12,13 @@ const dial = dials({
     rows: [24, 2, 60, 1],
     minWidth: [356, 4, 600, 1],
     maxWidth: [4, 4, 1200, 1],
-    gap: [0, 0, 40, 1],
-    radius: [0, 0, 60, 1],
-    margin: [8, 0, 200, 1], // top and bottom only
+    gap: [2, 0, 40, 1],
+    radius: [30, 0, 60, 1],
+    margin: [0, 0, 200, 1], // top and bottom only
     seed: [50, 1, 999, 1],
   },
   motion: {
-    speed: [1.33, 0, 3, 0.01],
+    speed: [2.02, 0, 3, 0.01],
     slide: [237, 0, 400, 1], // pixels per second the rows drift
     rowOffset: [0.18, 0, 0.5, 0.01],
     repeats: [0.25, 0.25, 4, 0.05],
