@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import MonacoEditor, { OnMount } from '@monaco-editor/react';
 import { cn } from '@/lib/utils';
 import { ProjectFile, FileType } from '@/lib/types';
+import { STUDIO_THEME, defineStudioTheme } from '@/lib/monaco-theme';
 
 interface EditorProps {
   file: ProjectFile;
@@ -48,6 +49,7 @@ const Editor = ({
         language={getLanguage(file.type)}
         value={file.content}
         onChange={(value) => onChange(value || '')}
+        beforeMount={defineStudioTheme}
         onMount={handleEditorDidMount}
         options={{
           minimap: { enabled: false },
@@ -64,7 +66,7 @@ const Editor = ({
           cursorSmoothCaretAnimation: 'on',
           smoothScrolling: true,
         }}
-        theme="vs-dark"
+        theme={STUDIO_THEME}
       />
     </div>
   );

@@ -31,7 +31,7 @@ const CodePreview = ({ code, height = '70vh', className }: CodePreviewProps) => 
   return (
     <div
       className={cn(
-        "w-full h-full overflow-auto bg-white",
+        "w-full h-full overflow-auto bg-black",
         className
       )}
       style={{

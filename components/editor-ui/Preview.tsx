@@ -203,7 +203,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     return (
       <div
         className={cn(
-          "w-full h-full overflow-auto bg-white flex items-center justify-center",
+          "w-full h-full overflow-auto bg-black flex items-center justify-center",
           className
         )}
       >
@@ -219,7 +219,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   return (
     <div
       className={cn(
-        "w-full h-full overflow-auto bg-white",
+        "w-full h-full overflow-auto bg-black",
         className
       )}
       style={{
