@@ -37,7 +37,7 @@ const Console = ({ messages, onClear, className }: ConsoleProps) => {
         {messages.length > 0 && (
           <button
             onClick={onClear}
-            className="h-7 px-2 rounded-md text-[12px] font-medium text-muted-foreground hover:bg-white/[0.06] hover:text-foreground shrink-0 transition-colors"
+            className="h-7 px-2 rounded-md text-[12px] font-medium text-muted-foreground hover:bg-white/[0.1] hover:text-foreground shrink-0 transition-colors"
           >
             Clear
           </button>

@@ -121,39 +121,39 @@
   }
 }
 
-/* Dark studio: neutral graphite like DialKit, soft white text, one warm amber accent */
+/* Dark studio: DialKit's exact dark palette, with one warm amber accent */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #f2f2f2;
-  --card: #151515;
-  --card-foreground: #f2f2f2;
-  --popover: #212121;
-  --popover-foreground: #f2f2f2;
+  --background: #141414;
+  --foreground: rgb(255 255 255 / 95%);
+  --card: #212121;
+  --card-foreground: rgb(255 255 255 / 95%);
+  --popover: #2a2a2a;
+  --popover-foreground: rgb(255 255 255 / 95%);
   --primary: #f5a524;
   --primary-foreground: #1a1206;
-  --secondary: #1f1f1f;
-  --secondary-foreground: #f2f2f2;
-  --muted: #1f1f1f;
-  --muted-foreground: #8f8f8f;
-  --accent: rgb(255 255 255 / 6%);
-  --accent-foreground: #f2f2f2;
-  --border: rgb(255 255 255 / 7%);
+  --secondary: rgb(255 255 255 / 5%);
+  --secondary-foreground: rgb(255 255 255 / 95%);
+  --muted: rgb(255 255 255 / 5%);
+  --muted-foreground: rgb(255 255 255 / 60%);
+  --accent: rgb(255 255 255 / 10%);
+  --accent-foreground: rgb(255 255 255 / 95%);
+  --border: rgb(255 255 255 / 10%);
   --input: rgb(255 255 255 / 10%);
-  --ring: rgb(255 255 255 / 30%);
-  --sidebar: #151515;
-  --sidebar-foreground: #f2f2f2;
+  --ring: rgb(255 255 255 / 60%);
+  --sidebar: #212121;
+  --sidebar-foreground: rgb(255 255 255 / 95%);
   --sidebar-primary: #f5a524;
   --sidebar-primary-foreground: #1a1206;
-  --sidebar-accent: rgb(255 255 255 / 6%);
-  --sidebar-accent-foreground: #f2f2f2;
-  --sidebar-border: rgb(255 255 255 / 7%);
-  --sidebar-ring: rgb(255 255 255 / 30%);
+  --sidebar-accent: rgb(255 255 255 / 10%);
+  --sidebar-accent-foreground: rgb(255 255 255 / 95%);
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: rgb(255 255 255 / 60%);
 }
 
 /* Floating rounded surface, like the DialKit panel */
 @utility panel {
   background-color: var(--card);
-  border: 1px solid rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 12px;
   overflow: hidden;
 }

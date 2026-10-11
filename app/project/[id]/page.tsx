@@ -363,7 +363,7 @@ export default function ProjectPage() {
           <input
             value={project.name}
             onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-            className="ml-1.5 h-8 px-2 -mx-0 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-white/[0.04] focus:bg-white/[0.06] min-w-0 w-64 truncate transition-colors"
+            className="ml-1.5 h-8 px-2 -mx-0 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] min-w-0 w-64 truncate transition-colors"
             title="Rename project"
             spellCheck={false}
           />

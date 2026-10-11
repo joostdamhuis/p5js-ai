@@ -318,8 +318,8 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
             className={cn(
               "group flex items-center justify-between h-8 pl-2.5 pr-1 rounded-lg cursor-pointer text-[13px] font-medium relative transition-colors",
               project.activeFile === file.id
-                ? "bg-white/[0.08] text-foreground"
-                : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                ? "bg-white/[0.11] text-foreground"
+                : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
             )}
           >
             <div className="flex items-center overflow-hidden">
@@ -338,7 +338,7 @@ const FileExplorer = ({ project, onProjectChange, onFileSelect }: FileExplorerPr
                     else if (e.key === 'Escape') setFileToRename(null);
                   }}
                   onBlur={completeRename}
-                  className="h-8 text-[13px] rounded-lg bg-white/[0.08] border-none"
+                  className="h-8 text-[13px] rounded-lg bg-white/[0.11] border-none"
                 />
               </div>
             ) : (

@@ -32,8 +32,8 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
               className={cn(
                 "group flex items-center gap-1 h-8 pl-2.5 pr-1 rounded-lg text-[13px] font-medium cursor-pointer whitespace-nowrap transition-colors",
                 isActive
-                  ? "bg-white/[0.08] text-foreground"
-                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                  ? "bg-white/[0.11] text-foreground"
+                  : "text-muted-foreground hover:bg-white/[0.05] hover:text-foreground"
               )}
             >
               <span className="truncate max-w-[120px]">{file.name}</span>

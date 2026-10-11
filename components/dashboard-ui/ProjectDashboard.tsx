@@ -142,7 +142,7 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
               <div
                 key={project.id}
                 onClick={() => handleOpenProject(project)}
-                className="panel group cursor-pointer p-1.5 transition-colors hover:bg-[#1a1a1a]"
+                className="panel group cursor-pointer p-1.5 transition-colors hover:bg-[#262626]"
               >
                 <div className="rounded-lg bg-black/40 px-3 py-2.5 h-24 overflow-hidden">
                   <pre className="text-[11px] leading-[1.6] text-muted-foreground/70 font-mono overflow-hidden">
