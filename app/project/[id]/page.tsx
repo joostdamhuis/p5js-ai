@@ -536,11 +536,25 @@ export default function ProjectPage() {
         <div className="absolute inset-0">{preview}</div>
 
         {/* Top corners */}
-        <div className="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 rounded-xl bg-[#212121]/85 backdrop-blur-xl border border-white/10">
-          {backButton}
-          {nameInput}
+        <div className="absolute top-3 left-3 z-20 flex items-center p-1 pr-1.5 rounded-full bg-[#212121]/85 backdrop-blur-xl border border-white/10">
+          <button
+            onClick={handleBackToDashboard}
+            title="All projects"
+            className="h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+          </button>
+          <input
+            value={project.name}
+            onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
+            className="h-7 px-2 rounded-full bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-white/[0.05] focus:bg-white/[0.1] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+            title="Rename project"
+            spellCheck={false}
+          />
         </div>
-        <div className="absolute top-2 right-2 z-20">{connection}</div>
+        <div className="absolute top-3 right-3 z-20">
+          <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill />
+        </div>
 
         {/* Left: files and code + console */}
         <div className="absolute left-2 top-14 bottom-20 z-10 flex gap-2 pointer-events-none">

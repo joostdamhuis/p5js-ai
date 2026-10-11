@@ -6,6 +6,8 @@ interface ConnectionStatusProps {
   enabled: boolean;
   onEnabledChange: (enabled: boolean) => void;
   status: McpStatus;
+  // Dock layout: a round, translucent pill like the rest of the floating chrome
+  pill?: boolean;
 }
 
 const LABELS: Record<McpStatus | 'off', { text: string; dot: string }> = {
@@ -20,7 +22,7 @@ type Check = { label: string; ok: boolean | null; detail: string };
 
 // Header pill showing whether Claude can control the editor. Click it for a
 // checklist of the three parts (editor, hub, Claude) with plain-language fixes.
-const ConnectionStatus = ({ enabled, onEnabledChange, status }: ConnectionStatusProps) => {
+const ConnectionStatus = ({ enabled, onEnabledChange, status, pill }: ConnectionStatusProps) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -68,8 +70,11 @@ const ConnectionStatus = ({ enabled, onEnabledChange, status }: ConnectionStatus
         title="Claude connection"
         aria-expanded={open}
         className={cn(
-          'flex items-center gap-2 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors',
-          open ? 'bg-white/[0.11] text-foreground' : 'bg-white/[0.05] text-foreground hover:bg-white/[0.1]'
+          'flex items-center gap-2 text-[13px] font-medium transition-colors',
+          pill
+            ? 'h-9 px-3.5 rounded-full border border-white/10 backdrop-blur-xl ' + (open ? 'bg-[#2a2a2a]' : 'bg-[#212121]/85 hover:bg-[#2a2a2a]')
+            : 'h-8 px-3 rounded-lg ' + (open ? 'bg-white/[0.11]' : 'bg-white/[0.05] hover:bg-white/[0.1]'),
+          'text-foreground'
         )}
       >
         <span className={cn('h-1.5 w-1.5 rounded-full', label.dot)} />
