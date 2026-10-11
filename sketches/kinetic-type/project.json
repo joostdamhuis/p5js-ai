@@ -1,7 +1,7 @@
 {
   "id": "project-1791712683983",
   "name": "Kinetic Type",
-  "lastModified": 1791726656830,
+  "lastModified": 1791726848498,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -21,7 +21,7 @@
       "rowOffset": 0.58,
       "reverse": false
     },
-    "Size": 76,
+    "Size": 106,
     "Rows": 1,
     "Ink": "#f9ecef",
     "Paper": "#6c9812"
