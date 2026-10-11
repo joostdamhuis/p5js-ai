@@ -86,7 +86,8 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
     const el = inputRef.current;
     if (!el) return;
     el.style.height = '0px';
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    // Empty: always one line, even if the placeholder would wrap in a narrow bar
+    el.style.height = text ? `${Math.min(el.scrollHeight, 120)}px` : '32px';
   }, [text]);
 
   const addTurn = (turn: Turn) => {
@@ -294,7 +295,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           onPaste={(e) => { const imgs = Array.from(e.clipboardData.files).filter(f => f.type.startsWith('image/')); if (imgs.length) { e.preventDefault(); addFiles(imgs); } }}
           placeholder={working ? 'Claude is working…' : 'Ask Claude  ⌘K'}
           disabled={working}
-          className="flex-1 min-w-0 ml-1 resize-none self-center py-1.5 bg-transparent text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
+          className="flex-1 min-w-0 ml-1 resize-none self-center py-1.5 bg-transparent placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
