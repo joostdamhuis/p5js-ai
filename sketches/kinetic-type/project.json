@@ -1,7 +1,7 @@
 {
   "id": "project-1791712683983",
   "name": "Kinetic Type",
-  "lastModified": 1791717098896,
+  "lastModified": 1791718193321,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -13,11 +13,11 @@
     "animation": "wave",
     "motion": {
       "shape": "square",
-      "speed": 1.74,
-      "amount": 0.49,
-      "bob": 0,
+      "speed": 1,
+      "amount": 0,
+      "bob": 53,
       "sway": 0,
-      "letterOffset": 1.01,
+      "letterOffset": 0.51,
       "rowOffset": 0,
       "reverse": false
     },
