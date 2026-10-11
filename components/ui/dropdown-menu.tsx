@@ -25,7 +25,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-medium outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.1)] data-[state=open]:[&_svg]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
+      "flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-normal outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.1)] data-[state=open]:[&_svg]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
       inset && "pl-8",
       className
     )}
@@ -109,7 +109,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-medium outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
+      "relative flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-normal outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
       inset && "pl-8",
       className
     )}
@@ -125,7 +125,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-medium outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground pr-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
+      "relative flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-normal outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground pr-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
       className
     )}
     checked={checked}
@@ -149,7 +149,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-medium outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground pr-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
+      "relative flex cursor-default select-none items-center rounded-[10px] h-9 px-2.5 text-[13px] font-normal outline-none transition-colors [&_svg]:text-muted-foreground focus:bg-[rgb(var(--ink)/0.1)] focus:text-foreground focus:[&_svg]:text-foreground pr-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
       className
     )}
     {...props}
