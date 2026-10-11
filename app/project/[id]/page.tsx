@@ -54,6 +54,13 @@ export default function ProjectPage() {
     } catch {}
   };
 
+  // The editor fills the window exactly; the page itself never scrolls
+  useEffect(() => {
+    const { documentElement: html, body } = document;
+    html.style.overflow = body.style.overflow = 'hidden';
+    return () => { html.style.overflow = body.style.overflow = ''; };
+  }, []);
+
   // Panel sizes are remembered per browser
   useEffect(() => {
     try {

@@ -167,3 +167,8 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* No rubber-band bounce when scrolling past the edge of the page */
+html, body {
+  overscroll-behavior: none;
+}
