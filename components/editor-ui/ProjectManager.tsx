@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Project, DEFAULT_PROJECT } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Save, Plus, Check } from 'lucide-react';
+import { Save, Plus, Check, Loader2, CloudOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { fetchProjects, saveProject } from '@/lib/projects';
+import { fetchProjects, saveProject, publishSketches } from '@/lib/projects';
 
 interface ProjectManagerProps {
   currentProject: Project;
@@ -12,22 +13,32 @@ interface ProjectManagerProps {
 
 const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps) => {
   const router = useRouter();
-  const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'pushed' | 'local' | 'failed'>('idle');
+  const [saveNote, setSaveNote] = useState('');
   const savedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Writes straight to the sketches folder (autosave also does this after typing)
+  // Writes to the sketches folder, then commits and pushes it to GitHub.
+  // (Autosave only writes the folder.)
   const handleSaveProject = useCallback(async () => {
     const updatedProject = { ...currentProject, lastModified: Date.now() };
     onProjectChange(updatedProject);
+    clearTimeout(savedTimer.current);
+    setSaveState('saving');
+    setSaveNote('');
     try {
       await saveProject(updatedProject);
-      setSaveState('saved');
+      const result = await publishSketches(updatedProject.name);
+      if (result.status === 'saved-locally') {
+        setSaveState('local');
+        setSaveNote(result.reason);
+      } else {
+        setSaveState('pushed');
+      }
     } catch (error) {
       console.error(error);
       setSaveState('failed');
     }
-    clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setSaveState('idle'), 1800);
+    savedTimer.current = setTimeout(() => setSaveState('idle'), 2500);
   }, [currentProject, onProjectChange]);
 
   // Cmd/Ctrl + S saves
@@ -62,11 +73,26 @@ const ProjectManager = ({ currentProject, onProjectChange }: ProjectManagerProps
         variant="ghost"
         size="sm"
         onClick={handleSaveProject}
-        title="Save to the sketches folder (⌘S). Changes also save automatically."
-        className={saveState === 'saved' ? 'text-foreground' : saveState === 'failed' ? 'text-red-400' : undefined}
+        disabled={saveState === 'saving'}
+        title={saveState === 'local'
+          ? `Saved on this Mac, not on GitHub: ${saveNote}`
+          : 'Save and back up to GitHub (⌘S). Changes also save to this Mac automatically.'}
+        className={cn(
+          'min-w-[76px]',
+          (saveState === 'pushed' || saveState === 'saving') && 'text-foreground',
+          saveState === 'local' && 'text-amber-300',
+          saveState === 'failed' && 'text-red-400'
+        )}
       >
-        {saveState === 'saved' ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Save className="h-3.5 w-3.5" />}
-        {saveState === 'saved' ? 'Saved' : saveState === 'failed' ? 'Save failed' : 'Save'}
+        {saveState === 'saving' ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          : saveState === 'pushed' ? <Check className="h-3.5 w-3.5 text-emerald-400" />
+            : saveState === 'local' ? <CloudOff className="h-3.5 w-3.5" />
+              : <Save className="h-3.5 w-3.5" />}
+        {saveState === 'saving' ? 'Saving…'
+          : saveState === 'pushed' ? 'Saved to GitHub'
+            : saveState === 'local' ? 'Saved on Mac'
+              : saveState === 'failed' ? 'Save failed'
+                : 'Save'}
       </Button>
       <Button
         variant="ghost"

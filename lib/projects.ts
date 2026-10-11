@@ -108,3 +108,22 @@ export const deleteProject = async (id: string) => {
   } catch {}
   await fetch(`/api/sketches/${encodeURIComponent(id)}`, { method: 'DELETE' });
 };
+
+export type PublishResult =
+  | { status: 'pushed' | 'up-to-date' }
+  | { status: 'saved-locally'; reason: string };
+
+// Commits the sketches folder and pushes it to GitHub
+export const publishSketches = async (name: string): Promise<PublishResult> => {
+  try {
+    const res = await fetch('/api/sketches/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) throw new Error(String(res.status));
+    return await res.json();
+  } catch {
+    return { status: 'saved-locally', reason: 'Could not reach the editor server' };
+  }
+};

@@ -31,7 +31,7 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 - Sketches are real files: `sketches/<slug-of-name>/` with sketch.js, index.html, style.css + project.json (id, name, tabs, file list). Committed to git, so pushing backs them up
 - Server: `lib/sketch-store.ts` (fs) behind `app/api/sketches` (GET list) and `app/api/sketches/[id]` (GET/PUT/DELETE); localhost-only (`guard.ts`), file names sanitised, folder renamed with the project
 - Client: `lib/projects.ts` (fetchProjects / fetchProject / saveProject / deleteProject). localStorage is only a cache/fallback; first dashboard load imports browser-only projects once (`p5_imported_to_disk` flag)
-- Editor autosaves to disk 700ms after the last change; Save / ⌘S writes immediately
+- Editor autosaves to disk 700ms after the last change. Save / ⌘S writes immediately and then publishes: `lib/sketch-publish.ts` commits only `sketches/` ("Save sketch: <name>") and pushes with the repo-only deploy key `~/.ssh/p5js_editor_deploy` (write access, added on GitHub by Joost), then moves origin/main so GitHub Desktop stays in sync. Failures leave it saved locally with a reason on the button tooltip
 - Claude can edit sketches by editing those files, but the open editor won't reload them until the page is refreshed
 - Code colors: soft lavender keywords, sage strings, sand numbers, light blue types, gray italic comments; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
@@ -56,7 +56,7 @@ const dial = dials({
 
 ## Git
 - Remote: github.com/joostdamhuis/p5js-ai-editor (private). Forked from github.com/adilmoujahid/p5js-ai-editor, no upstream remote kept
-- Claude commits; Joost pushes with GitHub Desktop (“Push origin”). The CLI has no GitHub credentials, so `git push`/`fetch` fail here
+- Claude commits code; Joost pushes code with GitHub Desktop (“Push origin”). The editor's Save pushes sketches itself via the deploy key. Claude should not push with the deploy key on its own
 
 ## Working style
 - Joost also edits code manually; re-read files before editing
