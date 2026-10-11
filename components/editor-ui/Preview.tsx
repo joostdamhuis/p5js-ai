@@ -250,9 +250,12 @@ interface PreviewProps {
   toolbarTarget?: HTMLElement | null;
   // Dock: the page's own menu items (Console, Appearance…), shown under the export items
   menuItems?: React.ReactNode;
+  // Code written by the Controls panel: shown in the editor, but the running
+  // sketch already has these values, so it isn't restarted for it
+  quietCode?: React.MutableRefObject<string | null>;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, isPaused = false, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor, menuItems }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, isPaused = false, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor, menuItems, quietCode }: PreviewProps) => {
   const size = getCanvasSize(project.canvasSize);
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
@@ -346,8 +349,15 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
 
   const filesKey = JSON.stringify([project.files.map(f => [f.name, f.content]), Object.keys(fontData)]);
 
+  const lastRun = useRef<string | null>(null);
   useEffect(() => {
     if (iframeRef.current && isRunning) {
+      const runKey = JSON.stringify([filesKey, size.id]);
+      if (quietCode?.current != null && quietCode.current === jsCode && lastRun.current !== null) {
+        quietCode.current = null;
+        return;
+      }
+      lastRun.current = runKey;
       updateIframe();
     } else if (iframeRef.current && !isRunning) {
       // Clear the iframe when stopped

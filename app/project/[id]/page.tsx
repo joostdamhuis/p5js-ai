@@ -25,6 +25,8 @@ import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
 import { ArrowLeft, PanelsLeftRight, Play, Pause, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import PromptBox from '@/components/editor-ui/PromptBox';
+import { writeControlsToCode } from '@/lib/code-sync';
+import { findAutoDials } from '@/lib/auto-dials';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
@@ -138,6 +140,10 @@ export default function ProjectPage() {
   }, [project]);
 
   // Control positions are saved with the project (autosave picks them up)
+  // Code the Controls panel just wrote: the preview takes it without restarting the sketch
+  const quietCode = useRef<string | null>(null);
+  const codeSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleControlsChange = useCallback((controls: Record<string, unknown>) => {
     setProject(prev => {
       if (!prev) return prev;
@@ -146,6 +152,24 @@ export default function ProjectPage() {
       if (JSON.stringify(prev.controls ?? {}) === JSON.stringify(merged)) return prev;
       return { ...prev, controls: merged };
     });
+    // Controls → code, shortly after the last change, so the code shows what's on screen
+    if (codeSyncTimer.current) clearTimeout(codeSyncTimer.current);
+    codeSyncTimer.current = setTimeout(() => {
+      setProject(prev => {
+        if (!prev) return prev;
+        let changed = false;
+        const files = prev.files.map(f => {
+          if (f.type !== 'js') return f;
+          const content = writeControlsToCode(f.content, controls, findAutoDials(f.content));
+          if (content === f.content) return f;
+          changed = true;
+          return { ...f, content };
+        });
+        if (!changed) return prev;
+        quietCode.current = files.filter(f => f.type === 'js').map(f => f.content).join('\n');
+        return { ...prev, files, lastModified: Date.now() };
+      });
+    }, 250);
   }, []);
 
   // What Claude sees when it calls get_sketch
@@ -508,6 +532,7 @@ export default function ProjectPage() {
       isPaused={isPaused}
       onDialsChange={setHasDials}
       onControlsChange={handleControlsChange}
+      quietCode={quietCode}
       onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
       toolbarTarget={dockToolsEl}
       menuItems={moreMenuItems}
