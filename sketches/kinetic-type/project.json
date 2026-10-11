@@ -13,15 +13,15 @@
     "animation": "wave",
     "motion": {
       "shape": "sine",
-      "speed": 0.8,
-      "amount": 2,
+      "speed": 3.42,
+      "amount": 0.61,
       "bob": 0,
       "sway": 0,
       "letterOffset": 0.45,
       "rowOffset": 0.6,
-      "reverse": true
+      "reverse": false
     },
-    "Size": 162,
+    "Size": 104,
     "Rows": 1,
     "Ink": "#bbec00",
     "Paper": "#000000"
