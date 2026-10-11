@@ -175,9 +175,9 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
               <ChevronDown className="h-3 w-3" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="end" sideOffset={10} className="w-52">
+          <DropdownMenuContent side="top" align="end" sideOffset={10} className="min-w-60">
             {MODELS.map(m => (
-              <DropdownMenuItem key={m.id} onSelect={() => chooseModel(m.id)} className="flex items-center gap-2">
+              <DropdownMenuItem key={m.id} onSelect={() => chooseModel(m.id)} className="flex items-center gap-3 whitespace-nowrap">
                 <span className="flex-1">{m.name}</span>
                 <span className="text-[12px] text-muted-foreground">{m.hint}</span>
                 <Check className={cn('h-3.5 w-3.5', m.id === model ? 'opacity-100' : 'opacity-0')} />
