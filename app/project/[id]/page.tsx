@@ -439,7 +439,7 @@ export default function ProjectPage() {
     <input
       value={project.name}
       onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-      className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-[rgb(var(--ink)/0.05)] focus:bg-[rgb(var(--ink)/0.1)] min-w-0 w-56 truncate transition-colors"
+      className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-semibold text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] min-w-0 w-56 truncate transition-colors"
       title="Rename project"
       spellCheck={false}
     />
@@ -583,7 +583,7 @@ export default function ProjectPage() {
           <input
             value={project.name}
             onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-            className="h-8 px-2 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.05)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+            className="h-8 px-2 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.1)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
             title="Rename project"
             spellCheck={false}
           />
