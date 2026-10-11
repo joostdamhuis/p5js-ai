@@ -2,11 +2,11 @@
 // sliding sideways. Move the cursor to swell the bars and drag the rows along.
 // Press R (or change seed) for a new arrangement.
 const dial = dials({
-  greens: {
-    from: '#3dff7a',
-    via: '#00703a',
-    to: '#b8ff5c',
-    background: '#02120a',
+  blues: {
+    from: '#1e6bff',
+    via: '#0a2f8a',
+    to: '#8fd0ff',
+    background: '#050a18',
   },
   bars: {
     rows: [12, 2, 60, 1],
@@ -69,16 +69,16 @@ function buildLayout() {
 
 function draw() {
   buildLayout();
-  background(dial.greens.background);
+  background(dial.blues.background);
   const b = dial.bars;
   const m = dial.motion;
   const k = dial.cursor;
   const dt = min(deltaTime, 50) / 1000;
   const secs = millis() / 1000;
   const t = secs * m.speed * 0.1;
-  const c1 = color(dial.greens.from);
-  const c2 = color(dial.greens.via);
-  const c3 = color(dial.greens.to);
+  const c1 = color(dial.blues.from);
+  const c2 = color(dial.blues.via);
+  const c3 = color(dial.blues.to);
   const ctx = drawingContext;
 
   // Smoothed cursor, fading in when it's over the canvas

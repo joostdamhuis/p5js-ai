@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "gradient",
-  "lastModified": 1791731157317,
+  "lastModified": 1791731565685,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -30,11 +30,11 @@
       "repeats": 0.8
     },
     "bars": {
-      "rows": 13,
+      "rows": 5,
       "minWidth": 134,
       "maxWidth": 813,
-      "gap": 5,
-      "radius": 30,
+      "gap": 6,
+      "radius": 60,
       "margin": 0,
       "seed": 780
     },
@@ -47,7 +47,7 @@
     },
     "cursor": {
       "reach": 20,
-      "swell": 0.9,
+      "swell": 0.2,
       "drag": 3.17,
       "shift": 0.81,
       "ease": 0.89
@@ -57,6 +57,18 @@
       "via": "#00703a",
       "to": "#b8ff5c",
       "background": "#02120a"
+    },
+    "yellows": {
+      "from": "#ffe600",
+      "via": "#b38600",
+      "to": "#fff3a0",
+      "background": "#141000"
+    },
+    "blues": {
+      "from": "#1e6bff",
+      "via": "#0a2f8a",
+      "to": "#8fd0ff",
+      "background": "#050a18"
     }
   },
   "fonts": [],
@@ -65,7 +77,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791731051706
+      "lastModified": 1791731392714
     },
     {
       "id": "index",
