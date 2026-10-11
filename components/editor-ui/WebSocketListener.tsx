@@ -16,6 +16,8 @@ interface WebSocketListenerProps {
 }
 
 // connecting: first try · offline: hub not reachable · waiting: hub up, Claude's MCP server not connected · connected: all good
+const ACTIVE_TAB_KEY = 'p5_active_editor_tab';
+
 export type McpStatus = 'connecting' | 'offline' | 'waiting' | 'connected';
 
 const WebSocketListener = ({
@@ -34,6 +36,7 @@ const WebSocketListener = ({
   const [error, setError] = useState<string | null>(null);
   const [, setConnectionAttempts] = useState(0);
   const [claudeCount, setClaudeCount] = useState(0);
+  const tabIdRef = useRef('');
   const getSketchStateRef = useRef(getSketchState);
   getSketchStateRef.current = getSketchState;
 
@@ -50,15 +53,42 @@ const WebSocketListener = ({
   // Add heartbeat ref
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update refs when callbacks change
+  // Only the editor tab used last obeys Claude, so a code update can't land
+  // in another sketch that happens to be open in a background tab
   useEffect(() => {
+    const tabId = Math.random().toString(36).slice(2);
+    tabIdRef.current = tabId;
+    const claim = () => {
+      if (document.visibilityState === 'visible') {
+        try { localStorage.setItem(ACTIVE_TAB_KEY, tabId); } catch {}
+      }
+    };
+    claim();
+    window.addEventListener('focus', claim);
+    window.addEventListener('pointerdown', claim);
+    document.addEventListener('visibilitychange', claim);
+    return () => {
+      window.removeEventListener('focus', claim);
+      window.removeEventListener('pointerdown', claim);
+      document.removeEventListener('visibilitychange', claim);
+    };
+  }, []);
+
+  // Update refs when callbacks change; each command only runs in the active tab
+  useEffect(() => {
+    const isActiveTab = () => {
+      try { return localStorage.getItem(ACTIVE_TAB_KEY) === tabIdRef.current; } catch { return true; }
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const guard = <T extends (...args: any[]) => void>(fn?: T) =>
+      fn && ((...args: Parameters<T>) => { if (isActiveTab()) fn(...args); });
     callbacksRef.current = {
-      onCodeUpdate,
-      onExecutionControl,
-      onConsoleControl,
-      onFileControl,
-      onLayoutControl,
-      onNavigationControl
+      onCodeUpdate: guard(onCodeUpdate)!,
+      onExecutionControl: guard(onExecutionControl),
+      onConsoleControl: guard(onConsoleControl),
+      onFileControl: guard(onFileControl),
+      onLayoutControl: guard(onLayoutControl),
+      onNavigationControl: guard(onNavigationControl)
     };
   }, [onCodeUpdate, onExecutionControl, onConsoleControl, onFileControl, onLayoutControl, onNavigationControl]);
 
@@ -150,8 +180,11 @@ const WebSocketListener = ({
     // Claude asked what's in the editor
     newSocket.on('requestSketchState', (requestId: string) => {
       const state = getSketchStateRef.current?.();
+      let active = true;
+      try { active = localStorage.getItem(ACTIVE_TAB_KEY) === tabIdRef.current; } catch {}
       if (state) {
-        newSocket.emit('sketchState', { requestId, visible: document.visibilityState === 'visible', ...state });
+        // 'visible' marks the tab Claude should read: the one used last
+        newSocket.emit('sketchState', { requestId, visible: active, ...state });
       }
     });
 
