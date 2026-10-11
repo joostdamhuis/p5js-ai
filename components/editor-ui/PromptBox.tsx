@@ -46,7 +46,6 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
   const historyIndex = useRef(-1);
   const working = pending !== null;
   const showThread = (focused || working) && (turns.length > 0 || working);
-  const expanded = focused || working || text.length > 0;
 
   useEffect(() => {
     setTurns(readHistory(project.id));
@@ -170,7 +169,7 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
       onFocus={() => setFocused(true)}
       // Stay open while focus moves inside the box (Undo, the model menu)
       onBlur={(e) => { if (!boxRef.current?.contains(e.relatedTarget as Node)) setFocused(false); }}
-      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(400px,calc(100vw-1.5rem))] flex flex-col gap-2"
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[min(340px,calc(100vw-1.5rem))] flex flex-col gap-2"
     >
       {showThread && (
         <div
@@ -208,64 +207,46 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
         </div>
       )}
 
-      {/* Shell with a soft inset card, like a prompt field: compact one line at rest,
-          opens into a labelled card with the controls underneath while you type */}
-      <div className="dial-surface rounded-[19px] p-[5px]">
-        <div
-          className={cn(
-            'rounded-[14px] border transition-colors',
-            expanded
-              ? 'bg-[rgb(var(--ink)/0.05)] border-[rgb(var(--ink)/0.55)] px-3 pt-2 pb-1.5'
-              : 'border-transparent flex items-end gap-0.5 pl-2.5'
-          )}
-        >
-          {expanded && <div className="text-[11px] font-medium text-muted-foreground mb-0.5">Prompt</div>}
-          <textarea
-            ref={inputRef}
-            rows={1}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder={working ? 'Claude is working…' : expanded ? 'Describe a change to the sketch' : 'Message Claude  ⌘K'}
-            disabled={working}
-            className={cn(
-              'w-full min-w-0 resize-none bg-transparent text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60 block',
-              expanded ? 'text-[14px] leading-[21px] min-h-[42px]' : 'flex-1 self-center py-1 text-[13px] leading-5'
-            )}
-          />
-          <div className={cn('flex items-center gap-0.5 shrink-0', expanded && 'justify-end mt-1 -mr-1.5')}>
-            {expanded && <span className="mr-auto text-[11px] text-muted-foreground">Enter to send · Shift+Enter for a new line</span>}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  title="Model"
-                  disabled={working}
-                  className="h-7 shrink-0 flex items-center gap-1 px-2 rounded-full text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
-                >
-                  {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="end" sideOffset={10} className="min-w-60">
-                {MODELS.map(m => (
-                  <DropdownMenuItem key={m.id} onSelect={() => chooseModel(m.id)} className="flex items-center gap-3 whitespace-nowrap">
-                    <span className="flex-1">{m.name}</span>
-                    <span className="text-[12px] text-muted-foreground">{m.hint}</span>
-                    <Check className={cn('h-3.5 w-3.5', m.id === model ? 'opacity-100' : 'opacity-0')} />
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+      <div className="dial-surface rounded-[19px] flex items-end gap-0.5 p-[5px] pl-3.5">
+        <textarea
+          ref={inputRef}
+          rows={1}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder={working ? 'Claude is working…' : 'Message Claude  ⌘K'}
+          disabled={working}
+          className="flex-1 min-w-0 resize-none self-center py-1 bg-transparent text-[13px] leading-5 text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-60"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <button
-              title={working ? 'Stop (Esc)' : 'Send (Enter)'}
-              onClick={working ? () => abortRef.current?.abort() : send}
-              disabled={!working && !text.trim()}
-              className="h-7 w-7 shrink-0 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
+              title="Model"
+              disabled={working}
+              className="h-7 shrink-0 flex items-center gap-1 px-2 rounded-full text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
             >
-              {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
+              {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
+              <ChevronDown className="h-3 w-3" />
             </button>
-          </div>
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="end" sideOffset={10} className="min-w-60">
+            {MODELS.map(m => (
+              <DropdownMenuItem key={m.id} onSelect={() => chooseModel(m.id)} className="flex items-center gap-3 whitespace-nowrap">
+                <span className="flex-1">{m.name}</span>
+                <span className="text-[12px] text-muted-foreground">{m.hint}</span>
+                <Check className={cn('h-3.5 w-3.5', m.id === model ? 'opacity-100' : 'opacity-0')} />
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <button
+          title={working ? 'Stop (Esc)' : 'Send (Enter)'}
+          onClick={working ? () => abortRef.current?.abort() : send}
+          disabled={!working && !text.trim()}
+          className="h-7 w-7 shrink-0 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
+        >
+          {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
+        </button>
       </div>
     </div>
   );
