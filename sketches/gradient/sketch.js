@@ -3,10 +3,10 @@
 // Press R (or change seed) for a new arrangement.
 const dial = dials({
   reds: {
-    from: '#ff3355',
-    via: '#cc1133',
-    to: '#ff7a99',
-    background: '#120305',
+    from: '#3388ff',
+    via: '#1144cc',
+    to: '#88bbff',
+    background: '#03081a',
   },
   bars: {
     rows: [24, 2, 60, 1],

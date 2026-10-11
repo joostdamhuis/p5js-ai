@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "Gradient",
-  "lastModified": 1791734980376,
+  "lastModified": 1791735041424,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -41,10 +41,10 @@
     },
     "Stops": 1,
     "reds": {
-      "from": "#ff3355",
-      "via": "#cc1133",
-      "to": "#ff7a99",
-      "background": "#120305"
+      "from": "#3388ff",
+      "via": "#1144cc",
+      "to": "#88bbff",
+      "background": "#03081a"
     },
     "cursor": {
       "reach": 20,
@@ -84,7 +84,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791734969901
+      "lastModified": 1791735041424
     },
     {
       "id": "index",
