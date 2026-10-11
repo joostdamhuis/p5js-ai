@@ -568,7 +568,7 @@ export default function ProjectPage() {
         onClick={toggle}
         title={`${on ? 'Hide' : 'Show'} ${label}`}
         aria-pressed={on}
-        className={`h-8 w-8 flex items-center justify-center rounded-[10px] transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
+        className={`h-8 w-8 flex items-center justify-center rounded-full transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
       >
         {icon}
       </button>
@@ -583,7 +583,7 @@ export default function ProjectPage() {
           <button
             onClick={handleBackToDashboard}
             title="All projects"
-            className="h-8 w-8 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
           </button>
@@ -659,65 +659,68 @@ export default function ProjectPage() {
           project={project}
           errors={consoleMessages.filter(m => m.type === 'error').map(m => String(m.content))}
           onRestore={(files) => setProject(prev => prev ? { ...prev, files, lastModified: Date.now() } : prev)}
-        />
-        <div className="dial-surface absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 h-10 px-1">
-          {dockToggle(
-            showCode || showControls,
-            () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
-            'panels',
-            <PanelsLeftRight className="w-4 h-4" />
-          )}
-          <span ref={setDockToolsEl} className="flex items-center" />
-          <button
-            onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
-            title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
-            className="mx-1 h-8 w-8 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
-          >
-            {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
-          </button>
-          <ProjectManager currentProject={project} onProjectChange={setProject} compact />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          // The toolbar lives in the same bar, left of the prompt
+          tools={
+            <>
+              {dockToggle(
+                showCode || showControls,
+                () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
+                'panels',
+                <PanelsLeftRight className="w-4 h-4" />
+              )}
+              <span ref={setDockToolsEl} className="flex items-center" />
               <button
-                title="More"
-                className="h-8 w-8 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
+                onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
+                title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
+                className="mx-1 h-8 w-8 flex items-center justify-center rounded-full bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
               >
-                <MoreHorizontal className="h-4 w-4" />
+                {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end" sideOffset={10} className="w-52">
-              {/* Same layout as the other rows: icon, label, and a check on the right when on */}
-              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowConsole(!showConsole); }}>
-                <SquareTerminal className="mr-2 h-4 w-4" />
-                Console
-                {showConsole && <Check className="ml-auto h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <SunMoon className="mr-2 h-4 w-4" />
-                  Appearance: {appearance === 'auto' ? 'Auto' : appearance === 'dark' ? 'Dark' : 'Light'}
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-56">
-                  <DropdownMenuRadioGroup value={appearance} onValueChange={(v) => chooseAppearance(v as Appearance)}>
-                    <DropdownMenuRadioItem value="auto">Auto · follows the canvas</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={createNewSketch}>
-                <Plus className="mr-2 h-4 w-4" />
-                New sketch
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setLayoutMode('columns')}>
-                <Columns3 className="mr-2 h-4 w-4" />
-                Columns layout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              <ProjectManager currentProject={project} onProjectChange={setProject} compact />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    title="More"
+                    className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="top" align="start" sideOffset={10} className="w-52">
+                  {/* Same layout as the other rows: icon, label, and a check on the right when on */}
+                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setShowConsole(!showConsole); }}>
+                    <SquareTerminal className="mr-2 h-4 w-4" />
+                    Console
+                    {showConsole && <Check className="ml-auto h-4 w-4" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <SunMoon className="mr-2 h-4 w-4" />
+                      Appearance: {appearance === 'auto' ? 'Auto' : appearance === 'dark' ? 'Dark' : 'Light'}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-56">
+                      <DropdownMenuRadioGroup value={appearance} onValueChange={(v) => chooseAppearance(v as Appearance)}>
+                        <DropdownMenuRadioItem value="auto">Auto · follows the canvas</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                  <FontsSubmenu project={project} onProjectChange={setProject} onAdd={() => fontInputRef.current?.click()} />
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={createNewSketch}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New sketch
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setLayoutMode('columns')}>
+                    <Columns3 className="mr-2 h-4 w-4" />
+                    Columns layout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          }
+        />
 
         {listener}
       </div>

@@ -42,10 +42,10 @@ const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
 >(({ className, sideOffset = 6, ...props }, ref) => {
-  // Top-aligned with its parent menu: the sub-menu's top edge sits level with
-  // the parent's top edge (menus open downward from the top bar). Radix only
-  // aligns to the trigger's top, so measure once rendered and offset from there.
-  // If it's taller than the room below, it stops 12px from the screen edge.
+  // Aligned with its parent menu's far edge: bottom edges level for menus that
+  // open upward (from the bottom bar), top edges level for menus that open
+  // downward. Radix only aligns to the trigger's top, so measure once rendered
+  // and offset from there. If it doesn't fit, it stops 12px from the screen edge.
   const [alignOffset, setAlignOffset] = React.useState(0)
   const measure = React.useCallback((node: HTMLDivElement | null) => {
     if (typeof ref === "function") ref(node)
@@ -55,7 +55,9 @@ const DropdownMenuSubContent = React.forwardRef<
     const parent = trigger?.closest('[role="menu"]')
     if (!trigger || !parent) return
     const triggerTop = trigger.getBoundingClientRect().top
-    setAlignOffset(parent.getBoundingClientRect().top - triggerTop)
+    const box = parent.getBoundingClientRect()
+    const opensUp = box.top + box.height / 2 > window.innerHeight / 2
+    setAlignOffset(opensUp ? box.bottom - node.offsetHeight - triggerTop : box.top - triggerTop)
   }, [ref])
 
   return (

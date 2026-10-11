@@ -668,7 +668,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     <button
       onClick={() => postToSketch({ type: 'recordStop' })}
       title="Stop and download the video"
-      className="flex items-center gap-1.5 h-8 px-3 rounded-[10px] text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-500/90 transition-colors"
+      className="flex items-center gap-1.5 h-8 px-3 rounded-full text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-500/90 transition-colors"
     >
       <Square className="h-3 w-3 fill-current" />
       {formatElapsed(now - recording.since)}
@@ -680,12 +680,12 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         <button
           title="Export"
           aria-label="Export"
-          className="h-8 w-8 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
+          className="h-8 w-8 flex items-center justify-center rounded-full text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
         >
           <Share className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="center" sideOffset={10} className="w-56">
+      <DropdownMenuContent side="top" align="start" sideOffset={10} className="w-56">
         <DropdownMenuItem onClick={() => postToSketch({ type: 'snapshot', purpose: 'download' })}>
           <ImageIcon className="mr-2 h-4 w-4" />
           Image (PNG)
