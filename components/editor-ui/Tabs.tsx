@@ -30,7 +30,7 @@ const Tabs = ({ project, onFileSelect, onCloseTab, isRunning = false, onStart, o
               key={file.id}
               onClick={() => onFileSelect(file.id)}
               className={cn(
-                "group flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-lg text-[13px] font-medium cursor-pointer whitespace-nowrap transition-colors",
+                "group flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-[7px] text-[13px] font-medium cursor-pointer whitespace-nowrap transition-colors",
                 isActive
                   ? "bg-[rgb(var(--ink)/0.05)] text-foreground"
                   : "text-muted-foreground hover:bg-[rgb(var(--ink)/0.05)] hover:text-foreground"

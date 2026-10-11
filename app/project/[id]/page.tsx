@@ -561,7 +561,7 @@ export default function ProjectPage() {
         onClick={toggle}
         title={`${on ? 'Hide' : 'Show'} ${label}`}
         aria-pressed={on}
-        className={`h-9 w-9 flex items-center justify-center rounded-lg transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
+        className={`h-9 w-9 flex items-center justify-center rounded-[9px] transition-colors ${on ? 'bg-[rgb(var(--ink)/0.11)] text-foreground' : 'text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground'}`}
       >
         {icon}
       </button>
@@ -572,18 +572,18 @@ export default function ProjectPage() {
         <div className="absolute inset-0">{preview}</div>
 
         {/* Top corners */}
-        <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-10 px-1 pr-1.5">
+        <div className="dial-surface absolute top-3 left-3 z-20 flex items-center h-10 px-[3px] pr-1.5">
           <button
             onClick={handleBackToDashboard}
             title="All projects"
-            className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
           </button>
           <input
             value={project.name}
             onChange={(e) => setProject({ ...project, name: e.target.value, lastModified: Date.now() })}
-            className="h-8 px-2 rounded-lg bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.05)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
+            className="h-8 px-2 rounded-[10px] bg-transparent text-[13px] font-medium text-foreground outline-none hover:bg-[rgb(var(--ink)/0.05)] focus:bg-[rgb(var(--ink)/0.1)] [field-sizing:content] min-w-[4ch] max-w-64 transition-colors"
             title="Rename project"
             spellCheck={false}
           />
@@ -658,7 +658,7 @@ export default function ProjectPage() {
           <button
             onClick={isRunning ? handleStop : handleStart}
             title={isRunning ? 'Stop sketch' : 'Run sketch'}
-            className="mx-1 h-9 w-9 flex items-center justify-center rounded-lg bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
+            className="mx-1 h-9 w-9 flex items-center justify-center rounded-[9px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
           >
             {isRunning ? <Square className="h-3 w-3 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
           </button>
@@ -668,7 +668,7 @@ export default function ProjectPage() {
             <DropdownMenuTrigger asChild>
               <button
                 title="More"
-                className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
+                className="h-9 w-9 flex items-center justify-center rounded-[9px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </button>
