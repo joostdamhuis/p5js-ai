@@ -656,10 +656,10 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       <DropdownMenuTrigger asChild>
         <button
           title="Export"
-          className="flex items-center gap-1.5 h-9 pl-3 pr-2.5 rounded-lg text-[13px] font-medium text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] transition-colors"
+          aria-label="Export"
+          className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground transition-colors"
         >
           <Share className="h-4 w-4" />
-          Export
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="center" sideOffset={10} className="w-56">

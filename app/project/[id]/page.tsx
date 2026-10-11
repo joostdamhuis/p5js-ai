@@ -596,7 +596,6 @@ export default function ProjectPage() {
         {icon}
       </button>
     );
-    const divider = <span className="mx-1 h-5 w-px bg-[rgb(var(--ink)/0.1)]" />;
 
     return (
       <div className="h-screen relative bg-black overflow-hidden">
@@ -679,22 +678,20 @@ export default function ProjectPage() {
             }
           }}
         />
-        <div className="dial-surface absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 p-1.5">
+        <div className="dial-surface absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-1">
           {dockToggle(
             showCode || showControls,
             () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
             'panels',
             <PanelsLeftRight className="w-4 h-4" />
           )}
-          {divider}
           <button
             onClick={isRunning ? handleStop : handleStart}
             title={isRunning ? 'Stop sketch' : 'Run sketch'}
-            className={`h-9 w-11 flex items-center justify-center rounded-lg transition-colors ${isRunning ? 'bg-[rgb(var(--ink)/0.11)] text-foreground hover:bg-[rgb(var(--ink)/0.16)]' : 'bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.9)]'}`}
+            className="mx-1 h-9 w-9 flex items-center justify-center rounded-lg bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
           >
-            {isRunning ? <Square className="h-3.5 w-3.5 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+            {isRunning ? <Square className="h-3 w-3 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
           </button>
-          {divider}
           <span ref={setDockToolsEl} className="flex items-center" />
           <ProjectManager currentProject={project} onProjectChange={setProject} compact />
           <DropdownMenu>
