@@ -204,8 +204,13 @@ html.dark[data-surface="light"] .dial-surface {
   transition: --ambient 1s ease;
 }
 
+/* Surface opacity: how much of the canvas shows through every panel */
+:root {
+  --surface-alpha: 70%;
+}
+
 @utility panel {
-  background-color: color-mix(in srgb, var(--card) 82%, var(--ambient) 18%);
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--card) 82%, var(--ambient) 18%) var(--surface-alpha), transparent);
   border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
   backdrop-filter: blur(20px);
@@ -214,7 +219,7 @@ html.dark[data-surface="light"] .dial-surface {
 
 /* DialKit's floating chrome (dock, pills, popups): same surface as panels */
 @utility dial-surface {
-  background-color: color-mix(in srgb, color-mix(in srgb, var(--chrome) 92%, transparent) 82%, var(--ambient) 18%);
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--chrome) 82%, var(--ambient) 18%) var(--surface-alpha), transparent);
   border: 1px solid rgb(var(--ink) / 10%);
   border-radius: 14px;
   backdrop-filter: blur(20px);
@@ -255,7 +260,8 @@ html, body {
 /* DialKit's pinned header paints --dial-glass-bg; make it the same tinted
    colour as our panel so it doesn't show as a darker band */
 .dialkit-root[data-mode="inline"][data-theme] {
-  --dial-glass-bg: color-mix(in srgb, var(--card) 82%, var(--ambient) 18%);
+  /* Transparent: the panel behind already paints the tinted, see-through surface */
+  --dial-glass-bg: transparent;
 }
 
 /* Fade DialKit's pinned header with the panel when light/dark or the tint changes */
@@ -270,4 +276,9 @@ html, body {
   --dial-shadow: none;
   --dial-shadow-collapsed: none;
   --dial-shadow-dropdown: none;
+}
+
+/* DialKit's pinned header is see-through too: blur what scrolls under it */
+.dialkit-root[data-mode="inline"] .dialkit-panel-inner:not([data-collapsed="true"]) > .dialkit-folder-root > .dialkit-panel-header {
+  backdrop-filter: blur(20px);
 }
