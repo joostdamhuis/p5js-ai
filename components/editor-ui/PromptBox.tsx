@@ -207,7 +207,7 @@ const PromptBox = ({ project, errors, onRestore }: PromptBoxProps) => {
         </div>
       )}
 
-      <div className="dial-surface rounded-[18px] flex items-end gap-0.5 p-1 pl-3.5">
+      <div className="dial-surface rounded-[19px] flex items-end gap-0.5 p-[5px] pl-3.5">
         <textarea
           ref={inputRef}
           rows={1}
