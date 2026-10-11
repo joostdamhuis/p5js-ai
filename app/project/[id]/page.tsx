@@ -27,7 +27,7 @@ import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Square, MoreHorizontal, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
+import { ArrowLeft, PanelBottom, Columns3, PanelsLeftRight, Play, Pause, MoreHorizontal, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import { DialRoot } from 'dialkit';
 import 'dialkit/styles.css';
 
@@ -62,6 +62,10 @@ export default function ProjectPage() {
   // Height of the code itself, so the floating code panel can fit it
   const [codeContentHeight, setCodeContentHeight] = useState(320);
   const [isRunning, setIsRunning] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  // Code changes reload the sketch, so it plays again
+  const codeKey = project?.files.map(f => f.content).join('\u0000');
+  useEffect(() => setIsPaused(false), [codeKey]);
   const [loading, setLoading] = useState(true);
   const [hasDials, setHasDials] = useState(false);
   const [mcpStatus, setMcpStatus] = useState<McpStatus>('connecting');
@@ -404,12 +408,14 @@ export default function ProjectPage() {
   // Handle start execution
   const handleStart = () => {
     setIsRunning(true);
+    setIsPaused(false);
     clearConsole();
   };
 
   // Handle stop execution
   const handleStop = () => {
     setIsRunning(false);
+    setIsPaused(false);
   };
 
   // Go back to dashboard
@@ -509,6 +515,7 @@ export default function ProjectPage() {
       project={project}
       onConsoleMessage={handleConsoleMessage}
       isRunning={isRunning}
+      isPaused={isPaused}
       onDialsChange={setHasDials}
       onControlsChange={handleControlsChange}
       onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
@@ -654,14 +661,14 @@ export default function ProjectPage() {
             'panels',
             <PanelsLeftRight className="w-4 h-4" />
           )}
+          <span ref={setDockToolsEl} className="flex items-center" />
           <button
-            onClick={isRunning ? handleStop : handleStart}
-            title={isRunning ? 'Stop sketch' : 'Run sketch'}
+            onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
+            title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
             className="mx-1 h-9 w-9 flex items-center justify-center rounded-[9px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
           >
-            {isRunning ? <Square className="h-3 w-3 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
+            {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
           </button>
-          <span ref={setDockToolsEl} className="flex items-center" />
           <ProjectManager currentProject={project} onProjectChange={setProject} compact />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

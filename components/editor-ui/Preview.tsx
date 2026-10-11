@@ -124,6 +124,23 @@ const dialsBridge = `
         const data = event.data;
         if (!data || data.source !== 'p5js-editor-dials') return;
         if (data.type === 'values' && dial) assign(dial, data.values);
+        // Pause: stop drawing and freeze the clock, so millis() picks up where it left off
+        if (data.type === 'pause' || data.type === 'resume') {
+          const now = window.__realNow || (window.__realNow = performance.now.bind(performance));
+          if (window.__pauseOffset === undefined) {
+            window.__pauseOffset = 0;
+            performance.now = function() { return (window.__pausedAt !== undefined ? window.__pausedAt : now()) - window.__pauseOffset; };
+          }
+          if (data.type === 'pause' && window.__pausedAt === undefined) {
+            window.__pausedAt = now();
+            if (typeof noLoop === 'function') noLoop();
+          }
+          if (data.type === 'resume' && window.__pausedAt !== undefined) {
+            window.__pauseOffset += now() - window.__pausedAt;
+            window.__pausedAt = undefined;
+            if (typeof loop === 'function') loop();
+          }
+        }
         // Smart toggles: plain settings found in the code (lib/auto-dials.ts)
         if (data.type === 'autoValues' && window.__autoDials) {
           for (const key in data.values) {
@@ -220,6 +237,8 @@ interface PreviewProps {
   className?: string;
   onConsoleMessage?: (message: LogMessage) => void;
   isRunning?: boolean;
+  // Freezes the running sketch on its current frame
+  isPaused?: boolean;
   // Tells the page whether the running sketch declares any dials
   onDialsChange?: (hasDials: boolean) => void;
   // Control positions are stored with the project
@@ -231,7 +250,7 @@ interface PreviewProps {
   toolbarTarget?: HTMLElement | null;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, isPaused = false, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor }: PreviewProps) => {
   const size = getCanvasSize(project.canvasSize);
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
@@ -336,6 +355,10 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filesKey, isRunning, size.id]);
+
+  useEffect(() => {
+    if (isRunning) postToSketch({ type: isPaused ? 'pause' : 'resume' });
+  }, [isPaused, isRunning, postToSketch]);
 
   // Dashboard thumbnail: capture the sketch a couple of seconds after it starts
   useEffect(() => {
