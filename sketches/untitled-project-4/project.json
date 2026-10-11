@@ -1,0 +1,37 @@
+{
+  "id": "project-1791723673165",
+  "name": "Untitled Project 4",
+  "lastModified": 1791723673165,
+  "activeFile": "sketch",
+  "openTabs": [
+    "sketch",
+    "index",
+    "style"
+  ],
+  "controls": {
+    "size": 64,
+    "color": "#ffffff",
+    "background": "#000000"
+  },
+  "fonts": [],
+  "files": [
+    {
+      "id": "sketch",
+      "name": "sketch.js",
+      "type": "js",
+      "lastModified": 1791723668373
+    },
+    {
+      "id": "index",
+      "name": "index.html",
+      "type": "html",
+      "lastModified": 1791723668373
+    },
+    {
+      "id": "style",
+      "name": "style.css",
+      "type": "css",
+      "lastModified": 1791723668373
+    }
+  ]
+}
