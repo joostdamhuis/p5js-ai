@@ -5,6 +5,48 @@ import { Project } from '@/lib/types';
 import { LogMessage } from './Console';
 import SketchDials from './SketchDials';
 
+// Keeps every sketch centred in the preview and filling it: full-window
+// canvases follow the preview's size, fixed-size ones are centred and scaled
+// down to fit. Added at the end of <head> so it wins over the sketch's CSS.
+const frameFit = `
+  <style>
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      background: #000;
+    }
+    body {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    canvas {
+      display: block;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      object-fit: contain;
+    }
+  </style>
+  <script>
+    (function() {
+      let lastW = window.innerWidth;
+      let lastH = window.innerHeight;
+      window.addEventListener('resize', function() {
+        // Only for full-window sketches that don't handle resizing themselves
+        const fullWindow = typeof width !== 'undefined' && width === lastW && height === lastH;
+        if (fullWindow && typeof window.windowResized !== 'function' && typeof resizeCanvas === 'function') {
+          resizeCanvas(window.innerWidth, window.innerHeight);
+        }
+        lastW = window.innerWidth;
+        lastH = window.innerHeight;
+      });
+    })();
+  </script>
+`;
+
 // Gives sketches a global dials(config) that returns a live values object.
 // The config is sent to the editor, which shows a DialKit panel and posts
 // slider values back into the sketch.
@@ -77,11 +119,18 @@ interface PreviewProps {
   className?: string;
   onConsoleMessage?: (message: LogMessage) => void;
   isRunning?: boolean;
+  // Tells the page whether the running sketch declares any dials
+  onDialsChange?: (hasDials: boolean) => void;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, onDialsChange }: PreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [dialConfig, setDialConfig] = useState<DialConfig | null>(null);
+  const hasDials = dialConfig !== null;
+
+  useEffect(() => {
+    onDialsChange?.(hasDials);
+  }, [hasDials, onDialsChange]);
   const dialConfigJson = useRef<string | null>(null);
   const latestDialValues = useRef<unknown>(null);
 
@@ -281,6 +330,12 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         htmlContent.slice(headStartIndex);
     }
 
+    // Centre and fit the canvas, after the sketch's own styles
+    const headCloseIndex = htmlContent.indexOf('</head>');
+    if (headCloseIndex !== -1) {
+      htmlContent = htmlContent.slice(0, headCloseIndex) + frameFit + htmlContent.slice(headCloseIndex);
+    }
+
     // Use data URI to avoid cross-origin issues
     const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
     iframeRef.current.src = dataUri;
@@ -324,18 +379,14 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   return (
     <div
       className={cn(
-        "w-full h-full overflow-auto bg-black",
+        "w-full h-full overflow-hidden bg-black",
         className
       )}
-      style={{
-        overflowX: 'auto',
-        overflowY: 'auto'
-      }}
     >
       <iframe
         ref={iframeRef}
-        className="min-w-full min-h-full"
-        style={{ height, width: '100%' }}
+        className="block w-full h-full"
+        style={{ height }}
         title="Preview"
         sandbox="allow-scripts allow-same-origin"
       />

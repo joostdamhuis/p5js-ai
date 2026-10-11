@@ -35,16 +35,22 @@ export const DEFAULT_PROJECT: Project = {
       name: 'sketch.js',
       type: 'js',
       lastModified: Date.now(),
-      content: `function setup() {
-  createCanvas(800, 500);
-  background(240);
+      content: `// Live controls: tweak these in the Controls panel
+const dial = dials({
+  size: [60, 4, 240],
+  color: '#ffffff',
+  background: '#000000',
+});
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  noStroke();
 }
 
 function draw() {
-  // Draw a circle that follows the mouse
-  fill(237, 34, 93);
-  noStroke();
-  ellipse(mouseX, mouseY, 60, 60);
+  background(dial.background);
+  fill(dial.color);
+  circle(mouseX, mouseY, dial.size);
 }`
     },
     {

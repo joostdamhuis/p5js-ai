@@ -23,12 +23,14 @@ If the editor lands on 3001, something held port 3000: kill ports and restart.
 - Visual language uses DialKit's exact dark tokens: page #141414, panels #212121 (= --dial-glass-bg), menus #2a2a2a, borders 10% white, text 95% / secondary 60% white, fills 5% (rest) / 10% (hover) / 11% (active), 13px/500 type, 8px control radius, almost no divider lines. White is the accent, as in DialKit (primary = #fff on #212121 text): Run and New buttons. Status dots are emerald (sketch running, MCP connected). No amber
 - Layout: floating rounded `panel`s (custom `@utility panel` in globals.css: #212121, 12px radius, 10% white border) with 8px gaps on the near-black page. Header is borderless; editable project name lives there
 - Preview should be fully black (sketch style.css is black; panel bg-white → bg-black)
-- Code column is half width, capped at 400px (md:max-w-[400px]); preview takes the rest
+- Columns: Files (collapsed by default) | code ≤400px | preview (flex) | Controls 280px
+- Preview centres every sketch: `frameFit` in Preview.tsx (body flex-centre, canvas max 100% + object-fit contain, auto resizeCanvas for full-window sketches without windowResized). Prefer createCanvas(windowWidth, windowHeight)
+- Save/New read p5_projects fresh from localStorage (the page autosaves into it); ⌘S saves
 - Code colors: soft lavender keywords, sage strings, sand numbers, light blue types, gray italic comments; white cursor and selection; Monaco bg matches panel (#212121)
 - Icons are monochrome (no per-file-type colors); secondary actions appear on hover
 
 ## Sketch dials (DialKit)
-Sketches can declare live controls; the editor shows a DialKit panel (bottom right of the preview) and pushes values into the running sketch. Use this in sketches Joost asks for whenever there are values worth tweaking.
+Sketches can declare live controls; the editor shows them in the docked Controls column (right of the preview, `<DialRoot mode="inline">` in page.tsx) and pushes values into the running sketch. Always include dials in sketches for Joost; the starter sketch for new projects (DEFAULT_PROJECT in lib/types.ts) already has them.
 ```js
 const dial = dials({
   count: [40, 1, 200, 1],   // [default, min, max, step?] slider
@@ -42,8 +44,8 @@ const dial = dials({
 // read dial.count, dial.shape.size etc. inside draw(); call dials() once, top level
 ```
 - Slider positions survive code edits (values are re-sent after each reload); defaults in code only apply to new controls
-- Bridge: `dialsBridge` script in Preview.tsx (inside the iframe) ↔ SketchDials.tsx (useDialKit + DialRoot), via postMessage
-- Panel only shows while the sketch calls dials(); hidden otherwise
+- Bridge: `dialsBridge` script in Preview.tsx (inside the iframe) ↔ SketchDials.tsx (useDialKit only), via postMessage; Preview reports `onDialsChange` so the page can show an empty state
+- Controls column is always visible (lg+); shows an empty state with a snippet when the sketch has no dials
 
 ## Git
 - Remote: github.com/joostdamhuis/p5js-ai-editor (private). Forked from github.com/adilmoujahid/p5js-ai-editor, no upstream remote kept

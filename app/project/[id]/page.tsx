@@ -12,6 +12,8 @@ import Console, { LogMessage } from '@/components/editor-ui/Console';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, PanelLeft } from 'lucide-react';
+import { DialRoot } from 'dialkit';
+import 'dialkit/styles.css';
 
 export default function ProjectPage() {
   const params = useParams();
@@ -19,12 +21,13 @@ export default function ProjectPage() {
   const projectId = params.id as string;
 
   const [project, setProject] = useState<Project | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [enableWsListener, setEnableWsListener] = useState(false);
   const [consoleMessages, setConsoleMessages] = useState<LogMessage[]>([]);
   const [consoleHeight, setConsoleHeight] = useState(200);
   const [isRunning, setIsRunning] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [hasDials, setHasDials] = useState(false);
 
   // Load project from localStorage
   useEffect(() => {
@@ -468,8 +471,31 @@ export default function ProjectPage() {
               project={project}
               onConsoleMessage={handleConsoleMessage}
               isRunning={isRunning}
+              onDialsChange={setHasDials}
             />
           </div>
+
+          {/* Controls: the sketch's dials, docked */}
+          <aside className="panel w-[280px] shrink-0 hidden lg:flex flex-col">
+            <div className="flex-1 overflow-y-auto min-h-0 p-1">
+              <DialRoot mode="inline" theme="dark" productionEnabled />
+              {!hasDials && (
+                <div className="px-2.5 py-2">
+                  <h3 className="text-[13px] font-medium text-muted-foreground">Controls</h3>
+                  <p className="text-[12px] leading-relaxed text-muted-foreground/70 mt-3">
+                    Sliders for your sketch show up here. Add a <code className="font-mono text-foreground/80">dials</code> line
+                    at the top of your sketch, or ask Claude for a sketch with controls.
+                  </p>
+                  <pre className="mt-3 rounded-lg bg-white/[0.05] px-3 py-2.5 font-mono text-[11px] leading-[1.7] text-muted-foreground overflow-x-auto">{`const dial = dials({
+  size: [24, 2, 80],
+  color: '#ffffff',
+});
+
+// then use dial.size`}</pre>
+                </div>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
 

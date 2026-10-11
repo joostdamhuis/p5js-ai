@@ -1,6 +1,5 @@
 import { useEffect, MutableRefObject } from 'react';
-import { DialRoot, useDialKit, DialConfig } from 'dialkit';
-import 'dialkit/styles.css';
+import { useDialKit, DialConfig } from 'dialkit';
 
 interface SketchDialsProps {
   config: DialConfig;
@@ -10,7 +9,8 @@ interface SketchDialsProps {
   latestValues: MutableRefObject<unknown>;
 }
 
-// DialKit panel for the controls a sketch declares with dials({...})
+// Registers the controls a sketch declares with dials({...}).
+// The panel itself is drawn by <DialRoot mode="inline"> in the Controls column.
 const SketchDials = ({ config, postToSketch, latestValues }: SketchDialsProps) => {
   const values = useDialKit('Sketch', config, {
     onAction: (action) => postToSketch({ type: 'action', action }),
@@ -21,7 +21,7 @@ const SketchDials = ({ config, postToSketch, latestValues }: SketchDialsProps) =
     postToSketch({ type: 'values', values });
   }, [values, postToSketch, latestValues]);
 
-  return <DialRoot position="bottom-right" theme="dark" productionEnabled />;
+  return null;
 };
 
 export default SketchDials;
