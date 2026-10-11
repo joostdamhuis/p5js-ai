@@ -295,13 +295,12 @@ html, body {
 }
 
 /* DialKit's popups (select dropdown, colour and image pickers, presets,
-   shortcuts) used the panel background, which is transparent now: give them
-   the same see-through menu surface as the editor's other menus */
+   shortcuts): the same glass as the dock and the editor's menus */
 .dialkit-select-dropdown,
 .dialkit-color-popover,
 .dialkit-image-popover,
 .dialkit-preset-dropdown,
 .dialkit-shortcuts-dropdown {
-  background: color-mix(in srgb, var(--chrome-raised) 85%, transparent) !important;
+  background: color-mix(in srgb, var(--chrome) var(--surface-alpha), transparent) !important;
   backdrop-filter: var(--glass-blur);
 }
