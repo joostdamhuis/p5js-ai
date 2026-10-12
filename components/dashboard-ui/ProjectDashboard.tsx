@@ -175,7 +175,7 @@ const ProjectDashboard = ({ onProjectSelect }: ProjectDashboardProps) => {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDeleteProject(project.id)}
-                        className="text-red-400 focus:text-red-400"
+                        className="text-red-400 focus:text-red-400 focus:bg-red-400/10 [&_svg]:!text-red-400"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
