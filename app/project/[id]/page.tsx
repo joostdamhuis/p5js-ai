@@ -569,6 +569,7 @@ export default function ProjectPage() {
       onDialsChange={setHasDials}
       onControlsChange={handleControlsChange}
       quietCode={quietCode}
+      onCanvasTap={togglePanels}
       onCanvasSizeChange={(canvasSize) => setProject(prev => prev ? { ...prev, canvasSize, lastModified: Date.now() } : prev)}
       toolbarTarget={dockToolsEl}
       menuItems={moreMenuItems}

@@ -120,6 +120,21 @@ const dialsBridge = `
         return dial;
       };
 
+      // A quick tap on the canvas (no drag) tells the editor, which hides or shows
+      // its panels. Skipped for sketches that use clicks themselves.
+      (function() {
+        let down = null;
+        window.addEventListener('pointerdown', function(e) { down = { x: e.clientX, y: e.clientY, t: Date.now() }; }, true);
+        window.addEventListener('pointerup', function(e) {
+          if (!down) return;
+          const quick = Date.now() - down.t < 300 && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6;
+          down = null;
+          const usesClicks = ['mousePressed', 'mouseClicked', 'mouseReleased', 'touchStarted', 'touchEnded', 'doubleClicked']
+            .some(function(name) { return typeof window[name] === 'function'; });
+          if (quick && !usesClicks) window.parent.postMessage({ source: 'p5js-dials', type: 'tap' }, '*');
+        }, true);
+      })();
+
       window.addEventListener('message', function(event) {
         const data = event.data;
         if (!data || data.source !== 'p5js-editor-dials') return;
@@ -253,9 +268,11 @@ interface PreviewProps {
   // Code written by the Controls panel: shown in the editor, but the running
   // sketch already has these values, so it isn't restarted for it
   quietCode?: React.MutableRefObject<string | null>;
+  // A quick tap on the canvas (only for sketches that don't use clicks)
+  onCanvasTap?: () => void;
 }
 
-const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, isPaused = false, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor, menuItems, quietCode }: PreviewProps) => {
+const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunning = true, isPaused = false, onDialsChange, onControlsChange, onCanvasSizeChange, toolbarTarget, onAmbientColor, menuItems, quietCode, onCanvasTap }: PreviewProps) => {
   const size = getCanvasSize(project.canvasSize);
   const frameRef = useRef<HTMLDivElement>(null);
   const [frameScale, setFrameScale] = useState(1);
@@ -380,6 +397,8 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   }, [filesKey, isRunning, size.id, postToSketch]);
 
   // Ambient tint: ask the sketch for its average colour twice a second
+  const onCanvasTapRef = useRef(onCanvasTap);
+  onCanvasTapRef.current = onCanvasTap;
   const onAmbientRef = useRef(onAmbientColor);
   onAmbientRef.current = onAmbientColor;
   const wantsAmbient = !!onAmbientColor;
@@ -444,6 +463,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
         downloadFile(url, String(data.mime).includes('mp4') ? 'mp4' : 'webm');
         setTimeout(() => URL.revokeObjectURL(url), 10_000);
       }
+      if (data.type === 'tap') onCanvasTapRef.current?.();
       if (data.type === 'autoReady' && latestAutoValues.current) {
         postToSketch({ type: 'autoValues', values: latestAutoValues.current });
       }

@@ -111,3 +111,4 @@ Icons: Lucide everywhere at 16px (h-4) in bars and menus, stroke 1.5 via `svg.lu
 Editor.tsx: Monaco is uncontrolled (`path` per file + `defaultValue`); outside changes are applied as a minimal edit (common prefix/suffix), so control drags don't re-render the whole file (no flicker).
 
 Panels: Tab (outside text fields, code, menus and controls) or the two-sliders button toggles both side panels. A hidden panel leaves a thin handle (EdgeTab) on its screen edge: hover slides it in for a peek (closes when the pointer moves away, checked on pointermove), click keeps it open.
+A quick tap on the canvas (under 300ms, under 6px of movement) also toggles the panels, posted from the iframe bridge as `tap`; skipped for sketches that define mousePressed/mouseClicked/mouseReleased/touchStarted/touchEnded/doubleClicked.
