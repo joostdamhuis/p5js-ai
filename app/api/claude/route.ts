@@ -4,7 +4,8 @@ import { isLocalRequest, forbidden } from '../sketches/guard';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Prompt box: runs Claude Code on this Mac and streams its progress as JSON lines
+// Prompt bar: asks a warm Claude Code session on this Mac and streams its progress
+// as JSON lines; the final event carries the edits for the editor to apply
 export async function POST(request: Request) {
   if (!isLocalRequest(request)) return forbidden();
   const ctx = (await request.json()) as PromptContext;
@@ -18,14 +19,13 @@ export async function POST(request: Request) {
         if (closed) return;
         controller.enqueue(encoder.encode(JSON.stringify(e) + '\n'));
       };
-      const child = runPrompt(ctx, (e) => {
+      const stop = runPrompt(ctx, (e) => {
         send(e);
         if (e.type !== 'status' && !closed) { closed = true; controller.close(); }
       });
-      if (!child && !closed) { closed = true; controller.close(); }
       // Stop button or closed tab: end the run
       request.signal.addEventListener('abort', () => {
-        child?.kill('SIGTERM');
+        stop?.();
         if (!closed) { closed = true; try { controller.close(); } catch {} }
       });
     },

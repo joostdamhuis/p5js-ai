@@ -673,6 +673,11 @@ export default function ProjectPage() {
         project={project}
         errors={consoleMessages.filter(m => m.type === 'error').map(m => String(m.content))}
         onRestore={(files) => setProject(prev => prev ? { ...prev, files, lastModified: Date.now() } : prev)}
+        onApply={(files) => {
+          setProject(prev => prev ? { ...prev, files, lastModified: Date.now() } : prev);
+          setIsRunning(true);
+          setIsPaused(false);
+        }}
         // The toolbar lives in the same bar, left of the prompt
         tools={
           <>

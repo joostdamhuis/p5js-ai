@@ -9,6 +9,8 @@ interface PromptBoxProps {
   // Recent console errors, so Claude can fix them
   errors: string[];
   onRestore: (files: ProjectFile[]) => void;
+  // Claude's edits, applied: new file list to put in the editor and run
+  onApply: (files: ProjectFile[]) => void;
   // Toolbar buttons shown at the start of the bar
   tools?: React.ReactNode;
 }
@@ -33,7 +35,7 @@ const writeHistory = (id: string, turns: Turn[]) => {
 
 // Search-style bar at the bottom centre. Above it, a card shows what Claude is doing,
 // its latest reply (with Undo) and, while the bar is empty and focused, recent prompts.
-const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
+const PromptBox = ({ project, errors, onRestore, onApply, tools }: PromptBoxProps) => {
   const [text, setText] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -121,6 +123,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
         signal: controller.signal,
         body: JSON.stringify({
           prompt,
+          projectId: project.id,
           sketchName: project.name,
           files: project.files.map(f => ({ name: f.name, content: f.content })),
           errors: errors.slice(-10),
@@ -143,7 +146,16 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           const e = JSON.parse(buffer.slice(0, nl));
           buffer = buffer.slice(nl + 1);
           if (e.type === 'status') setPending({ prompt, status: e.text });
-          if (e.type === 'done') { addTurn({ prompt, reply: e.text }); setUndo(before); ended = true; }
+          if (e.type === 'done') {
+            const applied = applyEdits(before, e.edits ?? []);
+            if (applied.error) {
+              addTurn({ prompt, reply: applied.error, error: true });
+            } else {
+              if (applied.changed) { onApply(applied.files); setUndo(before); }
+              addTurn({ prompt, reply: e.text });
+            }
+            ended = true;
+          }
           if (e.type === 'error') { addTurn({ prompt, reply: e.text, error: true }); ended = true; }
         }
       }
@@ -334,6 +346,42 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
     </div>
   );
 };
+
+type Edit =
+  | { kind: 'replace'; file: string; find: string; replace: string }
+  | { kind: 'file'; file: string; content: string };
+
+// Applies Claude's edits to the files. Each <find> must match exactly once
+// (falls back to ignoring trailing spaces); a miss cancels the whole change.
+function applyEdits(files: ProjectFile[], edits: Edit[]): { files: ProjectFile[]; changed: boolean; error?: string } {
+  const out = files.map(f => ({ ...f }));
+  for (const e of edits) {
+    let file = out.find(f => f.name === e.file);
+    if (e.kind === 'file') {
+      if (file) file.content = e.content;
+      else {
+        const ext = e.file.split('.').pop() as ProjectFile['type'];
+        out.push({ id: e.file.replace(/\.[^.]+$/, ''), name: e.file, content: e.content, type: ext, lastModified: Date.now() } as ProjectFile);
+      }
+      continue;
+    }
+    if (!file) return { files, changed: false, error: `Claude tried to edit ${e.file}, which doesn’t exist. Try again.` };
+    let at = file.content.indexOf(e.find);
+    let find = e.find;
+    if (at < 0) {
+      // Same lines without trailing spaces
+      const strip = (t: string) => t.split('\n').map(l => l.trimEnd()).join('\n');
+      const content = strip(file.content);
+      find = strip(e.find);
+      at = content.indexOf(find);
+      if (at >= 0) file = Object.assign(file, { content });
+    }
+    if (at < 0) return { files, changed: false, error: 'Claude’s change didn’t match the current code. Try again.' };
+    file.content = file.content.slice(0, at) + e.replace + file.content.slice(at + find.length);
+    file.lastModified = Date.now();
+  }
+  return { files: out, changed: edits.length > 0 };
+}
 
 // Thinking: a 3×3 grid of small dots that flicker on and off at random
 const Typing = () => {

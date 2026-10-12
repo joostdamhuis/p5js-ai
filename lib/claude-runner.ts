@@ -32,6 +32,7 @@ export function findClaude(): string | null {
 
 export interface PromptContext {
   prompt: string;
+  projectId?: string;
   sketchName: string;
   files: { name: string; content: string }[];
   errors: string[];
@@ -40,6 +41,9 @@ export interface PromptContext {
   // Reference images, as data URLs
   attachments?: { name: string; dataUrl: string }[];
 }
+
+// Models the prompt box can pick (anything else falls back to Claude Code's default)
+export const MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'];
 
 // Attachments are written here for Claude to read (and only here)
 const ATTACH_DIR = (() => {
@@ -59,109 +63,192 @@ function saveAttachments(list: PromptContext['attachments']): string[] {
   });
 }
 
-// Models the prompt box can pick (anything else falls back to Claude Code's default)
-export const MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'];
+// One answer, no tool calls: Claude replies with a summary and the edits, and the
+// editor applies them itself. Much faster than writing code through the MCP tools.
+const SYSTEM_PROMPT = `You are Claude, working inside a local p5.js editor. The user types requests into a prompt bar while their sketch runs live next to it.
 
-const MCP_SERVER = path.join(process.cwd(), 'p5js-mcp-server-ts/dist/index.js');
+Reply in EXACTLY this format and nothing else (no markdown, no code fences):
 
-function systemPrompt(ctx: PromptContext) {
-  return [
-    'You are Claude, working inside the user’s local p5.js editor through the p5js-editor tools.',
-    'The user typed a request into the editor’s prompt box while looking at their running sketch.',
-    'Make the change directly: use update_code with the COMPLETE file (select_file first for files other than sketch.js), then start_execution.',
-    'Keep the dials() controls at the top of the sketch working and add controls for new settings where it helps. Keep existing control and folder names (e.g. don’t rename a `blues` folder to `reds` when changing colours); change their default values instead, so the Controls panel follows.',
-    'Don’t ask questions; make a sensible choice. When done, reply with ONE short plain sentence describing what changed, no code, no markdown.',
-    '',
-    `Sketch: ${ctx.sketchName}`,
-    ...ctx.files.map(f => `\n--- ${f.name} ---\n${f.content}`),
-    ctx.errors.length ? `\nRecent console errors:\n${ctx.errors.join('\n')}` : '',
-    ctx.history.length
-      ? '\nEarlier requests in this sketch (oldest first):\n' + ctx.history.map(h => `- “${h.prompt}” → ${h.reply}`).join('\n')
-      : '',
-  ].join('\n');
-}
+<summary>One short plain sentence saying what you changed.</summary>
+<edit file="sketch.js"><find>exact existing text</find><replace>new text</replace></edit>
+
+Rules for edits:
+- <find> must be copied verbatim from the current file and appear exactly once in it. Keep it short: just the lines that change plus enough context to be unique.
+- Use as many <edit> blocks as needed, in any order, for any file.
+- To create a file, or when you rewrite most of a file, use <file name="sketch.js">the complete new content</file> instead of edits.
+- If no code change is needed (a question), reply with only the summary.
+
+Rules for sketches:
+- Keep the dials() controls at the top working and add controls for new settings where it helps.
+- Keep existing control and folder names (don't rename a \`blues\` folder to \`reds\` when changing colours); change their default values instead, so the Controls panel follows.
+- Don't ask questions; make a sensible choice.
+- If the user attached images, look at them with Read before answering.`;
 
 export type RunEvent =
   | { type: 'status'; text: string }
-  | { type: 'done'; text: string }
+  | { type: 'done'; text: string; edits: Edit[] }
   | { type: 'error'; text: string };
 
-const TOOL_STATUS: Record<string, string> = {
-  get_sketch: 'Reading the sketch…',
-  Read: 'Looking at your image…',
-  update_code: 'Writing code…',
-  select_file: 'Opening a file…',
-  create_file: 'Adding a file…',
-  start_execution: 'Running it…',
-  stop_execution: 'Stopping…',
+export type Edit =
+  | { kind: 'replace'; file: string; find: string; replace: string }
+  | { kind: 'file'; file: string; content: string };
+
+// Pulls the summary and edits out of Claude's answer
+export function parseAnswer(answer: string): { summary: string; edits: Edit[] } {
+  const summary = /<summary>([\s\S]*?)<\/summary>/.exec(answer)?.[1].trim() ?? '';
+  const edits: Edit[] = [];
+  const re = /<edit file="([^"]+)">\s*<find>([\s\S]*?)<\/find>\s*<replace>([\s\S]*?)<\/replace>\s*<\/edit>|<file name="([^"]+)">([\s\S]*?)<\/file>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(answer))) {
+    if (m[1]) edits.push({ kind: 'replace', file: m[1], find: m[2], replace: m[3] });
+    else edits.push({ kind: 'file', file: m[4], content: m[5].replace(/^\n/, '') });
+  }
+  return { summary: summary || (edits.length ? 'Done.' : answer.trim().slice(0, 300)), edits };
+}
+
+// ---- A warm Claude Code session, reused between prompts ----
+
+type Session = {
+  proc: ChildProcess;
+  key: string; // model + sketch: a new one starts when either changes
+  turns: number;
+  sentFiles: string; // what this session has already seen
+  busy: boolean;
+  onLine: ((msg: Record<string, unknown>) => void) | null;
 };
 
-// Runs one prompt with Claude Code in the background; calls onEvent as it goes
-export function runPrompt(ctx: PromptContext, onEvent: (e: RunEvent) => void): ChildProcess | null {
-  const bin = findClaude();
-  if (!bin) {
-    onEvent({ type: 'error', text: 'Claude Code isn’t installed. See CLAUDE.md → Prompt box.' });
-    return null;
-  }
+const MAX_TURNS = 12; // then start fresh, so the context stays small and quick
+const g = globalThis as unknown as { __claudeSession?: Session | null };
 
-  const images = saveAttachments(ctx.attachments);
-  const prompt = images.length
-    ? `${ctx.prompt}\n\nI attached ${images.length === 1 ? 'an image' : `${images.length} images`} as reference; look at ${images.length === 1 ? 'it' : 'them'} with Read first:\n${images.join('\n')}`
-    : ctx.prompt;
-
-  const mcpConfig = JSON.stringify({
-    mcpServers: { 'p5js-editor': { command: process.execPath, args: [MCP_SERVER] } },
-  });
+function startSession(bin: string, model: string | undefined, key: string): Session {
   const args = [
-    '-p', prompt,
+    '-p',
+    '--input-format', 'stream-json',
     '--output-format', 'stream-json',
+    '--include-partial-messages',
     '--verbose',
-    '--mcp-config', mcpConfig,
+    '--no-session-persistence',
     '--strict-mcp-config',
-    '--allowedTools', 'mcp__p5js-editor', `Read(/${ATTACH_DIR}/**)`,
-    '--disallowedTools', 'Bash,Edit,Write,NotebookEdit,WebFetch,WebSearch,Task',
-    '--append-system-prompt', systemPrompt(ctx),
-    ...(ctx.model && MODELS.includes(ctx.model) ? ['--model', ctx.model] : []),
+    '--tools', 'Read',
+    '--allowedTools', `Read(/${ATTACH_DIR}/**)`,
+    '--system-prompt', SYSTEM_PROMPT,
+    ...(model && MODELS.includes(model) ? ['--model', model] : []),
   ];
-
-  const child = spawn(bin, args, { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'], env: process.env });
+  const proc = spawn(bin, args, { cwd: ATTACH_DIR, stdio: ['pipe', 'pipe', 'pipe'], env: process.env });
+  const session: Session = { proc, key, turns: 0, sentFiles: '', busy: false, onLine: null };
   let buffer = '';
-  let finished = false;
-  let stderr = '';
-
-  child.stdout.on('data', (chunk: Buffer) => {
+  proc.stdout!.on('data', (chunk: Buffer) => {
     buffer += chunk.toString();
     let nl;
     while ((nl = buffer.indexOf('\n')) >= 0) {
       const line = buffer.slice(0, nl).trim();
       buffer = buffer.slice(nl + 1);
       if (!line) continue;
-      let msg: any;
-      try { msg = JSON.parse(line); } catch { continue; }
-      if (msg.type === 'assistant') {
-        for (const part of msg.message?.content ?? []) {
-          if (part.type === 'tool_use') {
-            const name = String(part.name).replace('mcp__p5js-editor__', '');
-            onEvent({ type: 'status', text: TOOL_STATUS[name] ?? 'Working…' });
-          } else if (part.type === 'thinking') {
-            onEvent({ type: 'status', text: 'Thinking…' });
-          }
-        }
-      } else if (msg.type === 'result') {
-        finished = true;
-        const text = String(msg.result ?? '').trim();
-        if (msg.is_error || /not logged in/i.test(text)) {
-          onEvent({ type: 'error', text: /not logged in|login/i.test(text) ? 'Claude Code isn’t signed in yet. In Terminal, run: claude auth login' : text || 'Something went wrong' });
-        } else {
-          onEvent({ type: 'done', text: text || 'Done.' });
-        }
-      }
+      try { session.onLine?.(JSON.parse(line)); } catch {}
     }
   });
-  child.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
-  child.on('close', (code) => {
-    if (!finished) onEvent({ type: 'error', text: code === null ? 'Stopped' : (stderr.trim().split('\n').pop() || `Claude Code exited (${code})`) });
+  proc.on('close', () => {
+    if (g.__claudeSession === session) g.__claudeSession = null;
+    session.onLine?.({ type: '__closed' });
   });
-  child.on('error', (err) => onEvent({ type: 'error', text: err.message }));
-  return child;
+  proc.on('error', () => session.onLine?.({ type: '__closed' }));
+  return session;
+}
+
+function getSession(bin: string, ctx: PromptContext): Session {
+  const key = `${ctx.model ?? ''}|${ctx.projectId ?? ctx.sketchName}`;
+  const current = g.__claudeSession;
+  if (current && current.key === key && current.turns < MAX_TURNS && !current.proc.killed && current.proc.exitCode === null) {
+    return current;
+  }
+  current?.proc.kill();
+  const session = startSession(bin, ctx.model, key);
+  g.__claudeSession = session;
+  return session;
+}
+
+// Runs one prompt; calls onEvent as it goes. Returns a function that stops it.
+export function runPrompt(ctx: PromptContext, onEvent: (e: RunEvent) => void): (() => void) | null {
+  const bin = findClaude();
+  if (!bin) {
+    onEvent({ type: 'error', text: 'Claude Code isn’t installed. See CLAUDE.md → Prompt box.' });
+    return null;
+  }
+  const session = getSession(bin, ctx);
+  if (session.busy) {
+    onEvent({ type: 'error', text: 'Claude is still working on the last prompt' });
+    return null;
+  }
+  session.busy = true;
+
+  // The current code goes along only when it changed since this session last saw it
+  const filesText = ctx.files.map(f => `--- ${f.name} ---\n${f.content}`).join('\n\n');
+  const parts: string[] = [];
+  if (filesText !== session.sentFiles) {
+    parts.push(`Current files of the sketch “${ctx.sketchName}”:\n\n${filesText}`);
+    session.sentFiles = filesText;
+  } else {
+    parts.push('(The files are unchanged since your last edit.)');
+  }
+  if (session.turns === 0 && ctx.history.length) {
+    parts.push('Earlier requests in this sketch (oldest first):\n' + ctx.history.map(h => `- “${h.prompt}” → ${h.reply}`).join('\n'));
+  }
+  if (ctx.errors.length) parts.push(`Recent console errors:\n${ctx.errors.join('\n')}`);
+  const images = saveAttachments(ctx.attachments);
+  if (images.length) parts.push(`Attached reference image${images.length > 1 ? 's' : ''} (look with Read):\n${images.join('\n')}`);
+  parts.push(`Request: ${ctx.prompt}`);
+
+  let answer = '';
+  let finished = false;
+  const finish = (e: RunEvent) => {
+    if (finished) return;
+    finished = true;
+    session.busy = false;
+    session.onLine = null;
+    onEvent(e);
+  };
+
+  onEvent({ type: 'status', text: 'Thinking…' });
+  session.onLine = (msg) => {
+    if (msg.type === '__closed') {
+      finish({ type: 'error', text: 'Claude Code stopped unexpectedly. Try again.' });
+      return;
+    }
+    if (msg.type === 'stream_event') {
+      const ev = msg.event as { type?: string; content_block?: { type?: string; name?: string } };
+      if (ev?.type === 'content_block_start') {
+        const block = ev.content_block?.type;
+        if (block === 'thinking') onEvent({ type: 'status', text: 'Thinking…' });
+        if (block === 'text') onEvent({ type: 'status', text: 'Writing code…' });
+        if (block === 'tool_use') onEvent({ type: 'status', text: 'Looking at your image…' });
+      }
+      return;
+    }
+    if (msg.type === 'assistant') {
+      const content = (msg.message as { content?: { type: string; text?: string }[] })?.content ?? [];
+      for (const part of content) if (part.type === 'text' && part.text) answer += part.text;
+      return;
+    }
+    if (msg.type === 'result') {
+      session.turns++;
+      const text = String(msg.result ?? answer ?? '');
+      if (msg.is_error || /not logged in/i.test(text)) {
+        finish({ type: 'error', text: /not logged in|login/i.test(text) ? 'Claude Code isn’t signed in yet. In Terminal, run: claude auth login' : text || 'Something went wrong' });
+        return;
+      }
+      const { summary, edits } = parseAnswer(text || answer);
+      finish({ type: 'done', text: summary, edits });
+    }
+  };
+
+  session.proc.stdin!.write(JSON.stringify({
+    type: 'user',
+    message: { role: 'user', content: [{ type: 'text', text: parts.join('\n\n') }] },
+  }) + '\n');
+
+  return () => {
+    // Stop: end this session; the next prompt starts a fresh one
+    session.proc.kill();
+    finish({ type: 'error', text: 'Stopped' });
+  };
 }
