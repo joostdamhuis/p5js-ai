@@ -1,7 +1,7 @@
 {
   "id": "project-1791830581986",
   "name": "dancing type",
-  "lastModified": 1791834982853,
+  "lastModified": 1791835113630,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -17,7 +17,7 @@
     "freqA": 3,
     "freqB": 4,
     "speed": 0.2,
-    "scale": 0.47,
+    "scale": 0.51,
     "rotate": false,
     "Samples": 12732,
     "shape": 0.98,
@@ -49,7 +49,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791834965736
+      "lastModified": 1791835016343
     },
     {
       "id": "index",

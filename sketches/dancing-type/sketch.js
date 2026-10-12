@@ -7,7 +7,7 @@ const dial = dials({
   freqB: [4, 1, 12, 1],
   shape: [0.98, 0, 1],
   speed: [0.2, 0, 4],
-  scale: [0.47, 0.1, 1],
+  scale: [0.51, 0.1, 1],
   rotate: false,
   color: '#efd100',
   background: '#020a05',
