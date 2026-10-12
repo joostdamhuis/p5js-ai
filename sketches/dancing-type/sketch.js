@@ -1,7 +1,7 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
   text: 'lets dance baby 💃🕺🎶✨🪩 🎧🥳🔥🌈🎉 ',
-  size: [4, 4, 240],
+  size: [34, 4, 240],
   count: [41, 10, 600, 1],
   freqA: [9, 1, 12, 1],
   freqB: [9, 1, 12, 1],
@@ -9,7 +9,7 @@ const dial = dials({
   speed: [0, 0, 4],
   scale: [0.3, 0.1, 1],
   rotate: false,
-  color: '#c42472',
+  color: '#ffffff',
   background: '#000000',
   showBackground: true,      // on: the background colour fills the canvas; off: transparent canvas, the trails fade to nothing
   scope: {
@@ -21,12 +21,12 @@ const dial = dials({
   },
   music: {
     volume: [0.44, 0, 1],
-    sensitivity: [4, 0, 4],
-    pulse: [2.7, 0, 3],   // bass makes the letters bigger
-    spread: [4, 0, 4],  // mids make the figure roll faster
-    rush: [7.2, 0, 8],      // highs speed the text up
-    wave: [2.4, 0, 3],      // each letter grows to its own frequency
-    jump: [3.8, 0, 4],      // letters jump off the line with the sound
+    sensitivity: [0.5, 0, 4],
+    pulse: [0.9, 0, 3],   // bass makes the letters bigger
+    spread: [2, 0, 4],  // mids make the figure roll faster
+    rush: [1.3, 0, 8],      // highs speed the text up
+    wave: [0.6, 0, 3],      // each letter grows to its own frequency
+    jump: [2.7, 0, 4],      // letters jump off the line with the sound
     shake: [1.5, 0, 2],     // letters tilt with the waveform
     newSong: { type: 'action' }, // make a new random song
   },
