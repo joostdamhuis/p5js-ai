@@ -23,7 +23,7 @@ import {
 import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib/appearance';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
-import { ArrowLeft, SlidersHorizontal, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
+import { ArrowLeft, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import PromptBox from '@/components/editor-ui/PromptBox';
 import { writeControlsToCode } from '@/lib/code-sync';
 import { findAutoDials } from '@/lib/auto-dials';
@@ -51,6 +51,42 @@ export default function ProjectPage() {
   const [showCode, setShowCode] = useState(true);
   const [showConsole, setShowConsole] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  // Hovering a screen edge slides a hidden panel in for a peek; it hides again on leave
+  const [peek, setPeek] = useState<'code' | 'controls' | null>(null);
+  const togglePanels = useCallback(() => {
+    setPeek(null);
+    const show = !(showCode || showControls);
+    setShowCode(show);
+    setShowControls(show);
+  }, [showCode, showControls]);
+  // A peek closes once the pointer is clearly away from the panel and its edge
+  const leftPanelRef = useRef<HTMLDivElement>(null);
+  const rightPanelRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!peek) return;
+    const onMove = (e: PointerEvent) => {
+      const el = peek === 'code' ? leftPanelRef.current : rightPanelRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const inside = e.clientX >= r.left - 24 && e.clientX <= r.right + 24 && e.clientY >= r.top - 24 && e.clientY <= r.bottom + 24;
+      const onEdge = peek === 'code' ? e.clientX <= 16 : e.clientX >= window.innerWidth - 16;
+      if (!inside && !onEdge) setPeek(null);
+    };
+    window.addEventListener('pointermove', onMove);
+    return () => window.removeEventListener('pointermove', onMove);
+  }, [peek]);
+  // Tab hides or shows both panels, unless you're typing somewhere
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.closest('input, textarea, select, [contenteditable="true"], .monaco-editor, [role="menu"], .dialkit-root'))) return;
+      e.preventDefault();
+      togglePanels();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [togglePanels]);
   // Panels take on a tint of the canvas's colour
   // Appearance: auto (follow the canvas), dark or light
   const [appearance, setAppearance] = useState<Appearance>('auto');
@@ -613,16 +649,26 @@ export default function ProjectPage() {
         <ConnectionStatus enabled={enableWsListener} onEnabledChange={setMcpEnabled} status={mcpStatus} pill popupWidth={controlsWidth} />
       </div>
 
+      {/* Edge tabs: a hidden panel leaves a small handle at its edge. Hover to peek,
+          click to keep it open */}
+      {!(showCode || showConsole) && peek !== 'code' && (
+        <EdgeTab side="left" onPeek={() => setPeek('code')} onOpen={() => { setShowCode(true); setPeek(null); }} />
+      )}
+      {!showControls && peek !== 'controls' && (
+        <EdgeTab side="right" onPeek={() => setPeek('controls')} onOpen={() => { setShowControls(true); setPeek(null); }} />
+      )}
+
       {/* Side panels stay mounted and slide in/out from their edge */}
       {/* Left: code + console, top-aligned with Controls, as tall as their content */}
       <div
+        ref={leftPanelRef}
         className="absolute left-3 top-[68px] z-10 flex flex-col max-h-[calc(100vh-148px)] transition-transform duration-[350ms] ease-[cubic-bezier(0.34,1.25,0.64,1)]"
         style={{
           width: codeWidth,
-          transform: `translateX(${showCode || showConsole ? '0' : 'calc(-100% - 24px)'})`,
-          pointerEvents: showCode || showConsole ? 'auto' : 'none',
+          transform: `translateX(${showCode || showConsole || peek === 'code' ? '0' : 'calc(-100% - 24px)'})`,
+          pointerEvents: showCode || showConsole || peek === 'code' ? 'auto' : 'none',
         }}
-        aria-hidden={!(showCode || showConsole)}
+        aria-hidden={!(showCode || showConsole || peek === 'code')}
       >
         {showCode && (
           // 44px tab bar + the code; shrinks (and scrolls) when there isn't room
@@ -640,13 +686,14 @@ export default function ProjectPage() {
 
       {/* Right: controls */}
       <aside
+        ref={rightPanelRef}
         className={`${floating} absolute right-3 top-[68px] z-10 max-h-[calc(100vh-148px)]`}
         style={{
           width: controlsWidth,
-          transform: `translateX(${showControls ? '0' : 'calc(100% + 24px)'})`,
-          pointerEvents: showControls ? 'auto' : 'none',
+          transform: `translateX(${showControls || peek === 'controls' ? '0' : 'calc(100% + 24px)'})`,
+          pointerEvents: showControls || peek === 'controls' ? 'auto' : 'none',
         }}
-        aria-hidden={!showControls}
+        aria-hidden={!(showControls || peek === 'controls')}
       >
         {controlsPanel}
       </aside>
@@ -690,9 +737,9 @@ export default function ProjectPage() {
             </button>
             {dockToggle(
               showCode || showControls,
-              () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
-              'panels',
-              <SlidersHorizontal className="h-4 w-4" />
+              togglePanels,
+              'panels (Tab)',
+              <TwoSlidersIcon />
             )}
             <ProjectManager currentProject={project} onProjectChange={setProject} compact />
             {/* More menu (export + the items below), rendered by Preview */}
@@ -718,4 +765,25 @@ const PlayIcon = () => (
   <svg className="lucide h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
     <path d="M6 4.2v15.6a1.2 1.2 0 0 0 1.8 1l13-7.8a1.2 1.2 0 0 0 0-2l-13-7.8A1.2 1.2 0 0 0 6 4.2z" />
   </svg>
+);
+
+// Two sliders: the "show/hide panels" icon, simpler than Lucide's three
+const TwoSlidersIcon = () => (
+  <svg className="lucide h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+    <path d="M3 8h9M17 8h4M3 16h4M12 16h9" />
+    <path d="M14.5 5v6M9.5 13v6" />
+  </svg>
+);
+
+// A thin handle on the screen edge where a hidden panel lives
+const EdgeTab = ({ side, onPeek, onOpen }: { side: 'left' | 'right'; onPeek: () => void; onOpen: () => void }) => (
+  <button
+    onMouseEnter={onPeek}
+    onClick={onOpen}
+    title={side === 'left' ? 'Code (click to keep open)' : 'Controls (click to keep open)'}
+    aria-label={side === 'left' ? 'Show code' : 'Show controls'}
+    className={`group absolute top-[68px] bottom-[80px] z-[11] w-4 flex items-center ${side === 'left' ? 'left-0 justify-start pl-1.5' : 'right-0 justify-end pr-1.5'}`}
+  >
+    <span className="h-14 w-1 rounded-full bg-[rgb(var(--ink)/0.25)] group-hover:bg-[rgb(var(--ink)/0.6)] transition-colors" />
+  </button>
 );

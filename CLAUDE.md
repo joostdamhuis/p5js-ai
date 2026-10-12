@@ -109,3 +109,5 @@ Dev server ignores `sketches/` (next.config.ts webpack watchOptions): otherwise 
 Icons: Lucide everywhere at 16px (h-4) in bars and menus, stroke 1.5 via `svg.lucide` in globals.css, outline only (no filled Play/Pause/Stop).
 
 Editor.tsx: Monaco is uncontrolled (`path` per file + `defaultValue`); outside changes are applied as a minimal edit (common prefix/suffix), so control drags don't re-render the whole file (no flicker).
+
+Panels: Tab (outside text fields, code, menus and controls) or the two-sliders button toggles both side panels. A hidden panel leaves a thin handle (EdgeTab) on its screen edge: hover slides it in for a peek (closes when the pointer moves away, checked on pointermove), click keeps it open.
