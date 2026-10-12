@@ -1,12 +1,12 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
-  text: 'lets dance baby',
-  size: [34, 4, 240],
-  count: [25, 10, 600, 1],
+  text: 'lets dance baby 💃🕺🎶✨🪩 🎧🥳🔥🌈🎉 ',
+  size: [14, 4, 240],
+  count: [28, 10, 600, 1],
   freqA: [3, 1, 12, 1],
-  freqB: [4, 1, 12, 1],
+  freqB: [5, 1, 12, 1],
   shape: [0.98, 0, 1],
-  speed: [0.2, 0, 4],
+  speed: [0.1, 0, 4],
   scale: [0.51, 0.1, 1],
   rotate: false,
   color: '#efd100',
@@ -21,12 +21,12 @@ const dial = dials({
   },
   music: {
     volume: [0.15, 0, 1],
-    sensitivity: [4, 0, 4],
-    pulse: [1.1, 0, 3],   // bass makes the letters bigger
-    spread: [2.3, 0, 4],  // mids make the figure roll faster
-    rush: [4, 0, 8],      // highs speed the text up
-    wave: [0.6, 0, 3],      // each letter grows to its own frequency
-    jump: [0.2, 0, 4],      // letters jump off the line with the sound
+    sensitivity: [3.8, 0, 4],
+    pulse: [3, 0, 3],   // bass makes the letters bigger
+    spread: [4, 0, 4],  // mids make the figure roll faster
+    rush: [7.2, 0, 8],      // highs speed the text up
+    wave: [0.7, 0, 3],      // each letter grows to its own frequency
+    jump: [1.2, 0, 4],      // letters jump off the line with the sound
     shake: [0, 0, 2],     // letters tilt with the waveform
     newSong: { type: 'action' }, // make a new random song
   },
@@ -36,7 +36,7 @@ const dial = dials({
   },
 });
 
-const SAMPLES = 12732;
+const SAMPLES = 19059;
 let pts = [];
 let cum = [];
 let drift = 0;
