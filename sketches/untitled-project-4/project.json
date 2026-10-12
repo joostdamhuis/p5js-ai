@@ -1,7 +1,7 @@
 {
   "id": "project-1791830581986",
   "name": "Untitled Project 4",
-  "lastModified": 1791830959521,
+  "lastModified": 1791831330352,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -10,17 +10,35 @@
   ],
   "controls": {
     "size": 24,
-    "color": "#ffffff",
-    "background": "#000000",
-    "text": "🌈✨🦄🍭💫🌸🍉🚀",
+    "color": "#39ff88",
+    "background": "#020a05",
+    "text": "\n",
     "count": 31,
-    "freqA": 3,
-    "freqB": 9,
+    "freqA": 5,
+    "freqB": 6,
     "speed": 0.3,
     "scale": 0.33,
     "rotate": false,
     "Samples": 1210,
-    "shape": 0.09
+    "shape": 0.43,
+    "music": {
+      "volume": 0.34,
+      "sensitivity": 3.9,
+      "pulse": 0.9,
+      "spread": 0.24,
+      "rush": 2.9,
+      "wave": 1.8,
+      "newSong": {
+        "type": "action"
+      }
+    },
+    "scope": {
+      "trace": 6.2,
+      "glow": 16,
+      "persistence": 0.6,
+      "wobble": 0.21,
+      "grid": true
+    }
   },
   "fonts": [],
   "files": [
@@ -28,7 +46,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791830888719
+      "lastModified": 1791831261094
     },
     {
       "id": "index",
