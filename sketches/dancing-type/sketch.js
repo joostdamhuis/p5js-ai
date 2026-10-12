@@ -9,9 +9,9 @@ const dial = dials({
   speed: [0.1, 0, 4],
   scale: [0.51, 0.1, 1],
   rotate: false,
-  color: '#efd100',
-  background: '#020a05',
-  showBackground: false,     // off: transparent canvas, the trails fade to nothing
+  color: '#000000',
+  background: '#ffffff',
+  showBackground: true,      // on: the background colour fills the canvas; off: transparent canvas, the trails fade to nothing
   scope: {
     trace: [0, 0, 8],          // beam thickness (0 hides it)
     glow: [0, 0, 50],         // phosphor glow around the beam
