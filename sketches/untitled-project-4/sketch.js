@@ -1,31 +1,33 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
-  text: '
-',
-  size: [24, 4, 240],
-  count: [31, 10, 600, 1],
-  freqA: [9, 1, 12, 1],
+  text: 'MOVE TO THE SOUND · ',
+  size: [34, 4, 240],
+  count: [112, 10, 600, 1],
+  freqA: [5, 1, 12, 1],
   freqB: [9, 1, 12, 1],
-  shape: [0.47, 0, 1],
-  speed: [0.3, 0, 4],
-  scale: [0.33, 0.1, 1],
-  rotate: false,
+  shape: [0.09, 0, 1],
+  speed: [0, 0, 4],
+  scale: [0.49, 0.1, 1],
+  rotate: true,
   color: '#39ff88',
   background: '#020a05',
+  showBackground: false,     // off: transparent canvas, the trails fade to nothing
   scope: {
-    trace: [2, 0, 8],          // beam thickness (0 hides it)
-    glow: [16, 0, 50],         // phosphor glow around the beam
-    persistence: [0.6, 0, 1],  // how long the screen keeps the afterglow
-    wobble: [0.5, 0, 1],       // the music's waveform bends the beam (XY mode)
-    grid: true,                // graticule
+    trace: [0, 0, 8],          // beam thickness (0 hides it)
+    glow: [0, 0, 50],         // phosphor glow around the beam
+    persistence: [0.41, 0, 1],  // how long the screen keeps the afterglow
+    wobble: [0.27, 0, 1],       // the music's waveform bends the beam (XY mode)
+    drift: [2.2, 0, 3],        // the figure rolls as the phase drifts, like a real scope
   },
   music: {
-    volume: [0.32, 0, 1],
-    sensitivity: [0.6, 0, 4],
-    pulse: [0.9, 0, 3],   // bass makes everything bigger
-    spread: [0.24, 0, 1],  // mids widen the curve
-    rush: [2.9, 0, 8],      // highs speed the text up
-    wave: [1.8, 0, 3],      // each emoji bounces to its own frequency
+    volume: [1, 0, 1],
+    sensitivity: [0.3, 0, 4],
+    pulse: [1.7, 0, 3],   // bass makes the letters bigger
+    spread: [1.1, 0, 4],  // mids make the figure roll faster
+    rush: [3.2, 0, 8],      // highs speed the text up
+    wave: [2, 0, 3],      // each letter grows to its own frequency
+    jump: [1.8, 0, 4],      // letters jump off the line with the sound
+    shake: [0.7, 0, 2],     // letters tilt with the waveform
     newSong: { type: 'action' }, // make a new random song
   },
 }, {
@@ -34,9 +36,10 @@ const dial = dials({
   },
 });
 
-const SAMPLES = 1210;
+const SAMPLES = 2000;
 let pts = [];
 let cum = [];
+let drift = 0;
 
 // Split text into visible characters, keeping emoji (incl. skin tones, flags, ZWJ sequences) whole
 const segmenter = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
@@ -61,6 +64,7 @@ let trackName = '';
 let needsClick = false;
 const level = { bass: 0, mid: 0, high: 0 };
 let travel = 0;
+let bounce = []; // smoothed per-letter jump
 
 function ensureAudio() {
   if (!audioCtx) {
@@ -182,7 +186,8 @@ function kick(t) {
   o.stop(t + 0.4);
 }
 
-function noise(t, dur, vol, type, f) {
+// Named noiseHit (not noise) so p5's built-in Perlin noise() doesn't replace it
+function noiseHit(t, dur, vol, type, f) {
   const src = audioCtx.createBufferSource();
   src.buffer = noiseBuf;
   const fl = audioCtx.createBiquadFilter();
@@ -204,8 +209,8 @@ function playStep(step, t) {
   const chord = song.prog[floor(step / 16) % song.prog.length];
 
   if (song.kick.includes(i)) kick(t);
-  if (i === 4 || i === 12) noise(t, 0.18, 0.5, 'bandpass', 1800);
-  if (i % song.hatEvery === 0) noise(t, 0.05, i % 4 === 2 ? 0.25 : 0.12, 'highpass', 7000);
+  if (i === 4 || i === 12) noiseHit(t, 0.18, 0.5, 'bandpass', 1800);
+  if (i % song.hatEvery === 0) noiseHit(t, 0.05, i % 4 === 2 ? 0.25 : 0.12, 'highpass', 7000);
   if (song.bass.includes(i)) tone(t, hz(midiOf(chord, -1)), sixteenth * 1.8, 'sawtooth', 0.35, 400);
   if (i === 0) {
     for (const d of [0, 2, 4]) tone(t, hz(midiOf(chord + d, 1)), sixteenth * 16, 'triangle', 0.06, 1500, 0.3);
@@ -264,7 +269,8 @@ function setup() {
   noStroke();
   textAlign(CENTER, CENTER);
   textStyle(BOLD);
-  background(dial.background);
+  if (dial.showBackground) background(dial.background);
+  else clear();
 
   picker = document.createElement('input');
   picker.type = 'file';
@@ -276,6 +282,14 @@ function setup() {
   };
   document.body.appendChild(picker);
   cnv.drop((f) => playFile(f.file));
+
+  // Browsers keep audio suspended until a real user gesture: resume on any click, tap or key
+  const unlock = () => {
+    if (audioCtx && audioCtx.state !== 'running') audioCtx.resume();
+  };
+  ['pointerdown', 'pointerup', 'click', 'touchend', 'keydown'].forEach((ev) =>
+    window.addEventListener(ev, unlock, true)
+  );
 }
 
 function mousePressed() {
@@ -303,11 +317,12 @@ function keyPressed() {
   if (key === 'f' || key === 'F') picker.click();
 }
 
-// Sample the Lissajous curve (bent by the music's waveform, like an XY scope) and its cumulative arc length
+// Sample the Lissajous curve (bent by the music's waveform, like an XY scope) and its cumulative arc length.
+// The size stays fixed; the phase drifts so the figure rolls, as when two signals are slightly out of tune.
 function buildPath(scl) {
   const rx = (width / 2) * scl;
   const ry = (height / 2) * scl;
-  const phase = dial.shape * PI;
+  const phase = dial.shape * PI + drift;
   const w = dial.scope.wobble * min(width, height) * 0.25 * scl;
   const n = waveform ? waveform.length : 0;
   pts = [];
@@ -374,15 +389,28 @@ function drawGrid() {
 
 function draw() {
   // Phosphor persistence: fade the previous frame instead of clearing it
-  const bg = color(dial.background);
-  bg.setAlpha(255 * (1 - dial.scope.persistence * 0.92));
-  background(bg);
-  if (dial.scope.grid) drawGrid();
+  const fade = 255 * (1 - dial.scope.persistence * 0.92);
+  if (dial.showBackground) {
+    const bg = color(dial.background);
+    bg.setAlpha(fade);
+    background(bg);
+  } else {
+    // No background: erase a little of the last frame so the canvas stays transparent
+    push();
+    noStroke();
+    erase(fade, fade);
+    rect(0, 0, width, height);
+    noErase();
+    pop();
+  }
 
-  if (audioCtx) scheduleSong();
+  if (audioCtx && audioCtx.state === 'running') scheduleSong();
+  else if (song && audioCtx) song.next = audioCtx.currentTime + 0.05; // wait for audio to unlock
   listen();
 
-  buildPath(constrain(dial.scale * (1 + level.mid * dial.music.spread), 0.05, 1));
+  // Phase drift: the figure rolls; mids make it roll faster
+  drift += (deltaTime / 1000) * dial.scope.drift * (1 + level.mid * dial.music.spread);
+  buildPath(dial.scale);
   const total = cum[cum.length - 1];
   if (total <= 0) return;
 
@@ -404,26 +432,41 @@ function draw() {
   }
 
   fill(dial.color);
+  drawingContext.shadowBlur = dial.scope.glow * 0.5;
+  drawingContext.shadowColor = dial.color;
   const chars = getGlyphs(dial.text);
-  const step = total / dial.count;
+  const count = dial.count;
+  const step = total / count;
   // Highs push the text along faster; accumulate so speed changes don't jump
   travel += (deltaTime / 1000) * dial.speed * (1 + level.high * dial.music.rush);
   const offset = ((travel / TWO_PI) % 1) * total;
   const baseSize = dial.size * (1 + level.bass * dial.music.pulse);
+  const n = waveform ? waveform.length : 0;
+  if (bounce.length !== count) bounce = new Array(count).fill(0);
 
-  for (let i = 0; i < dial.count; i++) {
+  for (let i = 0; i < count; i++) {
     const s = (i * step + offset) % total;
     const p = pointAt(s);
-    const amp = spectrum ? spectrum[floor(map(i, 0, dial.count, 2, 200))] / 255 : 0;
+    const amp = spectrum ? spectrum[floor(map(i, 0, count, 2, 200))] / 255 : 0;
+    // The waveform at this letter's spot along the text: letters ride the sound wave
+    const wv = n ? (waveform[floor((i / count) * (n - 1))] - 128) / 128 : 0;
+    // Jump off the line: its own frequency pushes it out, the waveform shakes it back and forth
+    const target = (amp * 1.2 + wv * 2) * dial.music.jump * baseSize;
+    bounce[i] = lerp(bounce[i], target, 0.35);
 
     push();
     translate(p.x, p.y);
     // Letters sit on the curve, following its direction
     if (dial.rotate) rotate(p.angle);
+    // Push out along the curve's normal
+    if (dial.rotate) translate(0, -bounce[i]);
+    else translate(-sin(p.angle) * bounce[i], cos(p.angle) * -bounce[i]);
+    rotate(wv * dial.music.shake * PI * 0.5);
     textSize(max(1, baseSize * (1 + amp * dial.music.wave)));
     text(chars[i % chars.length], 0, 0);
     pop();
   }
+  drawingContext.shadowBlur = 0;
   pop();
 
   // Hint / now playing
