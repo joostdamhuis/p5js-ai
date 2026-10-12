@@ -1,20 +1,19 @@
 {
   "id": "project-1791830009521",
   "name": "Untitled Project 4",
-  "lastModified": 1791830167745,
-  "activeFile": "sketch",
-  "openTabs": [
-    "sketch",
-    "index",
-    "style"
-  ],
+  "lastModified": 1791830490281,
+  "openTabs": [],
   "controls": {
-    "size": 324,
+    "size": 400,
     "color": "#000000",
     "background": "#ffffff",
     "density": 8,
     "columns": 3,
-    "detail": 64
+    "detail": 64,
+    "spacing": 1,
+    "speed": 5,
+    "ripple": 0.3,
+    "spin": true
   },
   "fonts": [],
   "files": [
@@ -22,19 +21,19 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791830127122
+      "lastModified": 1791830198604
     },
     {
       "id": "index",
       "name": "index.html",
       "type": "html",
-      "lastModified": 1791829818520
+      "lastModified": 1791830481323
     },
     {
       "id": "style",
       "name": "style.css",
       "type": "css",
-      "lastModified": 1791829818520
+      "lastModified": 1791830472260
     }
   ]
 }

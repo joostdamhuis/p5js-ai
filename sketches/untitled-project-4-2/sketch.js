@@ -1,10 +1,14 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
-  size: [324, 64, 400],
+  size: [400, 64, 400],
   detail: [64, 3, 64, 1],
   color: '#000000',
   background: '#ffffff',
   columns: [3, 1, 12, 1],
+  spacing: [1, 1, 3, 0.05],
+  speed: [5, 0, 5, 0.1],
+  ripple: [0.3, 0, 1, 0.05],
+  spin: true,
 });
 
 // Text printed on every face of the cube
@@ -38,13 +42,11 @@ function draw() {
   background(dial.background);
   drawFace();
 
-  // The mouse tilts the whole pattern
-  rotateX(map(mouseY, 0, height, -PI / 3, PI / 3));
-  rotateY(map(mouseX, 0, width, -PI / 3, PI / 3));
-
   // Grid of spheres centred on the canvas, spaced by their size
-  const gap = dial.size * 1.4;
+  const gap = dial.size * dial.spacing;
   const offset = (dial.columns - 1) / 2;
+  // Spin speed scales with the speed control; spin toggle stops the rotation
+  const spinAngle = dial.spin ? frameCount * 0.01 * dial.speed : 0;
   texture(faceTex);
 
   for (let i = 0; i < dial.columns; i++) {
@@ -52,7 +54,7 @@ function draw() {
       push();
       translate((i - offset) * gap, (j - offset) * gap, 0);
       // Each sphere spins at its own phase so the grid ripples
-      rotateY(frameCount * 0.01 + (i + j) * 0.3);
+      rotateY(spinAngle + (i + j) * dial.ripple);
       sphere(dial.size / 2, dial.detail, dial.detail);
       pop();
     }
