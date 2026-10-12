@@ -1,7 +1,7 @@
 {
   "id": "project-1791831933705",
   "name": "Untitled Project 5",
-  "lastModified": 1791832517662,
+  "lastModified": 1791833752416,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -9,21 +9,35 @@
     "style"
   ],
   "controls": {
-    "size": 44,
-    "color": "#00f84a",
+    "size": 30,
+    "color": "#ffffff",
     "background": "#000000",
-    "funky": 0,
-    "speed": 2,
-    "density": 5,
+    "funky": 49,
+    "speed": 4.6,
+    "density": 1,
     "scale": 0.5,
     "ballSize": 1,
-    "morph": 0.11,
-    "pulse": 0,
-    "jitter": 0,
-    "variety": 0,
-    "wander": 0,
-    "burst": 0,
-    "shuffle": 1
+    "morph": 0.04,
+    "pulse": 1,
+    "jitter": 0.7,
+    "variety": 0.37,
+    "wander": 15,
+    "burst": 140,
+    "shuffle": 0.35,
+    "hold": 8.4,
+    "bpm": 80,
+    "volume": 0.3,
+    "bounce": 30,
+    "wave": 0.23,
+    "punch": 0.3,
+    "lineHeight": 0.8,
+    "copies": 4,
+    "stretch": 0.6,
+    "spacing": 3.7,
+    "stagger": 0.04,
+    "drift": -0.05,
+    "snap": 0,
+    "fade": 0.6
   },
   "fonts": [],
   "files": [
@@ -31,13 +45,13 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791832482508
+      "lastModified": 1791833752416
     },
     {
       "id": "index",
       "name": "index.html",
       "type": "html",
-      "lastModified": 1791830575145
+      "lastModified": 1791833581071
     },
     {
       "id": "style",

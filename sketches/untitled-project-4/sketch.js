@@ -1,33 +1,33 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
-  text: 'MOVE TO THE SOUND · ',
+  text: 'lets dance baby',
   size: [34, 4, 240],
-  count: [112, 10, 600, 1],
-  freqA: [5, 1, 12, 1],
-  freqB: [9, 1, 12, 1],
-  shape: [0.09, 0, 1],
-  speed: [0, 0, 4],
-  scale: [0.49, 0.1, 1],
-  rotate: true,
-  color: '#39ff88',
+  count: [25, 10, 600, 1],
+  freqA: [3, 1, 12, 1],
+  freqB: [4, 1, 12, 1],
+  shape: [0.98, 0, 1],
+  speed: [0.2, 0, 4],
+  scale: [0.47, 0.1, 1],
+  rotate: false,
+  color: '#00fc05',
   background: '#020a05',
   showBackground: false,     // off: transparent canvas, the trails fade to nothing
   scope: {
     trace: [0, 0, 8],          // beam thickness (0 hides it)
     glow: [0, 0, 50],         // phosphor glow around the beam
-    persistence: [0.41, 0, 1],  // how long the screen keeps the afterglow
-    wobble: [0.27, 0, 1],       // the music's waveform bends the beam (XY mode)
-    drift: [2.2, 0, 3],        // the figure rolls as the phase drifts, like a real scope
+    persistence: [0, 0, 1],  // how long the screen keeps the afterglow
+    wobble: [0, 0, 1],       // the music's waveform bends the beam (XY mode)
+    drift: [0.3, 0, 3],        // the figure rolls as the phase drifts, like a real scope
   },
   music: {
-    volume: [1, 0, 1],
-    sensitivity: [0.3, 0, 4],
-    pulse: [1.7, 0, 3],   // bass makes the letters bigger
-    spread: [1.1, 0, 4],  // mids make the figure roll faster
-    rush: [3.2, 0, 8],      // highs speed the text up
-    wave: [2, 0, 3],      // each letter grows to its own frequency
-    jump: [1.8, 0, 4],      // letters jump off the line with the sound
-    shake: [0.7, 0, 2],     // letters tilt with the waveform
+    volume: [0.15, 0, 1],
+    sensitivity: [4, 0, 4],
+    pulse: [1.1, 0, 3],   // bass makes the letters bigger
+    spread: [2.3, 0, 4],  // mids make the figure roll faster
+    rush: [4, 0, 8],      // highs speed the text up
+    wave: [0.6, 0, 3],      // each letter grows to its own frequency
+    jump: [0.2, 0, 4],      // letters jump off the line with the sound
+    shake: [0, 0, 2],     // letters tilt with the waveform
     newSong: { type: 'action' }, // make a new random song
   },
 }, {
@@ -36,7 +36,7 @@ const dial = dials({
   },
 });
 
-const SAMPLES = 2000;
+const SAMPLES = 12732;
 let pts = [];
 let cum = [];
 let drift = 0;
@@ -83,8 +83,26 @@ function ensureAudio() {
     noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    // Schedule the song on its own timer so it never depends on the draw loop
+    setInterval(() => scheduleSong(), 25);
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  unlockAudio();
+}
+
+// Resume the audio and play a tiny silent sound: some browsers (Safari, iOS) only start audio this way
+let unlocked = false;
+function unlockAudio() {
+  if (!audioCtx) return;
+  if (audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+  if (!unlocked) {
+    try {
+      const b = audioCtx.createBufferSource();
+      b.buffer = audioCtx.createBuffer(1, 1, 22050);
+      b.connect(audioCtx.destination);
+      b.start(0);
+      unlocked = true;
+    } catch (e) {}
+  }
 }
 
 function stopFile() {
@@ -224,7 +242,7 @@ function playStep(step, t) {
 }
 
 function scheduleSong() {
-  if (!song || !song.playing) return;
+  if (!audioCtx || !song || !song.playing) return;
   const now = audioCtx.currentTime;
   if (song.next < now - 0.1) song.next = now + 0.05; // tab was hidden: don't burst
   const sixteenth = 60 / song.tempo / 4;
@@ -284,8 +302,9 @@ function setup() {
   cnv.drop((f) => playFile(f.file));
 
   // Browsers keep audio suspended until a real user gesture: resume on any click, tap or key
+  // Creating the audio inside the gesture itself is what browsers accept
   const unlock = () => {
-    if (audioCtx && audioCtx.state !== 'running') audioCtx.resume();
+    ensureAudio();
   };
   ['pointerdown', 'pointerup', 'click', 'touchend', 'keydown'].forEach((ev) =>
     window.addEventListener(ev, unlock, true)
@@ -404,8 +423,6 @@ function draw() {
     pop();
   }
 
-  if (audioCtx && audioCtx.state === 'running') scheduleSong();
-  else if (song && audioCtx) song.next = audioCtx.currentTime + 0.05; // wait for audio to unlock
   listen();
 
   // Phase drift: the figure rolls; mids make it roll faster
@@ -456,11 +473,14 @@ function draw() {
 
     push();
     translate(p.x, p.y);
-    // Letters sit on the curve, following its direction
-    if (dial.rotate) rotate(p.angle);
     // Push out along the curve's normal
-    if (dial.rotate) translate(0, -bounce[i]);
-    else translate(-sin(p.angle) * bounce[i], cos(p.angle) * -bounce[i]);
+    translate(sin(p.angle) * bounce[i], -cos(p.angle) * bounce[i]);
+    // Letters follow the curve's direction, but flip when it runs leftward so they never read upside down
+    if (dial.rotate) {
+      let a = p.angle;
+      if (cos(a) < 0) a += PI;
+      rotate(a);
+    }
     rotate(wv * dial.music.shake * PI * 0.5);
     textSize(max(1, baseSize * (1 + amp * dial.music.wave)));
     text(chars[i % chars.length], 0, 0);
@@ -472,7 +492,9 @@ function draw() {
   // Hint / now playing
   const hint = !audioEl && !song
     ? 'Click for a random song · F to pick a music file, or drop one here'
-    : needsClick
+    : audioCtx && audioCtx.state !== 'running'
+      ? 'Click anywhere to turn on sound'
+      : needsClick
       ? 'Click to play ' + trackName
       : !isPlaying()
         ? 'Paused · space to play'
