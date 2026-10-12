@@ -1,33 +1,33 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
   text: 'lets dance baby 💃🕺🎶✨🪩 🎧🥳🔥🌈🎉 ',
-  size: [14, 4, 240],
-  count: [28, 10, 600, 1],
+  size: [4, 4, 240],
+  count: [41, 10, 600, 1],
   freqA: [9, 1, 12, 1],
-  freqB: [5, 1, 12, 1],
-  shape: [0.98, 0, 1],
-  speed: [0.1, 0, 4],
-  scale: [0.51, 0.1, 1],
+  freqB: [9, 1, 12, 1],
+  shape: [0.22, 0, 1],
+  speed: [0, 0, 4],
+  scale: [0.3, 0.1, 1],
   rotate: false,
-  color: '#000000',
-  background: '#ffffff',
+  color: '#c42472',
+  background: '#000000',
   showBackground: true,      // on: the background colour fills the canvas; off: transparent canvas, the trails fade to nothing
   scope: {
     trace: [0, 0, 8],          // beam thickness (0 hides it)
     glow: [0, 0, 50],         // phosphor glow around the beam
-    persistence: [0, 0, 1],  // how long the screen keeps the afterglow
-    wobble: [0, 0, 1],       // the music's waveform bends the beam (XY mode)
-    drift: [0.3, 0, 3],        // the figure rolls as the phase drifts, like a real scope
+    persistence: [0.6, 0, 1],  // how long the screen keeps the afterglow
+    wobble: [0.59, 0, 1],       // the music's waveform bends the beam (XY mode)
+    drift: [2.1, 0, 3],        // the figure rolls as the phase drifts, like a real scope
   },
   music: {
-    volume: [0.15, 0, 1],
-    sensitivity: [3.8, 0, 4],
-    pulse: [3, 0, 3],   // bass makes the letters bigger
+    volume: [0.44, 0, 1],
+    sensitivity: [4, 0, 4],
+    pulse: [2.7, 0, 3],   // bass makes the letters bigger
     spread: [4, 0, 4],  // mids make the figure roll faster
     rush: [7.2, 0, 8],      // highs speed the text up
-    wave: [0.7, 0, 3],      // each letter grows to its own frequency
-    jump: [1.2, 0, 4],      // letters jump off the line with the sound
-    shake: [0, 0, 2],     // letters tilt with the waveform
+    wave: [2.4, 0, 3],      // each letter grows to its own frequency
+    jump: [3.8, 0, 4],      // letters jump off the line with the sound
+    shake: [1.5, 0, 2],     // letters tilt with the waveform
     newSong: { type: 'action' }, // make a new random song
   },
 }, {
