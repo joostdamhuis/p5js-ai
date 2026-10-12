@@ -180,30 +180,34 @@ export default function ProjectPage() {
   const quietCode = useRef<string | null>(null);
   const codeSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // While a control is dragged its values change every frame. The running sketch
+  // gets them straight from the Controls panel; the project (saved controls and
+  // the code) is updated once, shortly after the last change, so the editor
+  // doesn't re-render on every frame.
+  const latestControls = useRef<Record<string, unknown> | null>(null);
   const handleControlsChange = useCallback((controls: Record<string, unknown>) => {
-    setProject(prev => {
-      if (!prev) return prev;
-      // Merge, so controls that haven't appeared yet keep their saved values
-      const merged = { ...(prev.controls ?? {}), ...controls };
-      if (JSON.stringify(prev.controls ?? {}) === JSON.stringify(merged)) return prev;
-      return { ...prev, controls: merged };
-    });
-    // Controls → code, shortly after the last change, so the code shows what's on screen
+    latestControls.current = controls;
     if (codeSyncTimer.current) clearTimeout(codeSyncTimer.current);
     codeSyncTimer.current = setTimeout(() => {
+      const values = latestControls.current;
+      if (!values) return;
       setProject(prev => {
         if (!prev) return prev;
-        let changed = false;
+        // Merge, so controls that haven't appeared yet keep their saved values
+        const merged = { ...(prev.controls ?? {}), ...values };
+        const controlsChanged = JSON.stringify(prev.controls ?? {}) !== JSON.stringify(merged);
+        // Controls → code, so the code shows what's on screen
+        let codeChanged = false;
         const files = prev.files.map(f => {
           if (f.type !== 'js') return f;
-          const content = writeControlsToCode(f.content, controls, findAutoDials(f.content));
+          const content = writeControlsToCode(f.content, values, findAutoDials(f.content));
           if (content === f.content) return f;
-          changed = true;
+          codeChanged = true;
           return { ...f, content };
         });
-        if (!changed) return prev;
-        quietCode.current = files.filter(f => f.type === 'js').map(f => f.content).join('\n');
-        return { ...prev, files, lastModified: Date.now() };
+        if (!controlsChanged && !codeChanged) return prev;
+        if (codeChanged) quietCode.current = files.filter(f => f.type === 'js').map(f => f.content).join('\n');
+        return { ...prev, controls: merged, files, ...(codeChanged ? { lastModified: Date.now() } : {}) };
       });
     }, 250);
   }, []);
@@ -450,9 +454,20 @@ export default function ProjectPage() {
   };
 
   // Handle console messages
-  const handleConsoleMessage = (message: LogMessage) => {
-    setConsoleMessages(prevMessages => [...prevMessages, message]);
-  };
+  // Sketches can log every frame: collect messages and add them at most ten
+  // times a second, keeping the last 500
+  const consoleQueue = useRef<LogMessage[]>([]);
+  const consoleFlush = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleConsoleMessage = useCallback((message: LogMessage) => {
+    consoleQueue.current.push(message);
+    if (consoleFlush.current) return;
+    consoleFlush.current = setTimeout(() => {
+      const batch = consoleQueue.current;
+      consoleQueue.current = [];
+      consoleFlush.current = null;
+      setConsoleMessages(prev => [...prev, ...batch].slice(-500));
+    }, 100);
+  }, []);
 
   // Clear console messages
   const clearConsole = () => {

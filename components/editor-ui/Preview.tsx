@@ -403,10 +403,11 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
   onAmbientRef.current = onAmbientColor;
   const wantsAmbient = !!onAmbientColor;
   useEffect(() => {
-    if (!isRunning || !wantsAmbient) return;
+    // Paused: the canvas doesn't change, so there's nothing new to sample
+    if (!isRunning || isPaused || !wantsAmbient) return;
     const timer = setInterval(() => postToSketch({ type: 'ambientSample' }), 500);
     return () => clearInterval(timer);
-  }, [isRunning, wantsAmbient, postToSketch]);
+  }, [isRunning, isPaused, wantsAmbient, postToSketch]);
 
   // Save asks for a fresh thumbnail too
   useEffect(() => {
