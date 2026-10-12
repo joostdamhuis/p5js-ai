@@ -107,3 +107,5 @@ Controls → code (lib/code-sync.ts): 250ms after a control changes, page.tsx re
 Dev server ignores `sketches/` (next.config.ts webpack watchOptions): otherwise every autosave recompiled and refreshed the editor page.
 
 Icons: Lucide everywhere at 16px (h-4) in bars and menus, stroke 1.5 via `svg.lucide` in globals.css, outline only (no filled Play/Pause/Stop).
+
+Editor.tsx: Monaco is uncontrolled (`path` per file + `defaultValue`); outside changes are applied as a minimal edit (common prefix/suffix), so control drags don't re-render the whole file (no flicker).

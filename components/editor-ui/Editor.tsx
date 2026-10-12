@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import MonacoEditor, { OnMount } from '@monaco-editor/react';
 import { cn } from '@/lib/utils';
 import { ProjectFile, FileType } from '@/lib/types';
@@ -57,12 +57,38 @@ const Editor = ({
     // This is a placeholder for future enhancement
   };
 
+  // Changes from outside (Controls panel, Claude): edit only the characters that
+  // differ, instead of replacing the whole file. A full replace re-renders every
+  // line, which made the code flicker while dragging a control.
+  useEffect(() => {
+    const editor = editorRef.current;
+    const model = editor?.getModel();
+    if (!model) return;
+    const current: string = model.getValue();
+    const next = file.content;
+    if (current === next) return;
+    let start = 0;
+    const max = Math.min(current.length, next.length);
+    while (start < max && current[start] === next[start]) start++;
+    let end = 0;
+    while (end < max - start && current[current.length - 1 - end] === next[next.length - 1 - end]) end++;
+    const from = model.getPositionAt(start);
+    const to = model.getPositionAt(current.length - end);
+    model.pushEditOperations(
+      [],
+      [{ range: { startLineNumber: from.lineNumber, startColumn: from.column, endLineNumber: to.lineNumber, endColumn: to.column }, text: next.slice(start, next.length - end) }],
+      () => null
+    );
+  }, [file.content]);
+
   return (
     <div className={cn("w-full h-full overflow-hidden", className)}>
       <MonacoEditor
         height={height}
         language={getLanguage(file.type)}
-        value={file.content}
+        // One model per file; outside changes go through the effect above
+        path={file.id}
+        defaultValue={file.content}
         onChange={(value) => onChange(value || '')}
         beforeMount={(monaco) => { defineStudioTheme(monaco); defineStudioLightTheme(monaco); }}
         onMount={handleEditorDidMount}
