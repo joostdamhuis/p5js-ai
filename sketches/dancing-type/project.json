@@ -1,7 +1,7 @@
 {
   "id": "project-1791830581986",
   "name": "dancing type",
-  "lastModified": 1791835549641,
+  "lastModified": 1791835585318,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -14,7 +14,7 @@
     "background": "#ffffff",
     "text": "lets dance baby 💃🕺🎶✨🪩 🎧🥳🔥🌈🎉 ",
     "count": 28,
-    "freqA": 3,
+    "freqA": 9,
     "freqB": 5,
     "speed": 0.1,
     "scale": 0.51,
@@ -49,7 +49,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791835531843
+      "lastModified": 1791835585318
     },
     {
       "id": "index",

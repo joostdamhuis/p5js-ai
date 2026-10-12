@@ -3,7 +3,7 @@ const dial = dials({
   text: 'lets dance baby 💃🕺🎶✨🪩 🎧🥳🔥🌈🎉 ',
   size: [14, 4, 240],
   count: [28, 10, 600, 1],
-  freqA: [3, 1, 12, 1],
+  freqA: [9, 1, 12, 1],
   freqB: [5, 1, 12, 1],
   shape: [0.98, 0, 1],
   speed: [0.1, 0, 4],
