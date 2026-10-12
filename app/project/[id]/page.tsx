@@ -23,7 +23,7 @@ import {
 import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib/appearance';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
-import { ArrowLeft, PanelsLeftRight, Play, Pause, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
+import { ArrowLeft, PanelsLeftRight, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import PromptBox from '@/components/editor-ui/PromptBox';
 import { writeControlsToCode } from '@/lib/code-sync';
 import { findAutoDials } from '@/lib/auto-dials';
@@ -686,7 +686,7 @@ export default function ProjectPage() {
               title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
               className="h-10 w-10 flex items-center justify-center rounded-[10px] text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
             >
-              {isRunning && !isPaused ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-px" />}
+              {isRunning && !isPaused ? <PauseIcon /> : <PlayIcon />}
             </button>
             {dockToggle(
               showCode || showControls,
@@ -706,3 +706,16 @@ export default function ProjectPage() {
   );
 
 } 
+// Play and Pause drawn on the same 18px box as the other bar icons (Lucide's are
+// smaller), so they line up with Panels, Save and More
+const PauseIcon = () => (
+  <svg className="lucide h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+    <rect x="5" y="3" width="5" height="18" rx="1.5" />
+    <rect x="14" y="3" width="5" height="18" rx="1.5" />
+  </svg>
+);
+const PlayIcon = () => (
+  <svg className="lucide h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+    <path d="M6 4.2v15.6a1.2 1.2 0 0 0 1.8 1l13-7.8a1.2 1.2 0 0 0 0-2l-13-7.8A1.2 1.2 0 0 0 6 4.2z" />
+  </svg>
+);
