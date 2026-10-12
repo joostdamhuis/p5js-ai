@@ -325,7 +325,7 @@ const PromptBox = ({ project, errors, onRestore, tools }: PromptBoxProps) => {
           title={working ? 'Stop (Esc)' : 'Send (Enter)'}
           onClick={working ? () => abortRef.current?.abort() : send}
           disabled={!working && !text.trim()}
-          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] disabled:opacity-25 transition-colors"
+          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:text-muted-foreground disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
         >
           {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
         </button>

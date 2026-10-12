@@ -679,7 +679,7 @@ export default function ProjectPage() {
             <button
               onClick={isRunning ? () => setIsPaused(p => !p) : handleStart}
               title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
-              className="mr-1 h-10 w-10 flex items-center justify-center rounded-[10px] bg-[rgb(var(--ink))] text-[var(--chrome)] hover:bg-[rgb(var(--ink)/0.85)] transition-colors"
+              className="h-10 w-10 flex items-center justify-center rounded-[10px] text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
             >
               {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
             </button>
