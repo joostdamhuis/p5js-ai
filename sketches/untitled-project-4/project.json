@@ -1,7 +1,7 @@
 {
-  "id": "project-1791723673165",
+  "id": "project-1791830581986",
   "name": "Untitled Project 4",
-  "lastModified": 1791723673165,
+  "lastModified": 1791830959521,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -9,9 +9,18 @@
     "style"
   ],
   "controls": {
-    "size": 64,
+    "size": 24,
     "color": "#ffffff",
-    "background": "#000000"
+    "background": "#000000",
+    "text": "🌈✨🦄🍭💫🌸🍉🚀",
+    "count": 31,
+    "freqA": 3,
+    "freqB": 9,
+    "speed": 0.3,
+    "scale": 0.33,
+    "rotate": false,
+    "Samples": 1210,
+    "shape": 0.09
   },
   "fonts": [],
   "files": [
@@ -19,19 +28,19 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791723668373
+      "lastModified": 1791830888719
     },
     {
       "id": "index",
       "name": "index.html",
       "type": "html",
-      "lastModified": 1791723668373
+      "lastModified": 1791830575145
     },
     {
       "id": "style",
       "name": "style.css",
       "type": "css",
-      "lastModified": 1791723668373
+      "lastModified": 1791830575145
     }
   ]
 }

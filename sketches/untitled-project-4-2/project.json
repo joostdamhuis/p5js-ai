@@ -1,18 +1,18 @@
 {
   "id": "project-1791830009521",
   "name": "Untitled Project 4",
-  "lastModified": 1791830490281,
+  "lastModified": 1791830571193,
   "openTabs": [],
   "controls": {
-    "size": 400,
+    "size": 164,
     "color": "#000000",
     "background": "#ffffff",
     "density": 8,
-    "columns": 3,
-    "detail": 64,
+    "columns": 4,
+    "detail": 29,
     "spacing": 1,
     "speed": 5,
-    "ripple": 0.3,
+    "ripple": 0.4,
     "spin": true
   },
   "fonts": [],

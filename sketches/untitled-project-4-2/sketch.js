@@ -1,13 +1,13 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
-  size: [400, 64, 400],
-  detail: [64, 3, 64, 1],
+  size: [164, 64, 400],
+  detail: [29, 3, 64, 1],
   color: '#000000',
   background: '#ffffff',
-  columns: [3, 1, 12, 1],
+  columns: [4, 1, 12, 1],
   spacing: [1, 1, 3, 0.05],
   speed: [5, 0, 5, 0.1],
-  ripple: [0.3, 0, 1, 0.05],
+  ripple: [0.4, 0, 1, 0.05],
   spin: true,
 });
 
