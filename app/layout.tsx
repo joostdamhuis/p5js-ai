@@ -6,8 +6,8 @@ import "./globals.css";
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
-  title: "p5.js AI Editor",
-  description: "AI-powered p5.js code editor with real-time preview and WebSocket connectivity",
+  title: "p5 Studio",
+  description: "A p5.js playground on your Mac where you shape sketches by hand or ask Claude",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

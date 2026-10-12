@@ -59,6 +59,13 @@ export default function ProjectPage() {
     setShowCode(show);
     setShowControls(show);
   }, [showCode, showControls]);
+  // Browser tab: the sketch's name first, so open sketches are easy to tell apart
+  useEffect(() => {
+    if (!project?.name) return;
+    document.title = `${project.name} · p5 Studio`;
+    return () => { document.title = 'p5 Studio'; };
+  }, [project?.name]);
+
   // A peek closes once the pointer is clearly away from the panel and its edge
   const leftPanelRef = useRef<HTMLDivElement>(null);
   const rightPanelRef = useRef<HTMLElement>(null);
