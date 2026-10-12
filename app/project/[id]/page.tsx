@@ -23,7 +23,7 @@ import {
 import { Appearance, readAppearance, writeAppearance, applySurface } from '@/lib/appearance';
 import { Project, ProjectFile, DEFAULT_PROJECT } from '@/lib/types';
 import { fetchProject, fetchProjects, saveProject, cacheProject, uploadFont } from '@/lib/projects';
-import { ArrowLeft, PanelsTopLeft, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, Plus, SunMoon, SquareTerminal, Check } from 'lucide-react';
 import PromptBox from '@/components/editor-ui/PromptBox';
 import { writeControlsToCode } from '@/lib/code-sync';
 import { findAutoDials } from '@/lib/auto-dials';
@@ -692,7 +692,7 @@ export default function ProjectPage() {
               showCode || showControls,
               () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
               'panels',
-              <PanelsTopLeft className="h-4 w-4" />
+              <SlidersHorizontal className="h-4 w-4" />
             )}
             <ProjectManager currentProject={project} onProjectChange={setProject} compact />
             {/* More menu (export + the items below), rendered by Preview */}
