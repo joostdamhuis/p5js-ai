@@ -6,7 +6,7 @@ import "./globals.css";
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
-  title: "p5 Studio",
+  title: "Creative Coding Studio",
   description: "A p5.js playground on your Mac where you shape sketches by hand or ask Claude",
 };
 
