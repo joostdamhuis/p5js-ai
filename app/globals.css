@@ -324,3 +324,11 @@ html, body {
   max-width: 100%;
   overflow-x: hidden;
 }
+
+/* Icons: one thin, even line weight everywhere (Lucide's default 2px reads heavy
+   next to 13px text), with rounded ends and corners */
+svg.lucide {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

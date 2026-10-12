@@ -683,7 +683,7 @@ const Preview = ({ project, height = '100%', className, onConsoleMessage, isRunn
       title="Stop and download the video"
       className="flex items-center gap-1.5 h-10 px-3 rounded-[10px] text-[13px] font-medium tabular-nums bg-red-500 text-white hover:bg-red-500/90 transition-colors"
     >
-      <Square className="h-3 w-3 fill-current" />
+      <Square className="h-3.5 w-3.5" />
       {formatElapsed(now - recording.since)}
       {recording.seconds ? ` / ${formatElapsed(recording.seconds * 1000)}` : ''}
     </button>

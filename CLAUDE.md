@@ -105,3 +105,5 @@ When the code changes a control's default in dials() (e.g. a prompt picks new co
 Controls → code (lib/code-sync.ts): 250ms after a control changes, page.tsx rewrites the literal values in `dials({...})` (array defaults, plain values, `default:` of typed controls; easing/image stay as written) and smart-toggle `const` lines via acorn, so the code always shows what's on screen. The edit is passed to Preview as `quietCode`, so the running sketch isn't restarted for it. Code → controls goes the other way through applyChangedDefaults, so code, Controls panel and prompt box edits stay in sync.
 
 Dev server ignores `sketches/` (next.config.ts webpack watchOptions): otherwise every autosave recompiled and refreshed the editor page.
+
+Icons: Lucide everywhere at 16px (h-4) in bars and menus, stroke 1.5 via `svg.lucide` in globals.css, outline only (no filled Play/Pause/Stop).

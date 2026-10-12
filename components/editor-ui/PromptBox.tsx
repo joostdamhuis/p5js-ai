@@ -320,7 +320,7 @@ const PromptBox = ({ project, errors, onRestore, onApply, tools }: PromptBoxProp
               className="h-10 shrink-0 flex items-center gap-1 px-3 rounded-[10px] text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] data-[state=open]:bg-[rgb(var(--ink)/0.11)] data-[state=open]:text-foreground disabled:opacity-40 transition-colors"
             >
               {MODELS.find(m => m.id === model)?.name.split(' ')[0]}
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className="h-3.5 w-3.5" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="end" sideOffset={10} className="min-w-60">
@@ -339,7 +339,7 @@ const PromptBox = ({ project, errors, onRestore, onApply, tools }: PromptBoxProp
           disabled={!working && !text.trim()}
           className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:text-muted-foreground disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
         >
-          {working ? <Square className="h-2.5 w-2.5 fill-current" /> : <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />}
+          {working ? <Square className="h-3.5 w-3.5" /> : <ArrowUp className="h-4 w-4" />}
         </button>
         </div>
       </div>

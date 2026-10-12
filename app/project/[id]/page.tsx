@@ -599,7 +599,7 @@ export default function ProjectPage() {
           title="All projects"
           className="h-9 w-9 flex items-center justify-center rounded-[10px] text-muted-foreground hover:bg-[rgb(var(--ink)/0.1)] hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="h-4 w-4" />
         </button>
         <input
           value={project.name}
@@ -686,13 +686,13 @@ export default function ProjectPage() {
               title={!isRunning ? 'Run sketch' : isPaused ? 'Play' : 'Pause'}
               className="h-10 w-10 flex items-center justify-center rounded-[10px] text-foreground hover:bg-[rgb(var(--ink)/0.1)] transition-colors"
             >
-              {isRunning && !isPaused ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
+              {isRunning && !isPaused ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-px" />}
             </button>
             {dockToggle(
               showCode || showControls,
               () => { const show = !(showCode || showControls); setShowCode(show); setShowControls(show); },
               'panels',
-              <PanelsLeftRight className="w-4 h-4" />
+              <PanelsLeftRight className="h-4 w-4" />
             )}
             <ProjectManager currentProject={project} onProjectChange={setProject} compact />
             {/* More menu (export + the items below), rendered by Preview */}
