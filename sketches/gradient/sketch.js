@@ -1,35 +1,38 @@
-// Gradient Pattern: rows of randomly sized rectangles, each with a horizontal gradient,
-// sliding sideways. Move the cursor to swell the bars and drag the rows along.
+// Gradient Pattern: rows of randomly sized blocks, each with a horizontal gradient,
+// sliding sideways. Switch between bars and cubes under Bars. Move the cursor to swell
+// the blocks and drag the rows along.
 // Press R (or change seed) for a new arrangement.
 const dial = dials({
   reds: {
-    from: '#3388ff',
-    via: '#1144cc',
-    to: '#88bbff',
+    from: '#3399ff',
+    via: '#0e3fb3',
+    to: '#8ac8ff',
     background: '#03081a',
   },
   bars: {
-    rows: [24, 2, 60, 1],
-    minWidth: [356, 4, 600, 1],
-    maxWidth: [4, 4, 1200, 1],
-    gap: [2, 0, 40, 1],
-    radius: [30, 0, 60, 1],
+    form: { type: 'select', options: ['bars', 'cubes'], default: 'cubes' },
+    depth: [0.5, 0, 0.5, 0.01], // cube depth, as a share of the block width
+    rows: [2, 2, 60, 1],
+    minWidth: [270, 4, 600, 1],
+    maxWidth: [871, 4, 1200, 1],
+    gap: [0, 0, 40, 1],
+    radius: [0, 0, 60, 1],
     margin: [0, 0, 200, 1], // top and bottom only
-    seed: [50, 1, 999, 1],
+    seed: [171, 1, 999, 1],
   },
   motion: {
-    speed: [2.02, 0, 3, 0.01],
-    slide: [237, 0, 400, 1], // pixels per second the rows drift
-    rowOffset: [0.18, 0, 0.5, 0.01],
-    repeats: [0.25, 0.25, 4, 0.05],
+    speed: [0.94, 0, 3, 0.01],
+    slide: [263, 0, 400, 1], // pixels per second the rows drift
+    rowOffset: [0.12, 0, 0.5, 0.01],
+    repeats: [1.85, 0.25, 4, 0.05],
     breathe: [0, 0, 1, 0.01], // gentle height pulse per bar
   },
   cursor: {
     reach: [20, 20, 900, 1], // how far the cursor's influence spreads
-    swell: [0, 0, 2.5, 0.01], // extra height for bars under the cursor
+    swell: [0.45, 0, 2.5, 0.01], // extra height for bars under the cursor
     drag: [0, 0, 4, 0.01], // how much moving the cursor pushes rows
     shift: [0, 0, 1, 0.01], // colour shift near the cursor
-    ease: [0.01, 0.01, 1, 0.01], // how quickly the effect follows the cursor
+    ease: [0.51, 0.01, 1, 0.01], // how quickly the effect follows the cursor
   },
   finish: {
     sheen: [0, 0, 1, 0.01], // light on top, shade underneath
@@ -73,6 +76,15 @@ function buildLayout() {
   }
 }
 
+// Fill a polygon given as [[x, y], ...]
+function face(ctx, pts, fill) {
+  ctx.beginPath();
+  pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
 function draw() {
   buildLayout();
   background(dial.reds.background);
@@ -87,6 +99,7 @@ function draw() {
   const c2 = color(dial.reds.via);
   const c3 = color(dial.reds.to);
   const ctx = drawingContext;
+  const cubes = b.form === 'cubes';
 
   // Smoothed cursor, fading in when it's over the canvas
   const inside = active && mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height;
@@ -120,7 +133,13 @@ function draw() {
         const pulse = 1 - m.breathe * 0.5 * (1 + sin(secs * rc.rate * (0.6 + m.speed) + rc.ph)) * 0.5;
         const rh = h * pulse * (1 + k.swell * near);
         const ry = mid - rh / 2;
-        const rr = min(b.radius, rh / 2, rc.w / 2);
+
+        // Cubes: the front face sits lower, leaving room for a top and a side face
+        const dz = cubes ? min(rc.w, rh) * b.depth : 0;
+        const fy = ry + dz, fh = rh - dz;
+        const rr = cubes ? 0 : min(b.radius, rh / 2, rc.w / 2);
+        const top = [[x, fy], [x + dz, ry], [x + rc.w + dz, ry], [x + rc.w, fy]];
+        const side = [[x + rc.w, fy], [x + rc.w + dz, ry], [x + rc.w + dz, ry + fh], [x + rc.w, ry + rh]];
 
         // Gradient follows screen position, so colours flow across the gaps
         const grad = ctx.createLinearGradient(x, 0, x + rc.w, 0);
@@ -136,19 +155,29 @@ function draw() {
           ctx.shadowColor = gc.toString();
           ctx.shadowBlur = f.glow * (0.2 + 0.8 * near);
         }
+        if (cubes) {
+          face(ctx, top, grad);
+          face(ctx, side, grad);
+        }
         ctx.fillStyle = grad;
-        rect(x, ry, rc.w, rh, rr);
+        rect(x, fy, rc.w, fh, rr);
         ctx.shadowBlur = 0;
+
+        // Cube faces: top catches light, side falls into shade
+        if (cubes) {
+          face(ctx, top, 'rgba(255,255,255,0.22)');
+          face(ctx, side, 'rgba(0,0,0,0.35)');
+        }
 
         // Sheen: light along the top, shade along the bottom
         if (f.sheen > 0) {
-          const s = ctx.createLinearGradient(0, ry, 0, ry + rh);
+          const s = ctx.createLinearGradient(0, fy, 0, fy + fh);
           s.addColorStop(0, `rgba(255,255,255,${f.sheen})`);
           s.addColorStop(0.45, 'rgba(255,255,255,0)');
           s.addColorStop(0.6, 'rgba(0,0,0,0)');
           s.addColorStop(1, `rgba(0,0,0,${f.sheen * 0.8})`);
           ctx.fillStyle = s;
-          rect(x, ry, rc.w, rh, rr);
+          rect(x, fy, rc.w, fh, rr);
         }
       }
     }

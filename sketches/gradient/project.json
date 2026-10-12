@@ -1,7 +1,7 @@
 {
   "id": "project-1791728629310",
   "name": "Gradient",
-  "lastModified": 1791736243355,
+  "lastModified": 1791829998371,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -24,34 +24,36 @@
       "fill": 0.8
     },
     "motion": {
-      "speed": 2.02,
-      "slide": 237,
-      "rowOffset": 0.18,
-      "repeats": 0.25,
+      "speed": 0.94,
+      "slide": 263,
+      "rowOffset": 0.12,
+      "repeats": 1.85,
       "breathe": 0
     },
     "bars": {
-      "rows": 24,
-      "minWidth": 356,
-      "maxWidth": 4,
-      "gap": 2,
-      "radius": 30,
+      "form": "cubes",
+      "depth": 0.5,
+      "rows": 2,
+      "minWidth": 270,
+      "maxWidth": 871,
+      "gap": 0,
+      "radius": 0,
       "margin": 0,
-      "seed": 50
+      "seed": 171
     },
     "Stops": 1,
     "reds": {
-      "from": "#3388ff",
-      "via": "#1144cc",
-      "to": "#88bbff",
+      "from": "#3399ff",
+      "via": "#0e3fb3",
+      "to": "#8ac8ff",
       "background": "#03081a"
     },
     "cursor": {
       "reach": 20,
-      "swell": 0,
+      "swell": 0.45,
       "drag": 0,
       "shift": 0,
-      "ease": 0.01
+      "ease": 0.51
     },
     "greens": {
       "from": "#1fd655",
@@ -84,7 +86,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791736243355
+      "lastModified": 1791829890616
     },
     {
       "id": "index",
