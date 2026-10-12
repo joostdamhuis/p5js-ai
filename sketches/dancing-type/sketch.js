@@ -9,7 +9,7 @@ const dial = dials({
   speed: [0.2, 0, 4],
   scale: [0.47, 0.1, 1],
   rotate: false,
-  color: '#00fc05',
+  color: '#efd100',
   background: '#020a05',
   showBackground: false,     // off: transparent canvas, the trails fade to nothing
   scope: {
