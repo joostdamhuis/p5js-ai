@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, ChevronDown, Paperclip, Square, Undo2, X } from 'lucide-react';
+import { ArrowUp, Check, ChevronDown, Plus, Square, Undo2, X } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Project, ProjectFile } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -284,7 +284,7 @@ const PromptBox = ({ project, errors, onRestore, onApply, tools }: PromptBoxProp
           disabled={working}
           className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground hover:bg-[rgb(var(--ink)/0.1)] disabled:hover:bg-transparent transition-colors"
         >
-          {working ? <Typing /> : <Paperclip className="h-4 w-4" />}
+          {working ? <Typing /> : <Plus className="h-4 w-4" />}
         </button>
         {attachments.map((a, i) => (
           <span key={i} className="h-10 shrink-0 flex items-center gap-1 pl-0.5 pr-1 rounded-[10px] bg-[rgb(var(--ink)/0.1)]">
