@@ -1,13 +1,13 @@
 // Live controls: tweak these in the Controls panel
 const dial = dials({
-  text: 'lets dance baby 💃🕺🎶✨🪩 🎧🥳🔥🌈🎉 ',
-  size: [34, 4, 240],
-  count: [41, 10, 600, 1],
+  text: 'lets dance baby ',
+  size: [24, 4, 240],
+  count: [82, 10, 600, 1],
   freqA: [9, 1, 12, 1],
   freqB: [9, 1, 12, 1],
-  shape: [0.22, 0, 1],
-  speed: [0, 0, 4],
-  scale: [0.3, 0.1, 1],
+  shape: [0, 0, 1],
+  speed: [0.1, 0, 4],
+  scale: [0.44, 0.1, 1],
   rotate: false,
   color: '#ffffff',
   background: '#000000',
@@ -15,19 +15,19 @@ const dial = dials({
   scope: {
     trace: [0, 0, 8],          // beam thickness (0 hides it)
     glow: [0, 0, 50],         // phosphor glow around the beam
-    persistence: [0.6, 0, 1],  // how long the screen keeps the afterglow
-    wobble: [0.59, 0, 1],       // the music's waveform bends the beam (XY mode)
-    drift: [2.1, 0, 3],        // the figure rolls as the phase drifts, like a real scope
+    persistence: [0, 0, 1],  // how long the screen keeps the afterglow
+    wobble: [0.34, 0, 1],       // the music's waveform bends the beam (XY mode)
+    drift: [0, 0, 3],        // the figure rolls as the phase drifts, like a real scope
   },
   music: {
-    volume: [0.44, 0, 1],
-    sensitivity: [0.5, 0, 4],
-    pulse: [0.9, 0, 3],   // bass makes the letters bigger
-    spread: [2, 0, 4],  // mids make the figure roll faster
-    rush: [1.3, 0, 8],      // highs speed the text up
-    wave: [0.6, 0, 3],      // each letter grows to its own frequency
-    jump: [2.7, 0, 4],      // letters jump off the line with the sound
-    shake: [1.5, 0, 2],     // letters tilt with the waveform
+    volume: [0.37, 0, 1],
+    sensitivity: [4, 0, 4],
+    pulse: [0, 0, 3],   // bass makes the letters bigger
+    spread: [0.3, 0, 4],  // mids make the figure roll faster
+    rush: [1.5, 0, 8],      // highs speed the text up
+    wave: [0, 0, 3],      // each letter grows to its own frequency
+    jump: [4, 0, 4],      // letters jump off the line with the sound
+    shake: [2, 0, 2],     // letters tilt with the waveform
     newSong: { type: 'action' }, // make a new random song
   },
 }, {
@@ -36,7 +36,7 @@ const dial = dials({
   },
 });
 
-const SAMPLES = 19059;
+const SAMPLES = 31;
 let pts = [];
 let cum = [];
 let drift = 0;

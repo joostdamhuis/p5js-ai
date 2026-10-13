@@ -1,7 +1,7 @@
 {
   "id": "project-1791830581986",
   "name": "dancing type",
-  "lastModified": 1791836671771,
+  "lastModified": 1791837003564,
   "activeFile": "sketch",
   "openTabs": [
     "sketch",
@@ -9,27 +9,27 @@
     "style"
   ],
   "controls": {
-    "size": 34,
+    "size": 24,
     "color": "#ffffff",
     "background": "#000000",
-    "text": "lets dance baby 💃🕺🎶✨🪩 🎧🥳🔥🌈🎉 ",
-    "count": 41,
+    "text": "lets dance baby ",
+    "count": 82,
     "freqA": 9,
     "freqB": 9,
-    "speed": 0,
-    "scale": 0.3,
+    "speed": 0.1,
+    "scale": 0.44,
     "rotate": false,
-    "Samples": 19059,
-    "shape": 0.22,
+    "Samples": 31,
+    "shape": 0,
     "music": {
-      "volume": 0.44,
-      "sensitivity": 0.5,
-      "pulse": 0.9,
-      "spread": 2,
-      "rush": 1.3,
-      "wave": 0.6,
-      "jump": 2.7,
-      "shake": 1.5,
+      "volume": 0.37,
+      "sensitivity": 4,
+      "pulse": 0,
+      "spread": 0.3,
+      "rush": 1.5,
+      "wave": 0,
+      "jump": 4,
+      "shake": 2,
       "newSong": {
         "type": "action"
       }
@@ -37,9 +37,9 @@
     "scope": {
       "trace": 0,
       "glow": 0,
-      "persistence": 0.6,
-      "wobble": 0.59,
-      "drift": 2.1
+      "persistence": 0,
+      "wobble": 0.34,
+      "drift": 0
     },
     "showBackground": true
   },
@@ -49,7 +49,7 @@
       "id": "sketch",
       "name": "sketch.js",
       "type": "js",
-      "lastModified": 1791836671771
+      "lastModified": 1791837003564
     },
     {
       "id": "index",
